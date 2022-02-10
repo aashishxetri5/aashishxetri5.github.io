@@ -78,11 +78,11 @@ ul {
 .wrapper {
   max-width: 1300px;
   margin: auto;
-  padding: 0 15rem;
+  padding: 0 11rem;
 }
 
-.colored{
-  background-color: #E0E2DB;
+.colored {
+  background-color: #e0e2db;
 }
 
 /* Navbar CSS */
@@ -271,8 +271,8 @@ section {
   outline: none;
 }
 
-.colored .section-title::after{
-  border-color: #E0E2DB !important;
+.colored .section-title::after {
+  border-color: #e0e2db !important;
 }
 
 /*About Section Starts Here*/
@@ -342,7 +342,7 @@ section {
 }
 
 .about-timeline div::before {
-  background-color: #FF8552;
+  background-color: #ff8552;
   content: "";
   height: 10px;
   width: 10px;
@@ -355,8 +355,86 @@ section {
 
 /*About Section Ends Here*/
 
+/* Contact Section Starts Here */
+.contact-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  transition: 0.3s linear;
+}
+
+.contact-img {
+  height: 100%;
+  width: 100%;
+}
+
+.contact-form {
+  width: 400px;
+}
+
+.contact-form form {
+  padding: 10px 20px;
+  box-shadow: 0px 2px 7px rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+}
+
+input,
+textarea {
+  width: 100%;
+  height: 45px;
+  margin: 3px 0;
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  padding: 5px 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+}
+
+textarea {
+  height: 100px;
+  resize: none;
+}
+
+.input-area input:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+input[type="submit"] {
+  height: 40px;
+  background-color: var(--header-bg-color);
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin: 10px auto;
+  padding: 10px;
+  transition: 0.2s ease;
+  cursor: pointer;
+}
+
+input[type="submit"]:hover {
+  background-color: #273175;
+}
+
+/* Contact Section Ends Here */
+
 /* Media Queries */
+@media screen and (max-width: 1260px) {
+  .contact-content {
+    justify-content: center;
+  }
+
+  .contact-form {
+    margin-top: 35px;
+  }
+}
+
 @media screen and (max-width: 980px) {
+  .wrapper {
+    padding: 0 3rem;
+  }
   .nav-wrapper {
     padding: 1.6rem 2rem;
     transition: 0.3s linear;

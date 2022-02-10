@@ -130,8 +130,8 @@
               I am currently exploring Java.
             </p>
             <div class="about-timeline">
-              <div><strong>Temporary Address:</strong> Okhaldhunga</div>
-              <div><strong>Current Address:</strong> Boudha, Kathmandu</div>
+              <div><strong>Permanent. Address:</strong> Okhaldhunga</div>
+              <div><strong>Currently At:</strong> Boudha, Kathmandu</div>
               <div><strong>Age:</strong> 17</div>
               <div><strong>Gender:</strong> Male</div>
             </div>
@@ -164,22 +164,34 @@
         <div class="contact-content">
           <div class="img">
             <img
-              src="./resources/Images/OtherImgs/contact-us.png"
+              src="./resources/Images/OtherImgs/contact-us1.png"
               alt="Contact Image"
+              class="contact-img"
             />
           </div>
-          <div class="form">
-            <form action="#" method="post">
-              <input type="text" name="fullname" placeholder="Full name" />
-              <input type="email" name="email" placeholder="Email" />
-              <input type="text" name="subject" placeholder="Subject" />
-              <textarea
-                name="msg"
-                cols="30"
-                rows="10"
-                placeholder="Message here"
-                spellcheck="false"
-              ></textarea>
+          <div class="contact-form">
+            <form action="#" method="POST">
+              <div class="input-area">
+                <span class="input-title" >Fullname</span>
+                <input type="text" name="fullname" placeholder="Full name" autocomplete="false"/>
+                <span class="input-title">Email</span>
+                <input type="email" name="email" placeholder="Email" required />
+                <span class="input-title">Subject</span>
+                <input
+                  type="text"
+                  name="subject"
+                  placeholder="Subject"
+                />
+                <span class="input-title">Message</span>
+                <textarea
+                  name="message"
+                  cols="30"
+                  rows="10"
+                  placeholder="Message"
+                  required
+                ></textarea>
+                <input type="submit" value="Send" />
+              </div>
             </form>
           </div>
         </div>
