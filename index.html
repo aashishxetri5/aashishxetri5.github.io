@@ -2,10 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aashish Katwal</title>
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="#" type="image/x-icon" />
     <link rel="stylesheet" href="./resources/CSS/Style.css" />
     <link
       rel="stylesheet"
@@ -20,44 +19,64 @@
   </head>
   <body>
     <!-- Navigation Bar Starts here -->
-    <header>
+    <header class="nav-h">
       <div class="nav-wrapper">
         <nav class="navbar-left">
-          <ul>
-            <li>
-              <a class="branding" href="#">Aashish</a>
-            </li>
-          </ul>
+          <a class="branding" href="#">Aashish</a>
         </nav>
+        <div class="ham-menu">
+          <i class="fas fa-bars menu-toggler"></i>
+        </div>
         <nav class="navbar-center">
           <ul>
-            <li class="center-nav nav-item"><a href="#"> Home </a></li>
-            <li class="center-nav nav-item"><a href="#"> About </a></li>
-            <li class="center-nav nav-item"><a href="#"> Skills </a></li>
-            <li class="center-nav nav-item"><a href="#"> Education </a></li>
-            <li class="center-nav nav-item"><a href="#"> Projects </a></li>
-            <li class="center-nav nav-item"><a href="#"> Contact </a></li>
+            <li class="center-nav nav-item">
+              <a href="#home"> Home </a>
+            </li>
+            <li class="center-nav nav-item">
+              <a href="#about"> About </a>
+            </li>
+            <li class="center-nav nav-item">
+              <a href="#skills"> Skills </a>
+            </li>
+            <li class="center-nav nav-item">
+              <a href="#projects"> Projects </a>
+            </li>
+            <li class="center-nav nav-item">
+              <a href="#contact"> Contact </a>
+            </li>
           </ul>
         </nav>
         <nav class="navbar-right">
           <ul>
             <li class="nav-item">
-              <a href="#" title="Facebook" target="_blank"
+              <a
+                href="https://facebook.com/aashishXetri2002"
+                title="Facebook"
+                target="_blank"
                 ><i class="fab fa-facebook"></i
               ></a>
             </li>
             <li class="nav-item">
-              <a href="#" title="Instagram" target="_blank"
+              <a
+                href="https://www.instagram.com/aashish_xetri/"
+                title="Instagram"
+                target="_blank"
                 ><i class="fab fa-instagram"></i
               ></a>
             </li>
             <li class="nav-item">
-              <a href="#" title="Linkedin" target="_blank"
+              <a
+                href="https://www.linkedin.com/in/aashish-katwal-076076175/"
+                title="Linkedin"
+                target="_blank"
                 ><i class="fab fa-linkedin"></i
               ></a>
             </li>
             <li class="nav-item">
-              <a href="#" title="Github" target="_blank"
+              <a
+                href="https://github.com/aashishxetri5"
+                title="Github"
+                target="_blank"
                 ><i class="fab fa-github"></i
               ></a>
             </li>
@@ -68,16 +87,18 @@
     <!-- Navigation Bar Ends Here -->
 
     <!-- Home Section Starts Here -->
-    <section class="home">
+    <section id="home">
       <div class="wrapper home-wrapper">
-        <div class="content">
-          <p class="content-txt animate__animated animate__backInDown">
+        <div class="content-txt">
+          <p class="content-txt animate__animated animate__backInLeft">
             Hi there,
           </p>
-          <p class="content-txt intro animate__animated animate__backInUp"></p>
-          <a href="#" class="resume">
-            <button class="resume-btn animate__animated animate__backInUp">
-              Resume
+          <p
+            class="content-txt intro animate__animated animate__backInRight"
+          ></p>
+          <a href="#" class="hire">
+            <button class="hire-btn animate__animated animate__backInRight">
+              Hire me
             </button>
           </a>
         </div>
@@ -86,43 +107,91 @@
     <!-- Home Section Ends Here -->
 
     <!-- About Section Starts Here  -->
-    <section class="about">
+    <section id="about">
       <div class="wrapper about-wrapper">
-        <h1>ABOUT</h1>
+        <h1 class="section-title">About</h1>
+        <div class="about-content">
+          <img
+            src="./resources/Images/MyImgs/my_image.jpg"
+            class="myImage"
+            alt="My Image"
+          />
+          <div class="about-text">
+            <h2>Aashish Katwal</h2>
+            <h3 class="roles">
+              <span>Developer</span>
+              <span>Designer</span>
+              <span>Learner</span>
+            </h3>
+            <p>
+              Hi there! I am Aashish Katwal. I am greatly interested in
+              computers and programming. I love working on back-end more than
+              front-end. I am enrolled in BSc. CSIT at ACHS college, Kathmandu.
+              I am currently exploring Java.
+            </p>
+            <div class="about-timeline">
+              <div><strong>Temporary Address:</strong> Okhaldhunga</div>
+              <div><strong>Current Address:</strong> Boudha, Kathmandu</div>
+              <div><strong>Age:</strong> 17</div>
+              <div><strong>Gender:</strong> Male</div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
     <!-- About Section Ends Here -->
 
     <!-- Skills Section Starts Here -->
-    <section class="skills">
+    <section id="skills" class="colored">
       <div class="wrapper skills-wrapper">
-        <h1>SKILLS</h1>
+        <h1 class="section-title">Skills</h1>
       </div>
     </section>
     <!-- Skills Section Ends Here -->
 
-    <!-- Education Section Starts Here -->
-    <section class="education">
-      <div class="wrapper education-wrapper">
-        <h1>EDUCATION</h1>
-      </div>
-    </section>
-    <!-- Education Section Ends Here -->
-
     <!-- My Projects Section Starts Here -->
-    <section class="my-projects">
+    <section id="projects">
       <div class="wrapper my-proj-wrapper">
-        <h1>MY PROJECTS</h1>
+        <h1 class="section-title">Projects</h1>
       </div>
     </section>
     <!-- My Projects Section Ends Here -->
 
     <!-- Contact Section Starts Here -->
-    <section class="contact">
+    <section id="contact" class="colored">
       <div class="wrapper contact-wrapper">
-        <h1>CONTACT</h1>
+        <h1 class="section-title">Contact</h1>
+        <div class="contact-content">
+          <div class="img">
+            <img
+              src="./resources/Images/OtherImgs/contact-us.png"
+              alt="Contact Image"
+            />
+          </div>
+          <div class="form">
+            <form action="#" method="post">
+              <input type="text" name="fullname" placeholder="Full name" />
+              <input type="email" name="email" placeholder="Email" />
+              <input type="text" name="subject" placeholder="Subject" />
+              <textarea
+                name="msg"
+                cols="30"
+                rows="10"
+                placeholder="Message here"
+                spellcheck="false"
+              ></textarea>
+            </form>
+          </div>
+        </div>
       </div>
     </section>
     <!-- Contact Section Ends Here -->
+
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.js"
+      integrity="sha512-n/4gHW3atM3QqRcbCn6ewmpxcLAHGaDjpEBu4xZd47N0W2oQ+6q7oc3PXstrJYXcbNU1OHdQ1T7pAP+gi5Yu8g=="
+      crossorigin="anonymous"
+    ></script>
+    <script src="resources/JS/index.js"></script>
   </body>
 </html>
