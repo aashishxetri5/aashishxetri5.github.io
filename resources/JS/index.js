@@ -1,10 +1,6 @@
 // All JS here.
 
 $(document).ready(function () {
-    $(".center-nav nav-item a").click(function () {
-        $(this).css("color", "white !important");
-    });
-
 
   $(window).scroll(function () {
     if (this.scrollY >= 25) {
