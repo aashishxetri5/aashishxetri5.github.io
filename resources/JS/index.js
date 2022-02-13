@@ -14,5 +14,6 @@ $(document).ready(function () {
     $(this).toggleClass("active");
     $(".fa-bars").toggleClass("fa-times");
     $(".navbar-center").toggleClass("active");
+    $(".navbar-right").toggleClass("active");
   });
 });

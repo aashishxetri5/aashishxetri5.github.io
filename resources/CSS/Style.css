@@ -45,20 +45,8 @@
 }
 
 @font-face {
-  font-family: "Lato-Thin";
-  src: url(../Fonts/Lato/Lato-Thin.ttf);
-}
-@font-face {
   font-family: "Lato-Regular";
   src: url(../Fonts/Lato/Lato-Regular.ttf);
-}
-@font-face {
-  font-family: "Lato-Bold";
-  src: url(../Fonts/Lato/Lato-Bold.ttf);
-}
-@font-face {
-  font-family: "Lato-Light";
-  src: url(../Fonts/Lato/Lato-Light.ttf);
 }
 
 body {
@@ -360,10 +348,10 @@ section {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
+  gap: 55px;
 }
 
 .projects {
-  background-color: transparent;
   width: calc(50% - 30px);
   height: 320px;
   perspective: 1000px;
@@ -373,9 +361,9 @@ section {
   position: relative;
   width: 100%;
   height: 100%;
-  transition: transform 0.6s;
+  transition: transform 1s;
   transform-style: preserve-3d;
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  box-shadow: 0 3px 8px 0 rgba(0, 0, 0, 0.24);
   cursor: pointer;
   border-radius: 6px;
 }
@@ -405,11 +393,11 @@ section {
   border-radius: 6px;
 }
 
-.project{
+.project {
   position: relative;
 }
 
-.project::before {
+.project-b::before {
   content: "";
   width: 100%;
   height: 100%;
@@ -417,8 +405,8 @@ section {
   left: 0;
   z-index: 1;
   opacity: 0;
-  background-color: #48dbfb99;
-  transition: transform 0.6s;
+  background-color: #48dbfbaf;
+  transition: transform 1s;
   border-radius: 6px;
 }
 
@@ -426,14 +414,29 @@ section {
   position: absolute;
   bottom: 40px;
   left: 40px;
-  color: #000;
   transition: 0.4s linear;
   opacity: 0;
   z-index: 999;
+  opacity: 0;
 }
 
-.projects:hover .img-info, .projects:hover .project::before{
+.projects:hover .img-info,
+.projects:hover .project-b::before {
   opacity: 1;
+}
+
+.img-info * {
+  color: #fff;
+}
+
+.img-info a:hover {
+  text-decoration: underline;
+}
+
+.proj-desc {
+  font-size: 13px;
+  margin-bottom: 14px;
+  line-height: 1.5;
 }
 
 /* Project Section Ends Here */
@@ -460,6 +463,7 @@ section {
   padding: 10px 20px;
   box-shadow: 0px 2px 7px rgba(0, 0, 0, 0.3);
   border-radius: 5px;
+  background-color: #fefefe;
 }
 
 input,
@@ -572,5 +576,11 @@ input[type="submit"]:hover {
 
   .nav-header .navbar-center.active {
     right: 0;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .projects {
+    width: 100%;
   }
 }
