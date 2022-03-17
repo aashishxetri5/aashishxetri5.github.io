@@ -74,7 +74,7 @@ ul {
 }
 
 /* Navbar CSS */
-.nav-header {
+.nav-header, footer {
   background-color: var(--header-bg-color);
 }
 
@@ -84,10 +84,10 @@ header {
   transition: 0.3s linear;
   z-index: 99;
 }
+
 header,
-.nav-wrapper {
+.nav-wrapper, footer {
   background-color: var(--header-bg-color);
-  background-color: transparent;
   font-size: 1rem;
 }
 
@@ -104,12 +104,12 @@ header,
 
 .nav-wrapper,
 .navbar-center ul,
-.navbar-right ul {
+.navbar-right ul, .row {
   display: flex;
   align-items: center;
 }
 
-.nav-wrapper {
+.nav-wrapper, .row {
   justify-content: space-between;
   padding: 1.6rem 6rem;
 }
@@ -343,6 +343,13 @@ section {
 
 /*About Section Ends Here*/
 
+/*Skills Sections Starts Here*/
+.skills-wrapper{
+  text-align: center;
+}
+
+/*Skills Sections Ends Here*/
+
 /* Project Section Starts Here */
 .projects-wrapper {
   display: flex;
@@ -506,6 +513,17 @@ input[type="submit"]:hover {
 }
 
 /* Contact Section Ends Here */
+
+/* Footer Section Starts Here */
+.row{
+  justify-content: center;
+  color: var(--body-bgcolor);
+}
+
+.column a:hover{
+text-decoration: underline;
+}
+/* Footer Section Ends Here */
 
 /* Media Queries */
 @media screen and (max-width: 1260px) {
