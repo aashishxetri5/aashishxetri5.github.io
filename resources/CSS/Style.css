@@ -206,7 +206,7 @@ p.text {
   left: 0;
   border-radius: 100%;
   transition: 0.5s;
-  z-index: 10000;
+  z-index: -1;
 }
 
 .contact-btn a {
