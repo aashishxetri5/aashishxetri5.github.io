@@ -1,0 +1,80 @@
+@import url("https://fonts.googleapis.com/css2?family=Archivo:wght@500&family=Syne:wght@700&display=swap");
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  text-decoration: none;
+}
+
+:root {
+  --palette-1: #002b36;
+  --palette-2: #e8ddd0;
+  --palette-3: #00594c;
+  --black: #000;
+  --font-text: "Archivo", sans-serif;
+  --font-display: "Syne", sans-serif;
+  --section-gap: 90px;
+  --white: #fff;
+}
+
+body {
+  font-family: var(--font-text);
+  font-size: 14px;
+  color: var(--palette-3);
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 100px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+a {
+  color: var(--palette-3);
+  font-weight: bold;
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+}
+
+.flex {
+  display: flex;
+}
+
+header {
+  padding: 0px 0;
+}
+main,
+.resume {
+  padding: 20px;
+}
+main {
+  justify-content: space-between;
+  margin: 0 15px;
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+.back-btn-container {
+  width: 5rem;
+}
+
+.resume {
+  width: 90%;
+  height: 90vh;
+  box-shadow: rgba(100, 100, 111, 0.2) 0px 7px 29px 0px;
+  background-color: var(--white);
+  overflow-y: scroll;
+  border-radius: 10px;
+}
+
+
+.btn {
+    padding: 5px 9px;
+    display: inline-block;
+    margin: 5px;
+    box-shadow: rgba(99, 99, 99, 0.2) 0px 2px 8px 0px;
+}
