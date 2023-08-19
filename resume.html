@@ -34,18 +34,27 @@
       referrerpolicy="no-referrer"
     />
 
-    <link rel="stylesheet" href="./resources/CSS/resume.css" type="text/css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+      integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+
+    <link rel="stylesheet" href="./resources/css/resume.css" type="text/css" />
   </head>
   <body>
     <main class="flex">
       <div class="back-btn-container mt-1">
         <div class="back-btn">
-          <a href="/"> <i class="fa-solid fa-arrow-left fa-lg"></i> Back</a>
+          <a href="/">
+            <i class="fa-solid fa-arrow-left fa-lg mr-q"></i> Back</a
+          >
         </div>
       </div>
 
       <!-- Resume starts -->
-      <div class="resume">
+      <div class="resume" id="myresume">
         <!-- My Introduction -->
         <div class="section greet mt-1">
           <p>Hello there,</p>
@@ -133,9 +142,9 @@
 
           <!-- Project 3 -->
           <div class="project3">
-            <h3 class="mb-1" >
+            <h3 class="mb-1">
               <a
-                href="https://github.com/aashishxetri5/Buzzwire"
+                href="https://aashishxetri5.github.io/Buzzwire/"
                 target="_blank"
                 title="View: Buzzwire"
                 class="proj-link"
@@ -158,6 +167,9 @@
 
         <!--Links to my social profiles -->
         <div class="section external-links mt-1">
+          <div class="title">
+            <h2>Connect to me at</h2>
+          </div>
           <a
             href="https://www.linkedin.com/in/aashish-katwal-076076175/"
             target="_blank"
@@ -175,6 +187,13 @@
           >
         </div>
       </div>
+
+      <!-- Download Button -->
+      <div class="download">
+        <button id="download-btn">Download</button>
+      </div>
     </main>
+
+    <script src="./resources/JS/index.js"></script>
   </body>
 </html>

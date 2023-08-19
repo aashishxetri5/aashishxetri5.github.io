@@ -46,6 +46,9 @@ h3 {
 .mt-half {
   margin-top: 0.5rem;
 }
+.mr-q {
+  margin-right: 0.25rem;
+}
 .mt-1 {
   margin-top: 1rem;
 }
@@ -63,6 +66,7 @@ main,
 main {
   justify-content: space-between;
   margin: 0 15px;
+  gap: 15px;
 }
 
 ::-webkit-scrollbar {
@@ -71,6 +75,10 @@ main {
 
 .back-btn-container {
   width: 5rem;
+}
+
+.back-btn{
+  position: fixed;
 }
 
 .resume {
@@ -102,7 +110,6 @@ h3 {
 }
 
 .proj-link{
-  /* position: absolute; */
   display: inline-block;
 }
 
@@ -131,4 +138,17 @@ h3 {
   margin: 5px;
   box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
   border-radius: 7px;
+}
+
+.download button {
+    background-color: var(--palette-1);
+    color: var(--palette-2);
+    box-sizing: content-box;
+    width: max-content;
+    padding: 10px 10px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
 }
