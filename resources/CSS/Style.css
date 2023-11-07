@@ -199,3 +199,124 @@ iconify-icon:hover {
   line-height: 25px;
   font-size: 0.95rem;
 }
+
+/* Content section */
+main {
+  width: 100%;
+  background-color: var(--paleblue-color);
+}
+
+section {
+  width: 100%;
+  height: 100vh;
+}
+
+.wrapper-home {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px;
+}
+
+.wrapper-home,
+.wrapper-about,
+.wrapper-skills,
+.wrapper-projects {
+  height: 100vh;
+  overflow-y: scroll;
+}
+
+.left,
+.right {
+  flex: 1;
+  overflow: hidden;
+  width: 50%;
+}
+
+.right {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.herotext {
+  margin-bottom: 21px;
+}
+
+.herotext h3,
+.about-left h3 {
+  font-size: 40px;
+  font-weight: 800;
+  color: var(--dark-color);
+  line-height: 60px;
+}
+
+.desc {
+  font-size: 16px;
+  margin-bottom: 30px;
+  max-width: 80%;
+  line-height: 25px;
+}
+
+.buttons {
+  margin-bottom: 60px;
+}
+
+.btn a {
+  color: #fff;
+  background-color: #130f49;
+  display: inline-block;
+  border: 1.5px solid #130f49;
+  border-radius: 4px;
+  padding: 10px 40px;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.btn-resume {
+  margin-left: 15px;
+}
+
+.btn-resume a {
+  background-color: transparent;
+  color: #55527c;
+}
+
+.btn-work a:hover {
+  background-color: transparent;
+  color: var(--dark-color);
+}
+
+.btn-resume a:hover {
+  background-color: var(--dark-color);
+  color: #fff;
+}
+
+.myinfo ul {
+  position: relative;
+}
+
+.myinfo ul::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 5px;
+  height: 100%;
+  background-color: var(--yellow-color);
+}
+
+.myinfo ul li {
+  padding-left: 15px;
+}
+
+.myinfo ul li a {
+  color: var(--dark-color);
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.myinfo ul li a:hover {
+  color: var(--yellow-color);
+}
