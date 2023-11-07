@@ -1,23 +1,33 @@
-const button = document.getElementById("download-btn");
+const navLinks = document.querySelectorAll(".nav-link");
+const sections = document.querySelectorAll("section");
 
-function generatePDF() {
-  // Choose the element that your content will be rendered to.
-  const element = document.getElementById("myresume");
+navLinks.forEach((link) => {
+  const target = link.getAttribute("data-target");
+  const targetSection = document.querySelector("#" + target);
+  link.addEventListener("click", (event) => {
+    event.preventDefault();
 
-  var opt = {
-    margin: 1,
-    filename: "Aashish_Katwal.pdf",
-    jsPDF: {
-      unit: "in",
-      format: "letter",
-      orientation: "portrait",
-      enableLinks: true,
-      margin: { top: 1, right: 1, bottom: 1, left: 1.25 },
-    }
-  };
-  
-  html2pdf().set(opt).from(element).save();
+    window.scroll({
+      behavior: "smooth",
+      left: 0,
+      top: targetSection.offsetTop,
+    });
 
-}
+    navLinks.forEach((link) => {
+      link.classList.remove("active");
 
-button.addEventListener("click", generatePDF);
+      sections.forEach((section) => {
+        section.classList.remove("hidden");
+      });
+    });
+
+    link.classList.add("active");
+    console.log(link);
+
+    sections.forEach((section) => {
+      if (section !== targetSection) {
+        section.classList.add("hidden");
+      }
+    });
+  });
+});
