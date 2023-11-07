@@ -475,3 +475,22 @@ section {
 }
 
 /* About Section Ends */
+/* Skills Section Starts */
+
+.skill-list ul {
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.skill-list ul li {
+  width: 46%;
+}
+
+.skill-list ul li .list_inner {
+  height: 100%;
+  border: 1px solid rgba(30, 30, 30, 0.2);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+/* Skills Section Ends */
