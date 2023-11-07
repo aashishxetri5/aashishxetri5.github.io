@@ -320,3 +320,158 @@ section {
 .myinfo ul li a:hover {
   color: var(--yellow-color);
 }
+
+/* About Section Starts */
+
+#about {
+  background-color: #fff;
+}
+
+.biography,
+.counter,
+.experience,
+.title-wrapper,
+.skills {
+  padding: 0 20px;
+  margin-bottom: 50px;
+}
+
+.about-left {
+  width: 100%;
+}
+
+.title {
+  text-transform: uppercase;
+}
+
+.about-left h3 {
+  font-size: 30px;
+  line-height: 50px;
+}
+
+.skill-summary {
+  display: block;
+  margin-bottom: 30px;
+  font-weight: 700;
+  color: var(--dark-color);
+}
+
+.texts p {
+  line-height: 32px;
+  margin-bottom: 20px;
+}
+
+.info ul li {
+  display: inline-block;
+  margin-right: 20px;
+  font-family: var(--font-inter);
+}
+
+.info ul li a {
+  color: var(--dark-color);
+  transition: all 0.3s ease;
+}
+
+.info ul li a:hover {
+  color: var(--yellow-color);
+}
+
+.info ul li span {
+  display: block;
+  color: var(--dark-color);
+}
+
+.info ul li span:first-child {
+  text-transform: uppercase;
+  text-decoration: underline;
+}
+
+.info ul li span:last-child {
+  font-weight: 700;
+}
+
+.counter-inner ul {
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.counter-inner ul li {
+  margin: 0 0 30px;
+  width: 33.3333%;
+  padding-left: 30px;
+  text-align: center;
+}
+
+.counter-inner ul li:first-child {
+  padding-left: 0;
+}
+
+.list_inner h3 {
+  font-size: 35px;
+  margin-bottom: 3px;
+  color: var(--dark-color);
+}
+
+.counter-inner ul li:nth-child(1) .list_inner {
+  background-color: var(--green-color);
+}
+.counter-inner ul li:nth-child(2) .list_inner {
+  background-color: var(--yellowish-color);
+}
+.counter-inner ul li:nth-child(3) .list_inner {
+  background-color: var(--light-green-color);
+}
+
+.list_inner {
+  padding: 40px 25px;
+  border-radius: 4px;
+}
+
+.experience {
+  background-color: var(--bluish-color);
+  padding-top: 50px;
+}
+
+.title-wrapper h3 {
+  color: var(--dark-color);
+}
+
+.list {
+  margin-top: 40px;
+}
+
+.list ul {
+  gap: 20px;
+}
+
+.list ul li {
+  margin-bottom: 20px;
+}
+
+.list ul li .list_inner {
+  background-color: #fff;
+  box-shadow: 3px 10px 10px #e4edf5;
+  transition: all 0.5s ease;
+}
+
+.list ul li .list_inner:hover,
+.skill-list ul li .list_inner:hover {
+  transform: translateY(-5px);
+}
+
+.short {
+  justify-content: space-between;
+}
+
+.job {
+  padding-bottom: 10px;
+}
+
+.job h3,
+.skill-title h3 {
+  font-size: 20px;
+  font-weight: 700;
+}
+
+/* About Section Ends */
