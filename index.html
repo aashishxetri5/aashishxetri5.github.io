@@ -1,173 +1,112 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Google tag (gtag.js) -->
-    <script
-      async
-      src="https://www.googletagmanager.com/gtag/js?id=G-5KH5E9VJ10"
-    ></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag() {
-        dataLayer.push(arguments);
-      }
-      gtag("js", new Date());
-
-      gtag("config", "G-5KH5E9VJ10");
-    </script>
-
     <meta charset="UTF-8" />
-
-    <!-- HTML Meta Tags -->
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>Aashish Katwal</title>
-    
-    <meta
-      name="description"
-      content="Hi, I am Aashish Katwal. A Java Programmer based on Nepal"
-    />
 
-    <!-- Facebook Meta Tags -->
-    <meta property="og:url" content="https://aashishxetri5.github.io" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Aashish Katwal" />
-    <meta
-      property="og:description"
-      content="Hi, I am Aashish Katwal. A Java Programmer based on Nepal"
-    />
-    <meta
-      property="og:image"
-      content="https://aashishxetri5.github.io/resources/Images/MyImgs/my_image.jpg"
-    />
-
+    <!-- Local CSS -->
     <link rel="stylesheet" href="./resources/CSS/Style.css" />
-    <link
-      rel="shortcut icon"
-      href="./resources/Images/MyImgs/my_image.jpg"
-      type="image/x-icon"
-    />
 
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    />
+    <!-- Remote CSS -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+
+    <!-- Remote Scripts -->
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
   </head>
+
   <body>
-    <header>
-      <div class="container flex">
-        <div class="icon"></div>
-
-        <div class="hero">
-          <h1>Aashish Katwal</h1>
-        </div>
-
-        <nav class="nav-container">
-          <ul class="nav-items flex">
-            <li class="nav-item">
-              <a href="#" class="nav-link"> Home </a>
-            </li>
-            <li class="nav-item">
-              <a href="./resume.html" class="nav-link"> Resume </a>
-            </li>
-          </ul>
-        </nav>
-      </div>
-    </header>
-
-    <main>
-      <section class="introduction flex">
-        <div class="left">
-          <h1>Who Am I?</h1>
-        </div>
-        <div class="right">
-          <p class="text">
-            I am Aashish Katwal. I have great interest in computers and
-            programming. I have knowledge of both back-end and front-end
-            technologies. But I'm primarily focused on back-end than front-end.
-            I am enrolled in BSc. CSIT at ACHS college, Lalitpur. I am paving
-            the path to the backend through Java.
-          </p>
-        </div>
-      </section>
-
-      <section class="asterisks">
-        <i class="fa-solid fa-asterisk fa-spin fa-lg"></i>
-        <i class="fa-solid fa-asterisk fa-spin fa-lg"></i>
-        <i class="fa-solid fa-asterisk fa-spin fa-lg"></i>
-      </section>
-
-      <section class="highlights">
-        <!-- Highlight-1 -->
-        <div class="highlight flex">
-          <div class="l-part flex">
-            <div class="awaken-dev">
-              <h2>Awakening the developer within me!</h2>
-            </div>
-            <div class="bottom">
-              <p class="text">
-                Fueled by a relentless hunger for knowledge and innovation, I'm
-                in the journey to unleashing the amazing in me. I have been
-                diving into diverse progamming laguages with an aim to propell
-                myself towards an exciting career in software development.
-              </p>
-            </div>
-          </div>
-
-          <div class="r-part">
-            <div class="image">
+    <div class="main-wrapper">
+      <header>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+          <div class="author">
+            <!-- Profile image and name -->
+            <div class="profile">
               <img
-                src="https://img.freepik.com/premium-photo/java-code-laptop-window-it-developers_338925-335.jpg"
-                alt="code"
+                src="https://scontent.fktm3-1.fna.fbcdn.net/v/t39.30808-1/317435946_2999069850400464_4059584724678730379_n.jpg?stp=cp6_dst-jpg_p200x200&_nc_cat=102&ccb=1-7&_nc_sid=5f2048&_nc_ohc=jg2SBsgTJAgAX_cMT2q&_nc_ht=scontent.fktm3-1.fna&oh=00_AfARHaygtmotLC7sBMksdUvs0OkzXwQI4ME6U_Mx-qkBDw&oe=654EF326"
+                alt="Profile Image"
               />
             </div>
+            <div class="name">
+              <h3>
+                <span class="cursive">
+                  Aashish Katwal
+                  <span class="normal"> Aashish Katwal</span>
+                </span>
+              </h3>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <section class="asterisks">
-        <i class="fa-solid fa-asterisk fa-spin fa-lg"></i>
-        <i class="fa-solid fa-asterisk fa-spin fa-lg"></i>
-        <i class="fa-solid fa-asterisk fa-spin fa-lg"></i>
-      </section>
+          <!-- Menu items -->
+          <nav>
+            <ul>
+              <li class="nav-item">
+                <a class="nav-link active" href="#home" data-target="home"
+                  >Home</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#about" data-target="about"
+                  >About Me</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#skills" data-target="skills"
+                  >Skills</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#projects" data-target="projects"
+                  >Projects</a
+                >
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#blogs" data-target="blogs">Blogs</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#contact" data-target="contact"
+                  >Contact</a
+                >
+              </li>
+            </ul>
+          </nav>
 
-      <section class="contact">
-        <div class="top">
-          <h2>Get In Touch</h2>
-        </div>
-        <div class="body">
-          <p class="text">
-            I'm a passionate Java developer with a strong commitment to crafting
-            clean, efficient, and scalable code. I love problem solving and
-            working in team. <br />Let's connect and create something
-            exceptional together. Feel free to reach out to me through the
-            provided contact information below! conversation.
-          </p>
-        </div>
-        <div class="contact-btn">
-          <span></span>
-          <a href="#"> Contact Me</a>
-        </div>
-      </section>
-    </main>
-
-    <footer class="flex">
-      <div class="copyright">&copy; 2023 - All rights reserved</div>
-      <div class="socials">
-        <a href="https://facebook.com/AashishXetri2002/" target="_blank">
-          <i class="fa-brands fa-facebook fa-bounce fa-xl"></i>
-        </a>
-        <a href="https://github.com/aashishxetri5/" target="_blank">
-          <i class="fa-brands fa-github fa-bounce fa-xl"></i>
-        </a>
-        <a href="https://twitter.com/Aashish_Xetri/" target="_blank">
-          <i class="fa-brands fa-twitter fa-bounce fa-xl"></i>
-        </a>
-      </div>
-    </footer>
+          <!-- Social and Copyright -->
+          <div class="copyright">
+            <div class="socials">
+              <a
+                href="https://www.facebook.com/AashishXetri2002"
+                target="_blank"
+              >
+                <iconify-icon
+                  icon="fa-brands:facebook"
+                  title="Facebook"
+                ></iconify-icon>
+              </a>
+              <a href="https://www.github.com/aashishxetri5" target="_blank">
+                <iconify-icon
+                  icon="fa-brands:github-alt"
+                  title="Github"
+                ></iconify-icon>
+              </a>
+              <a
+                href="https://www.linkedin.com/in/aashish-katwal-9a7b4a1a7/"
+                target="_blank"
+              >
+                <iconify-icon
+                  icon="fa-brands:linkedin"
+                  title="LinkedIn"
+                ></iconify-icon>
+              </a>
+            </div>
+            <div class="cr">
+              <span> Copyright &copy; 2023 Aashish<br /> </span>
+              <span> All Rights Reserved. </span>
+            </div>
+          </div>
+        </aside>
+      </header>
+    </div>
   </body>
 </html>
