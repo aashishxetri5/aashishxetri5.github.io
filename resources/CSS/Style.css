@@ -366,7 +366,8 @@ section {
 .experience,
 .title-wrapper,
 .skills,
-.bloglist {
+.bloglist,
+.contact {
   padding: 0 20px;
   margin-bottom: 50px;
 }
@@ -578,7 +579,6 @@ section {
   align-items: center;
   gap: 5px;
   margin: 20px 0 10px 0;
-  font-size: 22px;
 }
 /* Projects Section Ends */
 /* Blogs Section Starts */
@@ -672,6 +672,10 @@ section {
 
   .card {
     width: 100%;
+  }
+
+  .proj-link {
+    font-size: 20px;
   }
 }
 
