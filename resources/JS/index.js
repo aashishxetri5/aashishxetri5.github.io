@@ -31,3 +31,25 @@ navLinks.forEach((link) => {
     });
   });
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const hamMenu = document.querySelector(".ham-menu");
+  const menuToggler = document.querySelector(".menu-toggler");
+  const sidebar = document.querySelector(".sidebar");
+
+  menuToggler.addEventListener("click", (event) => {
+    if (menuToggler.getAttribute("icon") == "fa-solid:bars") {
+      sidebar.classList.remove("sidebar-hidden");
+      sidebar.classList.add("animate__slideInRight");
+
+      menuToggler.setAttribute("icon", "fa6-solid:xmark");
+      hamMenu.style.right = "270px";
+    } else {
+      sidebar.classList.remove("animate__slideInRight");
+      sidebar.classList.add("sidebar-hidden");
+
+      menuToggler.setAttribute("icon", "fa-solid:bars");
+      hamMenu.style.right = 0;
+    }
+  });
+});

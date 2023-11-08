@@ -53,7 +53,7 @@
 
 /* Stylings */
 body {
-  background-color: var(--yellow-color);
+  background-color: var(--light-green-color);
   font-family: var(--font-karla);
   font-size: 16px;
   font-weight: 400;
@@ -61,6 +61,43 @@ body {
   color: var(--main-color);
   /* overflow-x: hidden; */
 }
+
+.main-wrapper {
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+/* Top menu and hamburger menu toggler */
+.topmenu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #fff;
+  box-shadow: 0px 3px 3px #e4edf5;
+  z-index: 5;
+  transition: all 0.3s ease;
+  display: none;
+}
+
+.ham-menu {
+  position: relative;
+  z-index: 999;
+  right: 0;
+  transition: all 0.5s ease;
+  background-color: #fff;
+  padding: 3px 7px;
+  border: 1px solid var(--main-color);
+  border-radius: 5px;
+}
+
+.menu-toggler {
+  color: var(--dark-color);
+  font-size: 30px;
+  display: none;
+}
+
+/* Ending of this section */
 
 ul {
   list-style: none;
@@ -84,7 +121,6 @@ h3 {
 }
 
 .main-wrapper {
-  display: flex;
   align-items: center;
 }
 
@@ -105,13 +141,13 @@ header {
 .sidebar {
   width: 300px;
   padding: 35px 0;
-  display: flex;
   flex-direction: column;
   gap: 20px;
   align-items: center;
   font-size: 16px;
   overflow-y: scroll;
   border-right: 1.5px solid rgba(85, 82, 124, 0.1);
+  transition: all 1s ease;
 }
 
 ::-webkit-scrollbar {
@@ -212,7 +248,6 @@ section {
 }
 
 .wrapper-home {
-  display: flex;
   align-items: flex-start;
   gap: 20px;
   padding: 20px;
@@ -221,15 +256,14 @@ section {
 .wrapper-home,
 .wrapper-about,
 .wrapper-skills,
-.wrapper-projects {
+.wrapper-projects,
+.wrapper-blogs {
   height: 100vh;
   overflow-y: scroll;
 }
 
 .left,
 .right {
-  flex: 1;
-  overflow: hidden;
   width: 50%;
 }
 
@@ -269,7 +303,7 @@ section {
   display: inline-block;
   border: 1.5px solid #130f49;
   border-radius: 4px;
-  padding: 10px 40px;
+  padding: 10px 20px;
   white-space: nowrap;
   transition: all 0.3s ease;
 }
@@ -331,7 +365,8 @@ section {
 .counter,
 .experience,
 .title-wrapper,
-.skills {
+.skills,
+.bloglist {
   padding: 0 20px;
   margin-bottom: 50px;
 }
@@ -437,6 +472,10 @@ section {
   color: var(--dark-color);
 }
 
+.content .title-wrapper {
+  padding: 0;
+}
+
 .list {
   margin-top: 40px;
 }
@@ -483,7 +522,7 @@ section {
 }
 
 .skill-list ul li {
-  width: 46%;
+  width: calc(50% - 20px);
 }
 
 .skill-list ul li .list_inner {
@@ -502,12 +541,12 @@ section {
 
 .project_list {
   margin: 0 0 30px;
-  gap: 25px;
+  gap: 30px;
   flex-wrap: wrap;
 }
 
 .card {
-  width: calc(46% - 20px);
+  width: calc(50% - 30px);
   background-color: #fff;
   border-radius: 5px;
   box-shadow: 3px 10px 10px #e4edf5;
@@ -535,9 +574,11 @@ section {
 }
 
 .proj-link {
+  justify-content: right;
   align-items: center;
   gap: 5px;
   margin: 20px 0 10px 0;
+  font-size: 22px;
 }
 /* Projects Section Ends */
 /* Blogs Section Starts */
@@ -552,3 +593,86 @@ section {
 /* Contact Section Starts */
 
 /* Contact Section Ends */
+
+/* Media Queries */
+
+@media screen and (max-width: 1100px) {
+  .topmenu {
+    display: flex;
+    justify-content: space-between;
+    padding: 30px 40px;
+    align-items: center;
+  }
+
+  .sidebar {
+    display: flex;
+    position: fixed;
+    z-index: 99;
+    background-color: var(--yellowish-color);
+    right: 0%;
+    top: 0;
+    gap: 60px;
+  }
+
+  .sidebar-hidden {
+    display: none !important;
+  }
+
+  .menu-toggler {
+    display: block;
+  }
+
+  main {
+    margin-top: 100px;
+  }
+}
+
+@media screen and (max-width: 800px) {
+  .wrapper-home {
+    flex-direction: column-reverse;
+  }
+
+  .left,
+  .right {
+    width: 100%;
+  }
+
+  .biography {
+    flex-wrap: wrap;
+  }
+
+  .about-left {
+    margin-bottom: 20px;
+  }
+
+  .counter-inner ul li {
+    width: 50%;
+  }
+
+  .counter-inner ul li:last-child{
+    padding-left: 0;
+  }
+
+}
+
+@media screen and (max-width: 600px) {
+
+  .counter-inner ul li {
+    width: 100%;
+    padding-left: 0;
+  }
+
+  h3 {
+    font-size: 30px;
+  }
+
+  .skill-list ul li {
+    width: 100%;
+  }
+
+  .card {
+    width: 100%;
+  }
+}
+
+/* Media Queries Ends */

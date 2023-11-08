@@ -6,23 +6,36 @@
     <title>Aashish Katwal</title>
 
     <!-- Local CSS -->
-    <link rel="stylesheet" href="./resources/CSS/Style.css" />
+    <link rel="stylesheet" href="./style.css" />
 
     <!-- Remote CSS -->
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+    <!-- <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" /> -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
 
     <!-- Remote Scripts -->
     <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
-
-    <!-- Local Scripts -->
-    <script defer src="./resources/JS/index.js"></script>
   </head>
 
   <body>
-    <div class="main-wrapper">
+    <div class="main-wrapper flex">
       <header>
+        <div class="topmenu">
+          <div class="siteicon">
+            
+          </div>
+          <!-- ham Menu -->
+          <div class="ham-menu">
+            <iconify-icon
+              icon="fa-solid:bars"
+              class="menu-toggler"
+            ></iconify-icon>
+          </div>
+        </div>
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar sidebar-hidden animate__animated flex">
           <div class="author">
             <!-- Profile image and name -->
             <div class="profile">
@@ -166,7 +179,6 @@
                   </ul>
                 </div>
               </div>
-
               <div class="right">
                 <img
                   src="https://scontent.fktm3-1.fna.fbcdn.net/v/t39.30808-1/317435946_2999069850400464_4059584724678730379_n.jpg?stp=cp6_dst-jpg_p200x200&_nc_cat=102&ccb=1-7&_nc_sid=5f2048&_nc_ohc=jg2SBsgTJAgAX_cMT2q&_nc_ht=scontent.fktm3-1.fna&oh=00_AfARHaygtmotLC7sBMksdUvs0OkzXwQI4ME6U_Mx-qkBDw&oe=654EF326"
@@ -175,7 +187,6 @@
               </div>
             </div>
           </section>
-
           <section class="hidden" id="about">
             <div class="wrapper wrapper-about">
               <!-- My introduction and biography -->
@@ -461,7 +472,7 @@
                   <div class="card" title="Pustakalaya">
                     <div class="card-img">
                       <img
-                        src="./resources/Images/Projects/PustakalayaResult.jpeg"
+                        src="./projects/PustakalayaResult.jpeg"
                         alt="Pustakalaya"
                       />
                     </div>
@@ -491,7 +502,7 @@
                   <div class="card" title="Image Extactor">
                     <div class="card-img">
                       <img
-                        src="./resources/Images/Projects/ImgExtractorResult.jpeg"
+                        src="./projects/ImgExtractorResult.jpeg"
                         alt="Image Extactor"
                       />
                     </div>
@@ -519,10 +530,7 @@
                   <!-- Project 3 -->
                   <div class="card">
                     <div class="card-img" title="Buzzwire">
-                      <img
-                        src="./resources/Images/Projects/BuzzWireResult.jpg"
-                        alt="Buzzwire"
-                      />
+                      <img src="./projects/BuzzWireResult.jpg" alt="Buzzwire" />
                     </div>
 
                     <div class="card-body">
@@ -656,8 +664,16 @@
               </div>
             </div>
           </section>
+
+          <!-- My Contact Information -->
+          <section class="hidden" id="contact">
+            <h1>Contact</h1>
+          </section>
         </div>
       </main>
     </div>
+
+    <!-- Local JS -->
+    <script src="./app.js"></script>
   </body>
 </html>
