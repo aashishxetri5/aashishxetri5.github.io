@@ -541,7 +541,13 @@ section {
 }
 /* Projects Section Ends */
 /* Blogs Section Starts */
+.bloglist ul li .list_inner .short {
+  flex-wrap: wrap;
+}
 
+.blog h3 {
+  width: 80%;
+}
 /* Blogs Section Ends */
 /* Contact Section Starts */
 
