@@ -749,3 +749,14 @@ textarea {
 }
 
 /* Media Queries Ends */
+
+#circle {
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  background-color: transparent;
+  border: 2px solid var(--blue-color);
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: var(--blue-color) 2px 2px 40px;
+}

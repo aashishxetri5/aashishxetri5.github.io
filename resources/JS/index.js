@@ -53,3 +53,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+const circle = document.querySelector("#circle");
+const dot = document.querySelector("#dot");
+
+document.addEventListener("mousemove", (e) => {
+  const mouseX = e.pageX;
+  const mouseY = e.pageY;
+
+  // Set the circle's position based on the mouse coordinates
+  circle.style.left = mouseX - circle.clientWidth / 2 + "px";
+  circle.style.top = mouseY - circle.clientHeight / 2 + "px";
+});
