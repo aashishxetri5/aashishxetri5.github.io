@@ -17,6 +17,7 @@
   --yellow-color: #ff972d;
   --blue-color: #a5a6ff;
   --paleblue-color: #effbf8;
+  --light-blue-color: #e9f9ff;
   /* Colors for boxes in about section */
   --green-color: #d3f4ec;
   --yellowish-color: #fce8d4;
@@ -26,6 +27,8 @@
   --font-inter: "Inter", sans-serif;
   --font-karla: "Karla", sans-serif;
   --font-kristi: "Kristi", cursive;
+  /* Animation */
+  --animate-duration: 0.6s !important;
 }
 
 /* Classes */
@@ -92,8 +95,9 @@ img {
   transition: all 0.5s ease;
   background-color: #fff;
   padding: 3px 7px;
-  border: 1px solid var(--main-color);
+  border: 1px solid var(--blue-color);
   border-radius: 5px;
+  cursor: pointer;
 }
 
 .menu-toggler {
@@ -214,6 +218,11 @@ li:not(:last-child) {
 li > a {
   color: var(--main-color);
   font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+li > a:hover {
+  color: var(--blue-color);
 }
 
 .nav-link.active {
@@ -260,7 +269,8 @@ section {
 .wrapper-about,
 .wrapper-skills,
 .wrapper-projects,
-.wrapper-blogs {
+.wrapper-blogs,
+.wrapper-contact {
   height: 100vh;
   overflow-y: scroll;
 }
@@ -580,6 +590,7 @@ section {
   align-items: center;
   gap: 5px;
   margin: 20px 0 10px 0;
+  font-size: 19px;
 }
 /* Projects Section Ends */
 /* Blogs Section Starts */
@@ -588,10 +599,69 @@ section {
 }
 
 .blog h3 {
-  width: 80%;
+  width: 90%;
+}
+
+.date {
+  align-items: center;
+  gap: 5px;
 }
 /* Blogs Section Ends */
 /* Contact Section Starts */
+section#contact {
+  background-color: var(--bluish-color);
+}
+
+.wrapper-contact-details {
+  margin-right: 20px;
+}
+
+input,
+textarea {
+  width: 100%;
+  margin-bottom: 20px;
+  padding-left: 10px;
+  color: var(--main-color);
+  line-height: 1.6;
+  border: 1px solid #eee;
+  font-size: 16px;
+  font-family: var(--font-karla);
+  border-radius: 3px;
+}
+
+input {
+  height: 45px;
+}
+
+textarea {
+  resize: none;
+}
+
+.btn-submit {
+  background-color: var(--dark-color);
+  color: var(--bluish-color);
+  width: min-content;
+  padding: 10px 20px;
+  cursor: pointer;
+}
+
+.maps {
+  margin: 50px 20px;
+}
+
+.mapouter {
+  position: relative;
+  background: #fff;
+}
+
+.gmap_canvas {
+  overflow: hidden;
+}
+
+.gmap_canvas iframe {
+  position: relative;
+  z-index: 2;
+}
 
 /* Contact Section Ends */
 
@@ -609,7 +679,7 @@ section {
     display: flex;
     position: fixed;
     z-index: 99;
-    background-color: var(--yellowish-color);
+    background-color: var(--light-blue-color);
     right: 0%;
     top: 0;
     gap: 60px;
@@ -673,8 +743,8 @@ section {
     width: 100%;
   }
 
-  .proj-link {
-    font-size: 20px;
+  .wrapper-contact-details {
+    flex-direction: column;
   }
 }
 
