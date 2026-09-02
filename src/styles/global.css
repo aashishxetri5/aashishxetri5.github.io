@@ -1,0 +1,6 @@
+/*
+ * Tailwind 4 is configured CSS-first via @theme — there is no
+ * tailwind.config.js, because v4 no longer auto-detects one.
+ * The design system proper is Phase 2 (ADR-001); this is only the entry point.
+ */
+@import 'tailwindcss';
