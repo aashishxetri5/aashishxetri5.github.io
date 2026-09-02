@@ -2,10 +2,14 @@
 /**
  * Hero.
  *
- * §0 sets the bar: a visitor should understand who this is and what they do in
- * 10–20 seconds. So the first screen carries name, role, location, a two-line
- * bio, availability, and the two actions people actually come for — the work
- * and the résumé. Nothing here is decorative-only.
+ * §0 sets the bar at 10–20 seconds to understand who this is. So the first
+ * screen is deliberately loud about identity — the name at display scale, the
+ * role as a monospace value, and a spec table of the facts a recruiter checks
+ * first — and quiet about everything else.
+ *
+ * The name is set as two lines rather than wrapped, because a controlled break
+ * at display size is a typographic decision, not something to leave to the
+ * viewport.
  */
 import { Image } from 'astro:assets';
 
@@ -16,64 +20,88 @@ interface Props {
 }
 
 const { data } = Astro.props.profile;
+
+/* Split on the last space so a middle name stays with the first line. */
+const lastSpace = data.name.lastIndexOf(' ');
+const nameLines =
+  lastSpace === -1
+    ? [data.name]
+    : [data.name.slice(0, lastSpace), data.name.slice(lastSpace + 1)];
+
+const specs = [
+  { key: 'ROLE', value: data.headline },
+  { key: 'BASE', value: data.location },
+  { key: 'MAIL', value: data.email, href: `mailto:${data.email}` },
+];
 ---
 
-<section class="py-14 sm:py-20">
-  <div class="flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-10">
-    <div class="min-w-0 flex-1">
-      {
-        data.availability.open && (
-          <p class="mb-5 inline-flex items-center gap-2 rounded-full bg-live-subtle px-3 py-1 text-sm font-medium text-live">
-            <span class="relative flex size-2" aria-hidden="true">
-              <span class="absolute inline-flex size-full animate-ping rounded-full bg-live opacity-70"></span>
-              <span class="relative inline-flex size-2 rounded-full bg-live"></span>
-            </span>
-            {data.availability.message ?? 'Open to work'}
-          </p>
-        )
-      }
-
-      <h1 class="text-3xl font-semibold sm:text-5xl">
-        {data.name}
-      </h1>
-
-      <p class="mt-2 text-lg text-accent sm:text-xl">{data.headline}</p>
-
-      <p class="mono-label mt-3 flex items-center gap-1.5">
-        <svg
-          class="size-3.5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          aria-hidden="true"
-        >
-          <path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z" />
-          <circle cx="12" cy="10" r="2.5" />
-        </svg>
-        {data.location}
+<section id="top" class="spotlight relative" data-spotlight>
+  <div class="grid gap-10 py-14 sm:py-20 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
+    <div class="min-w-0">
+      <p class="spec-label mb-6 flex items-center gap-2">
+        <span class="text-accent">$</span>
+        <span>whoami</span>
       </p>
 
-      <p class="mt-6 max-w-xl text-muted">{data.shortBio}</p>
+      <h1 class="display-xl">
+        {
+          nameLines.map((line, index) => (
+            <span class="block">
+              {line}
+              {index === nameLines.length - 1 && (
+                <span class="caret ml-2" aria-hidden="true" />
+              )}
+            </span>
+          ))
+        }
+      </h1>
 
-      <div class="mt-8 flex flex-wrap items-center gap-3">
+      <p class="mt-8 max-w-lg text-lg text-muted">{data.shortBio}</p>
+
+      <!-- Spec table: the facts, as data rather than prose. -->
+      <dl class="mt-10 max-w-md border-t border-line">
+        {
+          specs.map((spec) => (
+            <div class="flex items-baseline gap-4 border-b border-line py-2.5">
+              <dt class="spec-label w-12 shrink-0">{spec.key}</dt>
+              <dd class="spec-value min-w-0 truncate text-ink">
+                {spec.href ? (
+                  <a
+                    href={spec.href}
+                    class="underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+                  >
+                    {spec.value}
+                  </a>
+                ) : (
+                  spec.value
+                )}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
         <a
           href="#projects"
-          class="rounded-md bg-accent px-4 py-2 font-medium text-bg transition-colors hover:bg-accent-hover"
+          class="group inline-flex items-center gap-2 border border-accent bg-accent px-5 py-2.5 font-mono text-sm font-medium tracking-wide text-bg uppercase transition-colors hover:bg-accent-hover"
         >
-          View my work
+          View work
+          <span
+            class="transition-transform group-hover:translate-x-1"
+            aria-hidden="true">→</span
+          >
         </a>
 
         {/*
-          §29: the résumé must be easy to find, never a puzzle. It is also
-          conditional — no PDF exists in the repo yet, and rendering a dead
-          link would violate §32. See content/README.md.
+          §29: easy to find, never a puzzle. Conditional because no PDF exists
+          in the repo yet, and a dead link would violate §32.
         */}
         {
           data.resume && (
             <a
               href={`/${data.resume.file}`}
-              class="rounded-md border border-line-strong px-4 py-2 font-medium transition-colors hover:bg-raised"
+              class="border border-line-strong px-5 py-2.5 font-mono text-sm tracking-wide uppercase transition-colors hover:border-accent hover:text-accent"
             >
               {data.resume.label}
             </a>
@@ -82,22 +110,66 @@ const { data } = Astro.props.profile;
 
         <a
           href="#contact"
-          class="px-2 py-2 font-medium text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-ink"
+          class="font-mono text-sm tracking-wide text-muted uppercase underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
         >
-          Get in touch
+          Contact
         </a>
       </div>
     </div>
 
-    <div class="shrink-0 order-first sm:order-none">
+    <!-- Portrait, framed with crop marks rather than a rounded card. -->
+    <div class="relative w-fit">
       <Image
         src={data.avatar}
         alt={`${data.name}, ${data.headline}`}
-        width={144}
-        height={144}
+        width={280}
+        height={340}
         loading="eager"
-        class="size-28 rounded-2xl border border-line object-cover shadow-card sm:size-36"
+        class="w-40 border border-line object-cover grayscale transition-all duration-500 hover:grayscale-0 sm:w-52 lg:w-56"
       />
+      <span
+        class="absolute -top-1 -left-1 size-3 border-t border-l border-accent"
+        aria-hidden="true"></span>
+      <span
+        class="absolute -right-1 -bottom-1 size-3 border-r border-b border-accent"
+        aria-hidden="true"></span>
     </div>
   </div>
 </section>
+
+<script is:inline>
+  /*
+   * Feeds the cursor-reactive wash. Gated on a fine pointer and no
+   * reduced-motion preference, so touch devices and motion-sensitive users get
+   * nothing — v3 shipped a cursor ring with neither guard.
+   *
+   * Writes CSS custom properties instead of styles, and only inside
+   * requestAnimationFrame, so the browser does the compositing.
+   */
+  (function () {
+    var target = document.querySelector('[data-spotlight]');
+    if (!target) return;
+
+    var fine = window.matchMedia('(pointer: fine)').matches;
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!fine || still) return;
+
+    var queued = false;
+    var x = 0;
+    var y = 0;
+
+    target.addEventListener('pointermove', function (event) {
+      var box = target.getBoundingClientRect();
+      x = ((event.clientX - box.left) / box.width) * 100;
+      y = ((event.clientY - box.top) / box.height) * 100;
+
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () {
+        target.style.setProperty('--mx', x + '%');
+        target.style.setProperty('--my', y + '%');
+        queued = false;
+      });
+    });
+  })();
+</script>

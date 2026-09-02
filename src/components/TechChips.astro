@@ -1,10 +1,11 @@
 ---
 /**
- * Technology list. Renders nothing at all when empty, rather than an empty row.
+ * Technology list, as monospace tokens separated by hairline borders rather
+ * than as rounded pills. Renders nothing at all when empty.
  */
 interface Props {
   items: readonly string[];
-  /** Caps the visible count and summarises the rest, for dense card layouts. */
+  /** Caps the visible count and summarises the rest. */
   max?: number | undefined;
   label?: string | undefined;
 }
@@ -17,14 +18,16 @@ const hidden = items.length - visible.length;
 
 {
   items.length > 0 && (
-    <ul class="flex flex-wrap gap-1.5" aria-label={label ?? 'Technologies'}>
+    <ul class="flex flex-wrap gap-x-2 gap-y-1.5" aria-label={label ?? 'Technologies'}>
       {visible.map((item) => (
-        <li class="rounded border border-line bg-raised px-2 py-0.5 font-mono text-xs text-muted">
+        <li class="border border-line px-2 py-0.5 font-mono text-[0.7rem] tracking-wide text-muted uppercase">
           {item}
         </li>
       ))}
       {hidden > 0 && (
-        <li class="px-1 py-0.5 font-mono text-xs text-faint">+{hidden} more</li>
+        <li class="px-1 py-0.5 font-mono text-[0.7rem] text-faint">
+          +{hidden}
+        </li>
       )}
     </ul>
   )

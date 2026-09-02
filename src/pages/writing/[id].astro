@@ -56,7 +56,7 @@ const formattedDate = data.publishDate.toLocaleDateString('en-GB', {
 
     <article class="py-8">
       <header class="mb-8">
-        <p class="mono-label mb-3">
+        <p class="spec-label mb-3">
           <time datetime={data.publishDate.toISOString()}>{formattedDate}</time>
         </p>
 
@@ -67,7 +67,7 @@ const formattedDate = data.publishDate.toLocaleDateString('en-GB', {
           data.tags.length > 0 && (
             <ul class="mt-5 flex flex-wrap gap-1.5">
               {data.tags.map((tag) => (
-                <li class="rounded border border-line bg-raised px-2 py-0.5 font-mono text-xs text-muted">
+                <li class="border border-line px-2 py-0.5 font-mono text-[0.7rem] uppercase tracking-wide text-muted">
                   {tag}
                 </li>
               ))}

@@ -1,44 +1,44 @@
 ---
 /**
- * Sticky header: wordmark, section nav, theme toggle.
+ * Header: wordmark, numbered section nav, theme toggle.
  *
- * The nav is plain anchor links to real section ids. v3 intercepted clicks and
- * toggled `display: none`, which meant no section was linkable, shareable or in
- * the browser history. Anchors restore all three and need no JavaScript, so
- * navigation survives a script failure (§26, §39).
+ * Nav items carry their section number, so the header and the section gutters
+ * share one indexing scheme and the page reads as a documented system rather
+ * than a set of unrelated blocks.
+ *
+ * Plain anchors to real ids. v3 intercepted clicks and toggled display:none,
+ * which meant no section was linkable, shareable or in browser history.
+ * Anchors restore all three and need no script, so navigation survives a
+ * script failure (§26, §39).
  *
  * On small screens the nav scrolls horizontally rather than collapsing into a
- * hamburger — with six short labels a drawer costs more than it saves, and
- * §25 warns against simply shrinking the desktop UI.
+ * drawer — six short labels do not justify a menu, and §25 warns against
+ * simply shrinking the desktop UI.
  */
 import ThemeToggle from './ThemeToggle.astro';
 
 interface Props {
-  /** Section links are only meaningful on the page that has the sections. */
   showSectionNav?: boolean;
 }
 
 const { showSectionNav = true } = Astro.props;
 
+/* Numbers must match the `index` passed to each <Section> on the homepage. */
 const SECTIONS = [
-  { id: 'about', label: 'About' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'writing', label: 'Writing' },
-  { id: 'contact', label: 'Contact' },
+  { id: 'about', label: 'About', index: 1 },
+  { id: 'experience', label: 'Experience', index: 2 },
+  { id: 'projects', label: 'Projects', index: 3 },
+  { id: 'skills', label: 'Skills', index: 4 },
+  { id: 'writing', label: 'Writing', index: 6 },
+  { id: 'contact', label: 'Contact', index: 7 },
 ] as const;
 ---
 
-<header
-  class="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md"
->
-  <div
-    class="mx-auto flex h-14 max-w-4xl items-center gap-4 px-5 sm:px-8"
-  >
+<header class="sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur-lg">
+  <div class="mx-auto flex h-14 max-w-5xl items-center gap-4 px-5 sm:px-8">
     <a
       href="/"
-      class="shrink-0 font-mono text-sm font-semibold tracking-tight text-ink"
+      class="shrink-0 font-mono text-sm font-bold tracking-tight transition-colors hover:text-accent"
     >
       AASHISH<span class="text-accent">.OS</span>
     </a>
@@ -47,15 +47,20 @@ const SECTIONS = [
       showSectionNav && (
         <nav aria-label="Sections" class="min-w-0 flex-1">
           <ul
-            class="flex gap-1 overflow-x-auto text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            class="flex items-center gap-0.5 overflow-x-auto no-scrollbar"
           >
             {SECTIONS.map((section) => (
               <li>
                 <a
                   href={`#${section.id}`}
-                  class="block rounded px-2.5 py-1.5 whitespace-nowrap text-muted transition-colors hover:bg-raised hover:text-ink"
+                  class="group flex items-baseline gap-1.5 px-2.5 py-2 whitespace-nowrap font-mono text-xs tracking-wide uppercase transition-colors"
                 >
-                  {section.label}
+                  <span class="text-line-strong transition-colors group-hover:text-accent">
+                    {String(section.index).padStart(2, '0')}
+                  </span>
+                  <span class="text-muted transition-colors group-hover:text-ink">
+                    {section.label}
+                  </span>
                 </a>
               </li>
             ))}

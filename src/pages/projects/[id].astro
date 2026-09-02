@@ -65,7 +65,7 @@ const hasDossier =
 >
   <SiteHeader showSectionNav={false} />
 
-  <main id="main" class="mx-auto max-w-3xl px-5 sm:px-8">
+  <main id="main" class="mx-auto max-w-4xl px-5 sm:px-8">
     <nav class="pt-8 text-sm" aria-label="Breadcrumb">
       <a
         href="/#projects"
@@ -76,10 +76,10 @@ const hasDossier =
     </nav>
 
     <header class="py-8">
-      <p class="mono-label mb-3">Project</p>
+      <p class="spec-label mb-3">Project</p>
 
       <div class="flex flex-wrap items-center gap-3">
-        <h1 class="text-3xl font-semibold sm:text-4xl">{data.name}</h1>
+        <h1 class="text-3xl font-bold sm:text-5xl">{data.name}</h1>
         <StatusBadge status={data.status} />
       </div>
 
@@ -99,10 +99,10 @@ const hasDossier =
                   target="_blank"
                   rel="noopener noreferrer"
                   class:list={[
-                    'inline-block rounded-md px-4 py-2 font-medium transition-colors',
+                    'inline-block border px-5 py-2.5 font-mono text-sm uppercase tracking-wide transition-colors',
                     index === 0
-                      ? 'bg-accent text-bg hover:bg-accent-hover'
-                      : 'border border-line-strong hover:bg-raised',
+                      ? 'border-accent bg-accent text-bg hover:bg-accent-hover'
+                      : 'border-line-strong hover:border-accent hover:text-accent',
                   ]}
                 >
                   {link.label}
@@ -122,7 +122,7 @@ const hasDossier =
           width={1024}
           height={576}
           loading="eager"
-          class="w-full rounded-xl border border-line shadow-card"
+          class="w-full border border-line"
         />
       )
     }
@@ -138,18 +138,20 @@ const hasDossier =
         <div class="mt-4 space-y-10 border-t border-line pt-10">
           {data.problem && (
             <section>
-              <h2 class="mono-label mb-3">The problem</h2>
+              <h2 class="spec-label mb-3">The problem</h2>
               <p class="max-w-2xl">{data.problem}</p>
             </section>
           )}
 
           {data.highlights.length > 0 && (
             <section>
-              <h2 class="mono-label mb-3">Highlights</h2>
+              <h2 class="spec-label mb-3">Highlights</h2>
               <ul class="max-w-2xl space-y-2">
                 {data.highlights.map((item) => (
                   <li class="flex gap-3">
-                    <span class="mt-[0.55rem] size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                    <span class="font-mono text-accent" aria-hidden="true">
+                      +
+                    </span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -159,10 +161,10 @@ const hasDossier =
 
           {data.architecture.length > 0 && (
             <section>
-              <h2 class="mono-label mb-3">Architecture</h2>
+              <h2 class="spec-label mb-3">Architecture</h2>
               <ul class="max-w-2xl space-y-2 font-mono text-sm">
                 {data.architecture.map((item) => (
-                  <li class="flex gap-3 rounded border border-line bg-surface px-3 py-2">
+                  <li class="flex gap-3 border border-line bg-surface px-3 py-2">
                     <span class="text-faint" aria-hidden="true">→</span>
                     <span>{item}</span>
                   </li>
@@ -173,10 +175,10 @@ const hasDossier =
 
           {data.decisions.length > 0 && (
             <section>
-              <h2 class="mono-label mb-3">Engineering decisions</h2>
+              <h2 class="spec-label mb-3">Engineering decisions</h2>
               <dl class="max-w-2xl space-y-4">
                 {data.decisions.map((entry) => (
-                  <div class="rounded-lg border border-line bg-surface p-4">
+                  <div class="border border-line bg-surface p-4">
                     <dt class="font-medium">{entry.decision}</dt>
                     <dd class="mt-1 text-sm text-muted">{entry.reason}</dd>
                   </div>
@@ -187,11 +189,13 @@ const hasDossier =
 
           {data.challenges.length > 0 && (
             <section>
-              <h2 class="mono-label mb-3">Challenges</h2>
+              <h2 class="spec-label mb-3">Challenges</h2>
               <ul class="max-w-2xl space-y-2">
                 {data.challenges.map((item) => (
                   <li class="flex gap-3">
-                    <span class="mt-[0.55rem] size-1.5 shrink-0 rounded-full bg-warm" aria-hidden="true" />
+                    <span class="font-mono text-faint" aria-hidden="true">
+                      !
+                    </span>
                     <span>{item}</span>
                   </li>
                 ))}
@@ -201,11 +205,13 @@ const hasDossier =
 
           {data.lessons.length > 0 && (
             <section>
-              <h2 class="mono-label mb-3">What I'd do differently</h2>
+              <h2 class="spec-label mb-3">What I'd do differently</h2>
               <ul class="max-w-2xl space-y-2">
                 {data.lessons.map((item) => (
                   <li class="flex gap-3">
-                    <span class="mt-[0.55rem] size-1.5 shrink-0 rounded-full bg-live" aria-hidden="true" />
+                    <span class="font-mono text-live" aria-hidden="true">
+                      →
+                    </span>
                     <span>{item}</span>
                   </li>
                 ))}

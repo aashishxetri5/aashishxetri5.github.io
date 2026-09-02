@@ -1,14 +1,19 @@
 ---
 /**
- * Skills, rendered as evidence (§8).
+ * Skills as a spec table (§8).
  *
- * §8 is explicit that "Java: 97%" communicates nothing, and asks instead for
- * "Java / Used in: Project A, Project B, Company X". So every claim here is
- * followed by where it was used, resolved from validated references — a broken
- * link fails the build rather than quietly rendering an unsupported claim.
+ * §8 is explicit that "Java: 97%" communicates nothing, and asks for "Java /
+ * Used in: Project A, Project B, Company X". So this is a three-column table —
+ * skill, level, evidence — with the evidence resolved from validated
+ * references. A broken link fails the build rather than quietly rendering an
+ * unsupported claim.
  *
- * Cards are generated from the collection. §8: "Avoid manually building skill
+ * Rows are generated from the collection; §8: "Avoid manually building skill
  * cards into the UI."
+ *
+ * The level column is a word, not a percentage or a meter. A four-value enum
+ * resists false precision, and stating it in plain language is more honest
+ * than a bar chart implying measurement that never happened.
  */
 import type { ResolvedSkill, SkillGroup } from '../lib/content';
 
@@ -19,78 +24,77 @@ interface Props {
 const { groups } = Astro.props;
 
 const LEVEL_LABEL: Record<ResolvedSkill['level'], string> = {
-  advanced: 'Advanced',
-  proficient: 'Proficient',
-  working: 'Working knowledge',
-  learning: 'Learning',
+  advanced: 'advanced',
+  proficient: 'proficient',
+  working: 'working',
+  learning: 'learning',
 };
 
-/** Four coarse steps, deliberately not a percentage. */
-const LEVEL_STEPS: Record<ResolvedSkill['level'], number> = {
-  learning: 1,
-  working: 2,
-  proficient: 3,
-  advanced: 4,
+/* Only the top two levels get accent treatment, so emphasis stays meaningful. */
+const LEVEL_CLASS: Record<ResolvedSkill['level'], string> = {
+  advanced: 'text-accent',
+  proficient: 'text-ink',
+  working: 'text-muted',
+  learning: 'text-faint',
 };
+
+const evidenceOf = (skill: ResolvedSkill) =>
+  [
+    ...skill.evidence.projects.map((project) => project.name),
+    ...skill.evidence.companies.map((company) => company.company),
+  ].join(' · ');
 ---
 
-<div class="space-y-10">
+<div class="space-y-12">
   {
     groups.map((group) => (
-      <div>
-        <h3 class="mono-label mb-4 border-b border-line pb-2">
-          {group.category}
-        </h3>
+      <div class="reveal">
+        <div
+          class="flex items-baseline justify-between border-b border-line-strong pb-2"
+        >
+          <h3 class="spec-label text-ink">{group.category}</h3>
+          <span class="font-mono text-xs text-faint">
+            {String(group.skills.length).padStart(2, '0')}
+          </span>
+        </div>
 
-        <ul class="grid gap-3 sm:grid-cols-2">
+        <ul>
           {group.skills.map((skill) => (
-            <li class="rounded-lg border border-line bg-surface p-4">
-              <div class="flex items-baseline justify-between gap-2">
-                <p class="font-medium">{skill.name}</p>
+            <li class="border-b border-line">
+              <div
+                class="grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 py-3 sm:grid-cols-[11rem_6.5rem_1fr] sm:items-baseline"
+              >
+                <p class="font-medium">
+                  {skill.name}
+                  {skill.years !== undefined && skill.years > 0 && (
+                    <span class="ml-2 font-mono text-xs text-faint">
+                      {skill.years}y
+                    </span>
+                  )}
+                </p>
 
-                <span
-                  class="flex gap-0.5"
-                  title={LEVEL_LABEL[skill.level]}
-                  aria-label={LEVEL_LABEL[skill.level]}
+                <p
+                  class:list={[
+                    'text-right font-mono text-xs tracking-wide uppercase sm:text-left',
+                    LEVEL_CLASS[skill.level],
+                  ]}
                 >
-                  {[1, 2, 3, 4].map((step) => (
-                    <span
-                      class:list={[
-                        'size-1.5 rounded-full',
-                        step <= LEVEL_STEPS[skill.level]
-                          ? 'bg-accent'
-                          : 'bg-line',
-                      ]}
-                      aria-hidden="true"
-                    />
-                  ))}
-                </span>
+                  {LEVEL_LABEL[skill.level]}
+                </p>
+
+                <p class="col-span-2 text-sm sm:col-span-1">
+                  {skill.hasEvidence ? (
+                    <span class="text-muted">{evidenceOf(skill)}</span>
+                  ) : (
+                    /*
+                     * Said plainly rather than hidden. A skill with no shipped
+                     * evidence is still worth listing, and admitting it is more
+                     * credible than implying evidence that does not exist.
+                     */
+                    <span class="text-faint">—</span>
+                  )}
+                </p>
               </div>
-
-              {skill.years !== undefined && skill.years > 0 && (
-                <p class="mt-0.5 text-xs text-faint">
-                  {skill.years} {skill.years === 1 ? 'year' : 'years'}
-                </p>
-              )}
-
-              {skill.hasEvidence ? (
-                <p class="mt-2 text-sm text-muted">
-                  <span class="text-faint">Used in: </span>
-                  {[
-                    ...skill.evidence.projects.map((p) => p.name),
-                    ...skill.evidence.companies.map((c) => c.company),
-                  ].join(' · ')}
-                </p>
-              ) : (
-                /*
-                 * Stated plainly rather than hidden. A skill with no shipped
-                 * evidence is still worth listing, and saying so is more
-                 * credible than implying evidence that does not exist.
-                 */
-                <p class="mt-2 text-sm text-faint italic">
-                  No project evidence yet
-                </p>
-              )}
             </li>
           ))}
         </ul>

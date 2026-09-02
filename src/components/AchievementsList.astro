@@ -1,7 +1,7 @@
 ---
 /**
- * Achievements. Currently has no entries — the collection is deliberately
- * empty so that the omit-when-empty path is exercised rather than assumed.
+ * Achievements. Currently has no entries — the collection is deliberately empty
+ * so the omit-when-empty path is exercised rather than assumed.
  */
 import type { AchievementEntry } from '../lib/content';
 
@@ -12,12 +12,12 @@ interface Props {
 const { entries } = Astro.props;
 
 const TYPE_LABEL: Record<AchievementEntry['data']['type'], string> = {
-  certification: 'Certification',
-  award: 'Award',
-  recognition: 'Recognition',
-  publication: 'Publication',
-  talk: 'Talk',
-  other: 'Other',
+  certification: 'certification',
+  award: 'award',
+  recognition: 'recognition',
+  publication: 'publication',
+  talk: 'talk',
+  other: 'other',
 };
 
 const formatDate = (date: Date) =>
@@ -28,43 +28,52 @@ const formatDate = (date: Date) =>
   });
 ---
 
-<ul class="space-y-3">
+<ul class="border-t border-line">
   {
     entries.map(({ data }) => (
-      <li class="rounded-lg border border-line bg-surface p-5">
-        <div class="flex flex-wrap items-baseline justify-between gap-x-3">
-          <h3 class="font-semibold">{data.title}</h3>
-          <p class="mono-label">
+      <li class="reveal border-b border-line">
+        <div class="py-5 sm:grid sm:grid-cols-[6.5rem_1fr] sm:gap-6">
+          <p class="mb-2 font-mono text-sm text-faint sm:mb-0">
             <time datetime={data.date.toISOString()}>
               {formatDate(data.date)}
             </time>
           </p>
-        </div>
 
-        <p class="mt-1 text-sm text-muted">
-          {data.issuer && <span>{data.issuer} · </span>}
-          <span class="text-faint">{TYPE_LABEL[data.type]}</span>
-        </p>
-
-        {data.summary && <p class="mt-2 text-sm text-muted">{data.summary}</p>}
-
-        {data.credentialUrl && (
-          <p class="mt-3 text-sm">
-            <a
-              href={data.credentialUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-accent underline decoration-line-strong underline-offset-4 hover:decoration-accent"
-            >
-              Verify credential
-            </a>
-            {data.credentialId && (
-              <span class="ml-2 font-mono text-xs text-faint">
-                {data.credentialId}
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h3 class="font-bold">{data.title}</h3>
+              <span
+                class="border border-line px-1.5 py-px font-mono text-[0.65rem] tracking-[0.12em] text-faint uppercase"
+              >
+                {TYPE_LABEL[data.type]}
               </span>
+            </div>
+
+            {data.issuer && <p class="spec-value mt-1">{data.issuer}</p>}
+
+            {data.summary && (
+              <p class="mt-2 max-w-xl text-sm text-muted">{data.summary}</p>
             )}
-          </p>
-        )}
+
+            {data.credentialUrl && (
+              <p class="mt-3">
+                <a
+                  href={data.credentialUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-mono text-xs tracking-wide text-accent uppercase underline decoration-line-strong underline-offset-4 hover:decoration-accent"
+                >
+                  Verify ↗
+                </a>
+                {data.credentialId && (
+                  <span class="ml-3 font-mono text-xs text-faint">
+                    {data.credentialId}
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+        </div>
       </li>
     ))
   }

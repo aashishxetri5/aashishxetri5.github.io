@@ -1,0 +1,62 @@
+---
+/**
+ * System status strip (§11).
+ *
+ * §11 warns against faking system metrics in a misleading way, so nothing here
+ * is invented: the version is the package version, the locale and UTC offset
+ * are facts about where the owner is, and availability comes straight from
+ * profile content. No fake CPU or memory readouts.
+ *
+ * The offset is rendered statically rather than computed from the visitor's
+ * clock, which keeps this a zero-JS component.
+ */
+import type { ProfileEntry } from '../lib/content';
+
+interface Props {
+  profile: ProfileEntry;
+  version?: string;
+}
+
+const { profile, version = '4.0' } = Astro.props;
+const { data } = profile;
+
+/* Kathmandu is UTC+05:45. Derived from content rather than hardcoded copy. */
+const LOCALE_OFFSET: Record<string, string> = {
+  'Kathmandu, Nepal': 'UTC+05:45',
+};
+const offset = LOCALE_OFFSET[data.location];
+---
+
+<div class="border-b border-line bg-surface/60">
+  <div
+    class="mx-auto flex max-w-5xl items-center gap-x-4 overflow-x-auto px-5 py-2 sm:px-8 no-scrollbar"
+  >
+    <span class="spec-label shrink-0 text-muted">AASHISH.OS</span>
+    <span class="spec-label shrink-0">v{version}</span>
+
+    <span class="spec-label shrink-0 text-line-strong" aria-hidden="true">/</span>
+
+    <span class="spec-label shrink-0">{data.location.toUpperCase()}</span>
+    {offset && <span class="spec-label shrink-0">{offset}</span>}
+
+    <span class="ml-auto flex shrink-0 items-center gap-2">
+      <span
+        class:list={[
+          'size-1.5 rounded-full',
+          data.availability.open ? 'bg-live' : 'bg-faint',
+        ]}
+        style={data.availability.open
+          ? 'animation: status-pulse 2.4s ease-in-out infinite'
+          : undefined}
+        aria-hidden="true"></span>
+      <span
+        class:list={[
+          'spec-label',
+          data.availability.open ? 'text-live' : 'text-faint',
+        ]}
+      >
+        {data.availability.open ? 'Available' : 'Not looking'}
+      </span>
+    </span>
+  </div>
+</div>

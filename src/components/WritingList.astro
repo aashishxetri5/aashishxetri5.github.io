@@ -1,11 +1,11 @@
 ---
 /**
- * Writing (§10).
+ * Writing (§10), as an indexed listing matching the projects manifest.
  *
  * External and locally-hosted posts render through one list, differing only in
- * href and an outbound indicator. That is what makes starting a blog here a
- * content change rather than a code change — remove `external` from a post's
- * frontmatter and it becomes a page on this site.
+ * href and the trailing indicator. That is what makes starting a blog here a
+ * content change: remove `external` from a post's frontmatter and it becomes a
+ * page on this site.
  */
 import type { PostEntry } from '../lib/content';
 
@@ -19,65 +19,56 @@ const formatDate = (date: Date) =>
   date.toLocaleDateString('en-GB', {
     year: 'numeric',
     month: 'short',
-    day: 'numeric',
     timeZone: 'UTC',
   });
 ---
 
-<ul class="divide-y divide-line border-y border-line">
+<ul class="border-t border-line">
   {
-    posts.map((post) => {
+    posts.map((post, index) => {
       const isExternal = post.data.external !== undefined;
       const href = post.data.external ?? `/writing/${post.id}`;
 
       return (
-        <li>
+        <li
+          class="group relative border-b border-line transition-colors hover:bg-raised/50"
+        >
           <a
             href={href}
             target={isExternal ? '_blank' : undefined}
             rel={isExternal ? 'noopener noreferrer' : undefined}
-            class="group flex items-start justify-between gap-4 py-4 transition-colors hover:bg-raised/60"
+            class="flex items-start gap-4 py-5 sm:gap-6"
           >
-            <div class="min-w-0">
-              <p class="mono-label">
+            <span
+              class="mt-0.5 shrink-0 font-mono text-xs text-line-strong transition-colors group-hover:text-accent"
+              aria-hidden="true"
+            >
+              {String(index + 1).padStart(3, '0')}
+            </span>
+
+            <div class="min-w-0 flex-1">
+              <h3
+                class="font-bold transition-colors group-hover:text-accent"
+              >
+                {post.data.title}
+              </h3>
+              <p class="mt-1 max-w-xl text-sm text-muted">
+                {post.data.summary}
+              </p>
+            </div>
+
+            <div class="shrink-0 text-right">
+              <p class="font-mono text-xs whitespace-nowrap text-faint">
                 <time datetime={post.data.publishDate.toISOString()}>
                   {formatDate(post.data.publishDate)}
                 </time>
               </p>
-              <h3 class="mt-1 font-medium group-hover:text-accent">
-                {post.data.title}
-              </h3>
-              <p class="mt-1 text-sm text-muted">{post.data.summary}</p>
+              <p
+                class="spec-label mt-1 transition-colors group-hover:text-accent"
+              >
+                {isExternal ? 'Hashnode ↗' : 'Read →'}
+              </p>
             </div>
-
-            <span class="mt-6 shrink-0 text-faint group-hover:text-accent">
-              {isExternal ? (
-                <svg
-                  class="size-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  role="img"
-                  aria-label="Opens on an external site"
-                >
-                  <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6M15 3h6v6M10 14L21 3" />
-                </svg>
-              ) : (
-                <svg
-                  class="size-4"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  aria-hidden="true"
-                >
-                  <path d="M5 12h14M13 6l6 6-6 6" />
-                </svg>
-              )}
-            </span>
           </a>
         </li>
       );

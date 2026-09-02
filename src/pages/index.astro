@@ -4,23 +4,24 @@
  *
  * Phase 2's exit condition is that this page is already genuinely useful with
  * every experimental feature removed, which is what makes the AASHISH.OS shell
- * additive rather than load-bearing. It ships zero JavaScript beyond the theme
- * toggle, so it works with scripting disabled (§39).
+ * additive rather than load-bearing.
  *
- * Every section is derived: an empty collection omits its section entirely
- * rather than rendering a bare heading — the exact bug v3 shipped with its
- * permanently empty certifications block.
+ * Section numbers are passed explicitly rather than derived from position,
+ * because a section that omits itself must not renumber the ones after it —
+ * §05 vanishing when there are no achievements is correct; §06 silently
+ * becoming §05 would make the header nav lie.
  */
 import AchievementsList from '../components/AchievementsList.astro';
 import ContactSection from '../components/ContactSection.astro';
 import EducationList from '../components/EducationList.astro';
 import ExperienceTimeline from '../components/ExperienceTimeline.astro';
 import Hero from '../components/Hero.astro';
-import ProjectCard from '../components/ProjectCard.astro';
+import ProjectRow from '../components/ProjectRow.astro';
 import Section from '../components/Section.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
 import SkillsEvidence from '../components/SkillsEvidence.astro';
+import StatusBar from '../components/StatusBar.astro';
 import WritingList from '../components/WritingList.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import {
@@ -46,22 +47,19 @@ const [profile, experience, projects, skillGroups, education, achievements, post
 ---
 
 <BaseLayout>
+  <StatusBar profile={profile} />
   <SiteHeader />
 
-  <main id="main" class="mx-auto max-w-4xl px-5 sm:px-8">
+  <main id="main" class="mx-auto max-w-5xl px-5 sm:px-8">
     <Hero profile={profile} />
 
-    <Section
-      id="about"
-      label="About"
-      heading="Who I am"
-    >
+    <Section id="about" index={1} label="About" heading="Who I am">
       {/*
         longBio is authored as plain text with blank-line paragraph breaks, so
         it is split rather than rendered as HTML — no sanitization question
         arises for profile copy (§31).
       */}
-      <div class="max-w-2xl space-y-4 text-muted">
+      <div class="max-w-xl space-y-4 text-lg text-muted">
         {
           profile.data.longBio
             .split(/\n\s*\n/)
@@ -74,6 +72,7 @@ const [profile, experience, projects, skillGroups, education, achievements, post
       experience.length > 0 && (
         <Section
           id="experience"
+          index={2}
           label="Experience"
           heading="Where I've worked"
         >
@@ -86,13 +85,18 @@ const [profile, experience, projects, skillGroups, education, achievements, post
       projects.length > 0 && (
         <Section
           id="projects"
+          index={3}
           label="Projects"
           heading="Things I've built"
-          lede="Each project has its own page with the detail behind it."
+          lede="Every entry has its own page with the reasoning behind it."
         >
-          <div class="grid gap-5 sm:grid-cols-2">
-            {projects.map((project) => <ProjectCard project={project} />)}
-          </div>
+          <ul class="border-t border-line">
+            {
+              projects.map((project, position) => (
+                <ProjectRow project={project} index={position + 1} />
+              ))
+            }
+          </ul>
         </Section>
       )
     }
@@ -101,6 +105,7 @@ const [profile, experience, projects, skillGroups, education, achievements, post
       skillGroups.length > 0 && (
         <Section
           id="skills"
+          index={4}
           label="Skills"
           heading="What I work with"
           lede="Listed with where I've actually used them, rather than as a percentage."
@@ -112,18 +117,24 @@ const [profile, experience, projects, skillGroups, education, achievements, post
 
     {
       education.length > 0 && (
-        <Section id="education" label="Education" heading="Where I studied">
+        <Section
+          id="education"
+          index={5}
+          label="Education"
+          heading="Where I studied"
+        >
           <EducationList entries={education} />
         </Section>
       )
     }
 
-    {/* Currently empty by design — proves the section omits itself (§8). */}
+    {/* Empty by design — proves the section omits itself (§8). */}
     {
       achievements.length > 0 && (
         <Section
           id="achievements"
-          label="Achievements"
+          index={6}
+          label="Awards"
           heading="Certifications and recognition"
         >
           <AchievementsList entries={achievements} />
@@ -133,13 +144,18 @@ const [profile, experience, projects, skillGroups, education, achievements, post
 
     {
       posts.length > 0 && (
-        <Section id="writing" label="Writing" heading="Things I've written">
+        <Section
+          id="writing"
+          index={6}
+          label="Writing"
+          heading="Things I've written"
+        >
           <WritingList posts={posts} />
         </Section>
       )
     }
 
-    <Section id="contact" label="Contact" heading="Get in touch">
+    <Section id="contact" index={7} label="Contact" heading="Get in touch">
       <ContactSection profile={profile} />
     </Section>
 

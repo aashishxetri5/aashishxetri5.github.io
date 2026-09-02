@@ -1,28 +1,52 @@
 ---
 /**
- * Section shell: anchor, monospace eyebrow label, heading, optional lede.
+ * Section shell, spec-sheet form: `§02 │ EXPERIENCE` over a full-width rule,
+ * with content offset into a right-hand column.
  *
- * Every reader-mode section uses this, so spacing and heading hierarchy stay
- * consistent and the h2 level is never chosen ad hoc — §24 depends on the
- * hierarchy being correct, not merely present.
+ * The gutter is the structural idea of the whole design. On wide screens the
+ * section number and label sit in a narrow left column while content occupies
+ * the wide right one, which produces the asymmetry a centred single column
+ * cannot. Below `lg` the gutter collapses to a stacked header, because a 6rem
+ * column on a phone would just squeeze the content (§25 — do not merely shrink
+ * the desktop layout).
  */
 interface Props {
   id: string;
-  /** Monospace eyebrow, e.g. "EXPERIENCE". */
+  /** Section number, rendered as §NN. Pass the ordinal, not a string. */
+  index: number;
   label: string;
   heading: string;
   lede?: string | undefined;
 }
 
-const { id, label, heading, lede } = Astro.props;
+const { id, index, label, heading, lede } = Astro.props;
+const ordinal = String(index).padStart(2, '0');
 ---
 
-<section id={id} class="scroll-mt-20 border-t border-line py-16 sm:py-20">
-  <div class="mb-8 sm:mb-10">
-    <p class="mono-label mb-2">{label}</p>
-    <h2 class="text-2xl font-semibold sm:text-3xl">{heading}</h2>
-    {lede && <p class="mt-3 max-w-2xl text-muted">{lede}</p>}
-  </div>
+<section id={id} class="scroll-mt-24 border-t border-line">
+  <div class="lg:grid lg:grid-cols-[7rem_1fr] lg:gap-10">
+    <!-- Gutter: sticks while its section scrolls, so you always know where you are. -->
+    <div class="pt-8 lg:sticky lg:top-24 lg:self-start lg:pt-10">
+      {/*
+        One label node, re-laid-out per breakpoint rather than duplicated with
+        lg:hidden / hidden lg:block. A duplicate would be invisible but still
+        announced twice by a screen reader (§24) — the row becomes a column on
+        wide screens, and only the separator glyph is dropped.
+      */}
+      <p class="spec-label flex items-baseline gap-2 lg:flex-col lg:items-start lg:gap-1">
+        <span class="text-accent">§{ordinal}</span>
+        <span class="text-line-strong lg:hidden" aria-hidden="true">│</span>
+        <span>{label}</span>
+      </p>
+    </div>
 
-  <slot />
+    <div class="reveal pt-4 pb-16 lg:pt-10 lg:pb-24">
+      <h2 class="text-3xl font-bold sm:text-4xl">{heading}</h2>
+      {lede && <p class="mt-4 max-w-xl text-muted">{lede}</p>}
+
+      <div class="mt-8 sm:mt-10">
+        <slot />
+      </div>
+    </div>
+  </div>
 </section>
