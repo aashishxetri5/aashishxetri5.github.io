@@ -55,8 +55,27 @@ export function formatDateRange(range: DateRange): string {
 }
 
 /**
- * Sort timeline entries for display: current roles first, then most recent
+ * Display ordering for timeline entries: current roles first, then most recent
  * start date, then the manual `order` tiebreak.
+ *
+ * Exported as a bare comparator so callers holding Astro collection entries can
+ * sort on `entry.data` without first mapping the whole collection into a
+ * different shape.
+ */
+export function compareByRecency(
+  a: DateRange & { order?: number | undefined },
+  b: DateRange & { order?: number | undefined },
+): number {
+  if (a.current !== b.current) return a.current ? -1 : 1;
+
+  const byStart = b.startDate.getTime() - a.startDate.getTime();
+  if (byStart !== 0) return byStart;
+
+  return (a.order ?? 0) - (b.order ?? 0);
+}
+
+/**
+ * Sort timeline entries for display.
  *
  * Returns a new array — callers frequently hold Astro collection results that
  * should not be mutated in place.
@@ -64,14 +83,7 @@ export function formatDateRange(range: DateRange): string {
 export function sortByRecency<T extends DateRange & { order?: number | undefined }>(
   entries: readonly T[],
 ): T[] {
-  return [...entries].sort((a, b) => {
-    if (a.current !== b.current) return a.current ? -1 : 1;
-
-    const byStart = b.startDate.getTime() - a.startDate.getTime();
-    if (byStart !== 0) return byStart;
-
-    return (a.order ?? 0) - (b.order ?? 0);
-  });
+  return [...entries].sort(compareByRecency);
 }
 
 /**

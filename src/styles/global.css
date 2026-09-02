@@ -1,6 +1,213 @@
-/*
- * Tailwind 4 is configured CSS-first via @theme — there is no
- * tailwind.config.js, because v4 no longer auto-detects one.
- * The design system proper is Phase 2 (ADR-001); this is only the entry point.
- */
 @import 'tailwindcss';
+
+/*
+ * AASHISH.OS design system.
+ *
+ * Replaces v3's two unrelated stylesheets (Karla/Inter/Kristi + lavender on the
+ * main site, Archivo/Lato + teal on the résumé page) with one token set.
+ *
+ * Dark-first per §27, with a light mode and a persisted preference. The palette
+ * keeps a deliberate nod to v3's identity — a cool blue paired with a warm
+ * amber — so the rebuild reads as an evolution rather than an unrelated site.
+ *
+ * No webfonts. §26 says avoid loading a font where a system stack suffices;
+ * this saves render-blocking requests and a layout shift on every page.
+ */
+
+/* ── Light (default) ─────────────────────────────────────────────────────── */
+:root {
+  --c-bg: #fbfbfd;
+  --c-surface: #ffffff;
+  --c-surface-raised: #f4f5f8;
+  --c-border: #e3e5ec;
+  --c-border-strong: #c9ccd8;
+
+  --c-text: #14161d;
+  --c-text-muted: #5b6175;
+  --c-text-faint: #868ca0;
+
+  --c-accent: #0f6fd1;
+  --c-accent-hover: #0b5aab;
+  --c-accent-subtle: #e8f1fc;
+
+  --c-warm: #b26a00;
+  --c-warm-subtle: #fdf1de;
+
+  --c-live: #0e8a5f;
+  --c-live-subtle: #e2f5ed;
+
+  --shadow-card: 0 1px 2px rgb(20 22 29 / 0.05), 0 4px 12px rgb(20 22 29 / 0.04);
+}
+
+/*
+ * Dark tokens are defined twice on purpose: once for the system preference
+ * (guarded so an explicit light choice still wins) and once for the explicit
+ * choice. Defining them only inside the media query would break the toggle.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --c-bg: #0a0b0f;
+    --c-surface: #12141a;
+    --c-surface-raised: #191c24;
+    --c-border: #262a35;
+    --c-border-strong: #3a3f4e;
+
+    --c-text: #e8eaf0;
+    --c-text-muted: #9aa1b4;
+    --c-text-faint: #6b7285;
+
+    --c-accent: #58b6ff;
+    --c-accent-hover: #8acbff;
+    --c-accent-subtle: #10243a;
+
+    --c-warm: #f0b34a;
+    --c-warm-subtle: #2a2013;
+
+    --c-live: #3ddc9a;
+    --c-live-subtle: #0d2a20;
+
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.3);
+  }
+}
+
+:root[data-theme='dark'] {
+  --c-bg: #0a0b0f;
+  --c-surface: #12141a;
+  --c-surface-raised: #191c24;
+  --c-border: #262a35;
+  --c-border-strong: #3a3f4e;
+
+  --c-text: #e8eaf0;
+  --c-text-muted: #9aa1b4;
+  --c-text-faint: #6b7285;
+
+  --c-accent: #58b6ff;
+  --c-accent-hover: #8acbff;
+  --c-accent-subtle: #10243a;
+
+  --c-warm: #f0b34a;
+  --c-warm-subtle: #2a2013;
+
+  --c-live: #3ddc9a;
+  --c-live-subtle: #0d2a20;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.3);
+}
+
+/*
+ * `inline` makes Tailwind emit utilities that reference the custom properties
+ * at use time rather than baking in a value, which is what lets one set of
+ * utilities respond to the theme.
+ */
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-raised: var(--c-surface-raised);
+  --color-line: var(--c-border);
+  --color-line-strong: var(--c-border-strong);
+
+  --color-ink: var(--c-text);
+  --color-muted: var(--c-text-muted);
+  --color-faint: var(--c-text-faint);
+
+  --color-accent: var(--c-accent);
+  --color-accent-hover: var(--c-accent-hover);
+  --color-accent-subtle: var(--c-accent-subtle);
+
+  --color-warm: var(--c-warm);
+  --color-warm-subtle: var(--c-warm-subtle);
+
+  --color-live: var(--c-live);
+  --color-live-subtle: var(--c-live-subtle);
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono',
+    monospace;
+
+  --shadow-card: var(--shadow-card);
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    /* Keeps anchored sections clear of the sticky header. */
+    scroll-padding-top: 5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.65;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    line-height: 1.2;
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /*
+   * §24 requires visible focus states. :focus-visible only shows the ring for
+   * keyboard users, so it never has to be removed for aesthetics — which is
+   * how focus rings usually end up deleted.
+   */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  /* Astro's optimizer emits width/height; keep images fluid regardless. */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/*
+ * §24 and §25: honour reduced motion globally rather than per-component, so a
+ * future animation cannot forget to opt in. Also disables smooth scrolling,
+ * which is itself motion.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@utility mono-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
