@@ -1,0 +1,71 @@
+---
+/**
+ * Sticky header: wordmark, section nav, theme toggle.
+ *
+ * The nav is plain anchor links to real section ids. v3 intercepted clicks and
+ * toggled `display: none`, which meant no section was linkable, shareable or in
+ * the browser history. Anchors restore all three and need no JavaScript, so
+ * navigation survives a script failure (§26, §39).
+ *
+ * On small screens the nav scrolls horizontally rather than collapsing into a
+ * hamburger — with six short labels a drawer costs more than it saves, and
+ * §25 warns against simply shrinking the desktop UI.
+ */
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  /** Section links are only meaningful on the page that has the sections. */
+  showSectionNav?: boolean;
+}
+
+const { showSectionNav = true } = Astro.props;
+
+const SECTIONS = [
+  { id: 'about', label: 'About' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'writing', label: 'Writing' },
+  { id: 'contact', label: 'Contact' },
+] as const;
+---
+
+<header
+  class="sticky top-0 z-40 border-b border-line bg-bg/85 backdrop-blur-md"
+>
+  <div
+    class="mx-auto flex h-14 max-w-4xl items-center gap-4 px-5 sm:px-8"
+  >
+    <a
+      href="/"
+      class="shrink-0 font-mono text-sm font-semibold tracking-tight text-ink"
+    >
+      AASHISH<span class="text-accent">.OS</span>
+    </a>
+
+    {
+      showSectionNav && (
+        <nav aria-label="Sections" class="min-w-0 flex-1">
+          <ul
+            class="flex gap-1 overflow-x-auto text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          >
+            {SECTIONS.map((section) => (
+              <li>
+                <a
+                  href={`#${section.id}`}
+                  class="block rounded px-2.5 py-1.5 whitespace-nowrap text-muted transition-colors hover:bg-raised hover:text-ink"
+                >
+                  {section.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+
+    <div class:list={['shrink-0', !showSectionNav && 'ml-auto']}>
+      <ThemeToggle />
+    </div>
+  </div>
+</header>

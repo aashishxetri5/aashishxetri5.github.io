@@ -1,0 +1,223 @@
+---
+/**
+ * Project page.
+ *
+ * §13 wants clicking a project to open a rich view, and every section here is
+ * content-driven: empty arrays are omitted entirely, so a thin project renders
+ * as a clean short page rather than a scaffold of empty headings.
+ *
+ * SCOPE NOTE: §37 assigns dossiers to Phase 5. This page is built in Phase 2
+ * anyway, because Phase 2 ships project cards and a card linking nowhere is a
+ * dead end. Since the dossier fields already exist in the schema from Phase 1,
+ * rendering them now costs nothing extra. Phase 5 becomes presentation depth —
+ * architecture diagrams and richer decision layout — rather than plumbing.
+ */
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+
+import SiteFooter from '../../components/SiteFooter.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import TechChips from '../../components/TechChips.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getProfile } from '../../lib/content';
+
+export async function getStaticPaths() {
+  // Archived projects still get a page — they are excluded from listings, not
+  // unpublished, so existing inbound links keep working.
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({
+    params: { id: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { data } = project;
+
+const [profile, rendered] = await Promise.all([
+  getProfile(),
+  render(project),
+]);
+
+const { Content } = rendered;
+
+const links = [
+  { label: 'View source', url: data.links.github },
+  { label: 'Live demo', url: data.links.demo },
+  { label: 'Documentation', url: data.links.documentation },
+].filter((link): link is { label: string; url: string } => Boolean(link.url));
+
+const hasDossier =
+  data.problem !== undefined ||
+  data.highlights.length > 0 ||
+  data.architecture.length > 0 ||
+  data.decisions.length > 0 ||
+  data.challenges.length > 0 ||
+  data.lessons.length > 0;
+---
+
+<BaseLayout
+  title={data.name}
+  description={data.shortDescription}
+  ogImage={data.image}
+  ogType="article"
+>
+  <SiteHeader showSectionNav={false} />
+
+  <main id="main" class="mx-auto max-w-3xl px-5 sm:px-8">
+    <nav class="pt-8 text-sm" aria-label="Breadcrumb">
+      <a
+        href="/#projects"
+        class="text-muted underline decoration-line-strong underline-offset-4 hover:text-accent"
+      >
+        ← All projects
+      </a>
+    </nav>
+
+    <header class="py-8">
+      <p class="mono-label mb-3">Project</p>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <h1 class="text-3xl font-semibold sm:text-4xl">{data.name}</h1>
+        <StatusBadge status={data.status} />
+      </div>
+
+      <p class="mt-4 max-w-2xl text-lg text-muted">{data.shortDescription}</p>
+
+      <div class="mt-6">
+        <TechChips items={data.technologies} label="Technologies used" />
+      </div>
+
+      {
+        links.length > 0 && (
+          <ul class="mt-6 flex flex-wrap gap-3">
+            {links.map((link, index) => (
+              <li>
+                <a
+                  href={link.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class:list={[
+                    'inline-block rounded-md px-4 py-2 font-medium transition-colors',
+                    index === 0
+                      ? 'bg-accent text-bg hover:bg-accent-hover'
+                      : 'border border-line-strong hover:bg-raised',
+                  ]}
+                >
+                  {link.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </header>
+
+    {
+      data.image && (
+        <Image
+          src={data.image}
+          alt={`Screenshot of ${data.name}`}
+          width={1024}
+          height={576}
+          loading="eager"
+          class="w-full rounded-xl border border-line shadow-card"
+        />
+      )
+    }
+
+    <div
+      class="prose-body mt-10 max-w-2xl space-y-4 border-t border-line pt-10 text-muted"
+    >
+      <Content />
+    </div>
+
+    {
+      hasDossier && (
+        <div class="mt-4 space-y-10 border-t border-line pt-10">
+          {data.problem && (
+            <section>
+              <h2 class="mono-label mb-3">The problem</h2>
+              <p class="max-w-2xl">{data.problem}</p>
+            </section>
+          )}
+
+          {data.highlights.length > 0 && (
+            <section>
+              <h2 class="mono-label mb-3">Highlights</h2>
+              <ul class="max-w-2xl space-y-2">
+                {data.highlights.map((item) => (
+                  <li class="flex gap-3">
+                    <span class="mt-[0.55rem] size-1.5 shrink-0 rounded-full bg-accent" aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {data.architecture.length > 0 && (
+            <section>
+              <h2 class="mono-label mb-3">Architecture</h2>
+              <ul class="max-w-2xl space-y-2 font-mono text-sm">
+                {data.architecture.map((item) => (
+                  <li class="flex gap-3 rounded border border-line bg-surface px-3 py-2">
+                    <span class="text-faint" aria-hidden="true">→</span>
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {data.decisions.length > 0 && (
+            <section>
+              <h2 class="mono-label mb-3">Engineering decisions</h2>
+              <dl class="max-w-2xl space-y-4">
+                {data.decisions.map((entry) => (
+                  <div class="rounded-lg border border-line bg-surface p-4">
+                    <dt class="font-medium">{entry.decision}</dt>
+                    <dd class="mt-1 text-sm text-muted">{entry.reason}</dd>
+                  </div>
+                ))}
+              </dl>
+            </section>
+          )}
+
+          {data.challenges.length > 0 && (
+            <section>
+              <h2 class="mono-label mb-3">Challenges</h2>
+              <ul class="max-w-2xl space-y-2">
+                {data.challenges.map((item) => (
+                  <li class="flex gap-3">
+                    <span class="mt-[0.55rem] size-1.5 shrink-0 rounded-full bg-warm" aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+
+          {data.lessons.length > 0 && (
+            <section>
+              <h2 class="mono-label mb-3">What I'd do differently</h2>
+              <ul class="max-w-2xl space-y-2">
+                {data.lessons.map((item) => (
+                  <li class="flex gap-3">
+                    <span class="mt-[0.55rem] size-1.5 shrink-0 rounded-full bg-live" aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+        </div>
+      )
+    }
+
+    <div class="mt-12">
+      <SiteFooter profile={profile} />
+    </div>
+  </main>
+</BaseLayout>

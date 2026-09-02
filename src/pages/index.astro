@@ -1,162 +1,148 @@
 ---
 /**
- * PHASE 1 SMOKE PAGE — not the real homepage.
+ * Reader mode (§10) — the conventional, recruiter-friendly experience.
  *
- * Phase 1's exit condition is that the content layer works and that invalid
- * content fails the build. This page exists to make that verifiable: it loads
- * every collection, renders the derived date labels, and resolves the skill
- * evidence references. It is deliberately near-unstyled.
+ * Phase 2's exit condition is that this page is already genuinely useful with
+ * every experimental feature removed, which is what makes the AASHISH.OS shell
+ * additive rather than load-bearing. It ships zero JavaScript beyond the theme
+ * toggle, so it works with scripting disabled (§39).
  *
- * Phase 2 replaces this entirely with reader mode.
+ * Every section is derived: an empty collection omits its section entirely
+ * rather than rendering a bare heading — the exact bug v3 shipped with its
+ * permanently empty certifications block.
  */
-import { getCollection, getEntry } from 'astro:content';
+import AchievementsList from '../components/AchievementsList.astro';
+import ContactSection from '../components/ContactSection.astro';
+import EducationList from '../components/EducationList.astro';
+import ExperienceTimeline from '../components/ExperienceTimeline.astro';
+import Hero from '../components/Hero.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import Section from '../components/Section.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SkillsEvidence from '../components/SkillsEvidence.astro';
+import WritingList from '../components/WritingList.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import {
+  getAchievements,
+  getEducation,
+  getExperience,
+  getPosts,
+  getProfile,
+  getProjects,
+  getSkillGroups,
+} from '../lib/content';
 
-import { formatDateRange, sortByRecency } from '../lib/dates';
-import '../styles/global.css';
-
-const [profileEntries, experience, projects, skills, education, achievements, posts] =
+const [profile, experience, projects, skillGroups, education, achievements, posts] =
   await Promise.all([
-    getCollection('profile'),
-    getCollection('experience'),
-    getCollection('projects'),
-    getCollection('skills'),
-    getCollection('education'),
-    getCollection('achievements'),
-    getCollection('posts'),
+    getProfile(),
+    getExperience(),
+    getProjects(),
+    getSkillGroups(),
+    getEducation(),
+    getAchievements(),
+    getPosts(),
   ]);
-
-const profile = profileEntries[0];
-
-// §6/§14 in action: labels and ordering are derived, never authored.
-const timeline = sortByRecency(
-  experience.map((entry) => ({
-    id: entry.id,
-    company: entry.data.company,
-    role: entry.data.role,
-    startDate: entry.data.startDate,
-    endDate: entry.data.endDate,
-    current: entry.data.current,
-  })),
-);
-
-// Resolve the skill → project references, proving build-time referential
-// integrity rather than free-text claims (§8, §33).
-const skillEvidence = await Promise.all(
-  skills.map(async (skill) => ({
-    name: skill.data.name,
-    category: skill.data.category,
-    level: skill.data.level,
-    projects: (
-      await Promise.all(skill.data.projects.map((ref) => getEntry(ref)))
-    )
-      .filter((entry) => entry !== undefined)
-      .map((entry) => entry.data.name),
-  })),
-);
-
-const counts = [
-  ['profile', profileEntries.length],
-  ['experience', experience.length],
-  ['projects', projects.length],
-  ['skills', skills.length],
-  ['education', education.length],
-  ['achievements', achievements.length],
-  ['posts', posts.length],
-] as const;
 ---
 
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>AASHISH.OS — Phase 1 content smoke test</title>
-    <meta name="robots" content="noindex" />
-  </head>
-  <body class="mx-auto max-w-3xl p-8 font-mono text-sm leading-relaxed">
-    <h1 class="mb-2 text-xl font-bold">AASHISH.OS — Phase 1</h1>
-    <p class="mb-8 text-neutral-600">
-      Content-layer smoke test. Not the real homepage — Phase 2 replaces this.
-    </p>
+<BaseLayout>
+  <SiteHeader />
 
-    <section class="mb-8">
-      <h2 class="mb-2 font-bold">Collections loaded</h2>
-      <ul>
+  <main id="main" class="mx-auto max-w-4xl px-5 sm:px-8">
+    <Hero profile={profile} />
+
+    <Section
+      id="about"
+      label="About"
+      heading="Who I am"
+    >
+      {/*
+        longBio is authored as plain text with blank-line paragraph breaks, so
+        it is split rather than rendered as HTML — no sanitization question
+        arises for profile copy (§31).
+      */}
+      <div class="max-w-2xl space-y-4 text-muted">
         {
-          counts.map(([name, count]) => (
-            <li>
-              {name}: <strong>{count}</strong>
-              {count === 0 && ' — empty (expected; must omit its UI section)'}
-            </li>
-          ))
+          profile.data.longBio
+            .split(/\n\s*\n/)
+            .map((paragraph) => <p>{paragraph.trim()}</p>)
         }
-      </ul>
-    </section>
+      </div>
+    </Section>
 
     {
-      profile && (
-        <section class="mb-8">
-          <h2 class="mb-2 font-bold">Profile</h2>
-          <ul>
-            <li>{profile.data.name} — {profile.data.headline}</li>
-            <li>{profile.data.location}</li>
-            <li>
-              résumé:{' '}
-              {profile.data.resume
-                ? profile.data.resume.file
-                : 'absent — affordance must be omitted, not broken'}
-            </li>
-            <li>
-              availability: {profile.data.availability.open ? 'open' : 'closed'}
-            </li>
-          </ul>
-        </section>
+      experience.length > 0 && (
+        <Section
+          id="experience"
+          label="Experience"
+          heading="Where I've worked"
+        >
+          <ExperienceTimeline entries={experience} />
+        </Section>
       )
     }
 
-    <section class="mb-8">
-      <h2 class="mb-2 font-bold">Timeline — derived labels and ordering</h2>
-      <ol>
-        {
-          timeline.map((item) => (
-            <li>
-              <strong>{formatDateRange(item)}</strong> · {item.role} @{' '}
-              {item.company}
-              {item.current && ' ← current'}
-            </li>
-          ))
-        }
-      </ol>
-    </section>
+    {
+      projects.length > 0 && (
+        <Section
+          id="projects"
+          label="Projects"
+          heading="Things I've built"
+          lede="Each project has its own page with the detail behind it."
+        >
+          <div class="grid gap-5 sm:grid-cols-2">
+            {projects.map((project) => <ProjectCard project={project} />)}
+          </div>
+        </Section>
+      )
+    }
 
-    <section class="mb-8">
-      <h2 class="mb-2 font-bold">Skills — resolved evidence references</h2>
-      <ul>
-        {
-          skillEvidence.map((skill) => (
-            <li>
-              {skill.name} ({skill.category}, {skill.level})
-              {skill.projects.length > 0
-                ? ` — used in: ${skill.projects.join(' · ')}`
-                : ' — no project evidence yet'}
-            </li>
-          ))
-        }
-      </ul>
-    </section>
+    {
+      skillGroups.length > 0 && (
+        <Section
+          id="skills"
+          label="Skills"
+          heading="What I work with"
+          lede="Listed with where I've actually used them, rather than as a percentage."
+        >
+          <SkillsEvidence groups={skillGroups} />
+        </Section>
+      )
+    }
 
-    <section>
-      <h2 class="mb-2 font-bold">Projects by status</h2>
-      <ul>
-        {
-          projects.map((project) => (
-            <li>
-              [{project.data.status}] {project.data.name}
-              {project.data.featured && ' ★ featured'}
-            </li>
-          ))
-        }
-      </ul>
-    </section>
-  </body>
-</html>
+    {
+      education.length > 0 && (
+        <Section id="education" label="Education" heading="Where I studied">
+          <EducationList entries={education} />
+        </Section>
+      )
+    }
+
+    {/* Currently empty by design — proves the section omits itself (§8). */}
+    {
+      achievements.length > 0 && (
+        <Section
+          id="achievements"
+          label="Achievements"
+          heading="Certifications and recognition"
+        >
+          <AchievementsList entries={achievements} />
+        </Section>
+      )
+    }
+
+    {
+      posts.length > 0 && (
+        <Section id="writing" label="Writing" heading="Things I've written">
+          <WritingList posts={posts} />
+        </Section>
+      )
+    }
+
+    <Section id="contact" label="Contact" heading="Get in touch">
+      <ContactSection profile={profile} />
+    </Section>
+
+    <SiteFooter profile={profile} />
+  </main>
+</BaseLayout>

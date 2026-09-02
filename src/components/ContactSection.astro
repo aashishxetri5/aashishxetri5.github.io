@@ -1,0 +1,82 @@
+---
+/**
+ * Contact.
+ *
+ * No form, deliberately. v3 posted to a third-party form service; a mailto plus
+ * direct social links has no third-party dependency, no spam surface, nothing
+ * to break silently, and nothing to keep working. §19 prefers the simplest
+ * thing that satisfies the requirement, and the requirement is "be reachable".
+ *
+ * v3's embedded Google Maps iframe is also gone: it shipped third-party
+ * tracking and a large payload to show a pin near a home address.
+ */
+import type { ProfileEntry } from '../lib/content';
+
+interface Props {
+  profile: ProfileEntry;
+}
+
+const { data } = Astro.props.profile;
+
+const SOCIAL_LABELS: Record<string, string> = {
+  github: 'GitHub',
+  linkedin: 'LinkedIn',
+  hashnode: 'Hashnode',
+  website: 'Website',
+  x: 'X',
+};
+
+const socials = Object.entries(data.socials)
+  .filter((entry): entry is [string, string] => typeof entry[1] === 'string')
+  .map(([key, url]) => ({ label: SOCIAL_LABELS[key] ?? key, url }));
+---
+
+<div class="rounded-xl border border-line bg-surface p-6 sm:p-8">
+  <p class="max-w-xl text-muted">
+    {
+      data.availability.open
+        ? 'I read everything that arrives. The fastest way to reach me is email.'
+        : 'Not currently looking, but always happy to talk shop.'
+    }
+  </p>
+
+  <div class="mt-6 flex flex-wrap items-center gap-3">
+    <a
+      href={`mailto:${data.email}`}
+      class="rounded-md bg-accent px-4 py-2 font-medium text-bg transition-colors hover:bg-accent-hover"
+    >
+      {data.email}
+    </a>
+
+    {
+      data.resume && (
+        <a
+          href={`/${data.resume.file}`}
+          download
+          class="rounded-md border border-line-strong px-4 py-2 font-medium transition-colors hover:bg-raised"
+        >
+          Download {data.resume.label}
+        </a>
+      )
+    }
+  </div>
+
+  {
+    socials.length > 0 && (
+      <ul class="mt-6 flex flex-wrap gap-x-5 gap-y-2 border-t border-line pt-5 text-sm">
+        {socials.map((social) => (
+          <li>
+            <a
+              href={social.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-accent underline decoration-line-strong underline-offset-4 hover:decoration-accent"
+            >
+              {social.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    )
+  }
+</div>

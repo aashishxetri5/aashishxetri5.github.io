@@ -1,0 +1,51 @@
+---
+/**
+ * Project status badge (§7).
+ *
+ * One lookup table drives colour and copy, so adding a status to the schema
+ * means editing this map rather than hunting conditionals through every card
+ * and dossier. §7 says the frontend should render appropriate UI from the data.
+ */
+import type { ProjectStatus } from '../lib/content';
+
+interface Props {
+  status: ProjectStatus;
+}
+
+const { status } = Astro.props;
+
+const STATUS: Record<ProjectStatus, { label: string; classes: string; dot: string }> = {
+  active: {
+    label: 'Active',
+    classes: 'bg-live-subtle text-live',
+    dot: 'bg-live',
+  },
+  completed: {
+    label: 'Completed',
+    classes: 'bg-accent-subtle text-accent',
+    dot: 'bg-accent',
+  },
+  experimental: {
+    label: 'Experimental',
+    classes: 'bg-warm-subtle text-warm',
+    dot: 'bg-warm',
+  },
+  archived: {
+    label: 'Archived',
+    classes: 'bg-raised text-faint',
+    dot: 'bg-faint',
+  },
+};
+
+const { label, classes, dot } = STATUS[status];
+---
+
+<span
+  class:list={[
+    'inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-medium',
+    classes,
+  ]}
+>
+  <span class:list={['size-1.5 rounded-full', dot]} aria-hidden="true"></span>
+  {label}
+</span>

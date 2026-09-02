@@ -1,0 +1,71 @@
+---
+/**
+ * Achievements. Currently has no entries — the collection is deliberately
+ * empty so that the omit-when-empty path is exercised rather than assumed.
+ */
+import type { AchievementEntry } from '../lib/content';
+
+interface Props {
+  entries: AchievementEntry[];
+}
+
+const { entries } = Astro.props;
+
+const TYPE_LABEL: Record<AchievementEntry['data']['type'], string> = {
+  certification: 'Certification',
+  award: 'Award',
+  recognition: 'Recognition',
+  publication: 'Publication',
+  talk: 'Talk',
+  other: 'Other',
+};
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  });
+---
+
+<ul class="space-y-3">
+  {
+    entries.map(({ data }) => (
+      <li class="rounded-lg border border-line bg-surface p-5">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-3">
+          <h3 class="font-semibold">{data.title}</h3>
+          <p class="mono-label">
+            <time datetime={data.date.toISOString()}>
+              {formatDate(data.date)}
+            </time>
+          </p>
+        </div>
+
+        <p class="mt-1 text-sm text-muted">
+          {data.issuer && <span>{data.issuer} · </span>}
+          <span class="text-faint">{TYPE_LABEL[data.type]}</span>
+        </p>
+
+        {data.summary && <p class="mt-2 text-sm text-muted">{data.summary}</p>}
+
+        {data.credentialUrl && (
+          <p class="mt-3 text-sm">
+            <a
+              href={data.credentialUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-accent underline decoration-line-strong underline-offset-4 hover:decoration-accent"
+            >
+              Verify credential
+            </a>
+            {data.credentialId && (
+              <span class="ml-2 font-mono text-xs text-faint">
+                {data.credentialId}
+              </span>
+            )}
+          </p>
+        )}
+      </li>
+    ))
+  }
+</ul>

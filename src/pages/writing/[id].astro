@@ -1,0 +1,86 @@
+---
+/**
+ * Locally-hosted post.
+ *
+ * Only posts *without* an `external` URL get a page here — an outbound entry
+ * would otherwise be reachable at two URLs, which is a duplicate-content
+ * problem. Removing `external` from a post's frontmatter is therefore all it
+ * takes to move a post onto this site (§40's blog, as a content change).
+ */
+import { render } from 'astro:content';
+
+import SiteFooter from '../../components/SiteFooter.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getLocalPosts, getProfile } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const posts = await getLocalPosts();
+  return posts.map((post) => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { data } = post;
+
+const [profile, rendered] = await Promise.all([getProfile(), render(post)]);
+const { Content } = rendered;
+
+const formattedDate = data.publishDate.toLocaleDateString('en-GB', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+---
+
+<BaseLayout
+  title={data.title}
+  description={data.summary}
+  ogImage={data.cover}
+  ogType="article"
+>
+  <SiteHeader showSectionNav={false} />
+
+  <main id="main" class="mx-auto max-w-2xl px-5 sm:px-8">
+    <nav class="pt-8 text-sm" aria-label="Breadcrumb">
+      <a
+        href="/#writing"
+        class="text-muted underline decoration-line-strong underline-offset-4 hover:text-accent"
+      >
+        ← All writing
+      </a>
+    </nav>
+
+    <article class="py-8">
+      <header class="mb-8">
+        <p class="mono-label mb-3">
+          <time datetime={data.publishDate.toISOString()}>{formattedDate}</time>
+        </p>
+
+        <h1 class="text-3xl font-semibold sm:text-4xl">{data.title}</h1>
+        <p class="mt-3 text-lg text-muted">{data.summary}</p>
+
+        {
+          data.tags.length > 0 && (
+            <ul class="mt-5 flex flex-wrap gap-1.5">
+              {data.tags.map((tag) => (
+                <li class="rounded border border-line bg-raised px-2 py-0.5 font-mono text-xs text-muted">
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </header>
+
+      <div class="prose-body space-y-4 border-t border-line pt-8 text-muted">
+        <Content />
+      </div>
+    </article>
+
+    <SiteFooter profile={profile} />
+  </main>
+</BaseLayout>

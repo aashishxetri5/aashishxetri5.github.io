@@ -1,0 +1,103 @@
+---
+/**
+ * Hero.
+ *
+ * §0 sets the bar: a visitor should understand who this is and what they do in
+ * 10–20 seconds. So the first screen carries name, role, location, a two-line
+ * bio, availability, and the two actions people actually come for — the work
+ * and the résumé. Nothing here is decorative-only.
+ */
+import { Image } from 'astro:assets';
+
+import type { ProfileEntry } from '../lib/content';
+
+interface Props {
+  profile: ProfileEntry;
+}
+
+const { data } = Astro.props.profile;
+---
+
+<section class="py-14 sm:py-20">
+  <div class="flex flex-col gap-8 sm:flex-row sm:items-start sm:gap-10">
+    <div class="min-w-0 flex-1">
+      {
+        data.availability.open && (
+          <p class="mb-5 inline-flex items-center gap-2 rounded-full bg-live-subtle px-3 py-1 text-sm font-medium text-live">
+            <span class="relative flex size-2" aria-hidden="true">
+              <span class="absolute inline-flex size-full animate-ping rounded-full bg-live opacity-70"></span>
+              <span class="relative inline-flex size-2 rounded-full bg-live"></span>
+            </span>
+            {data.availability.message ?? 'Open to work'}
+          </p>
+        )
+      }
+
+      <h1 class="text-3xl font-semibold sm:text-5xl">
+        {data.name}
+      </h1>
+
+      <p class="mt-2 text-lg text-accent sm:text-xl">{data.headline}</p>
+
+      <p class="mono-label mt-3 flex items-center gap-1.5">
+        <svg
+          class="size-3.5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path d="M12 21s-7-5.5-7-11a7 7 0 1114 0c0 5.5-7 11-7 11z" />
+          <circle cx="12" cy="10" r="2.5" />
+        </svg>
+        {data.location}
+      </p>
+
+      <p class="mt-6 max-w-xl text-muted">{data.shortBio}</p>
+
+      <div class="mt-8 flex flex-wrap items-center gap-3">
+        <a
+          href="#projects"
+          class="rounded-md bg-accent px-4 py-2 font-medium text-bg transition-colors hover:bg-accent-hover"
+        >
+          View my work
+        </a>
+
+        {/*
+          §29: the résumé must be easy to find, never a puzzle. It is also
+          conditional — no PDF exists in the repo yet, and rendering a dead
+          link would violate §32. See content/README.md.
+        */}
+        {
+          data.resume && (
+            <a
+              href={`/${data.resume.file}`}
+              class="rounded-md border border-line-strong px-4 py-2 font-medium transition-colors hover:bg-raised"
+            >
+              {data.resume.label}
+            </a>
+          )
+        }
+
+        <a
+          href="#contact"
+          class="px-2 py-2 font-medium text-muted underline decoration-line-strong underline-offset-4 transition-colors hover:text-ink"
+        >
+          Get in touch
+        </a>
+      </div>
+    </div>
+
+    <div class="shrink-0 order-first sm:order-none">
+      <Image
+        src={data.avatar}
+        alt={`${data.name}, ${data.headline}`}
+        width={144}
+        height={144}
+        loading="eager"
+        class="size-28 rounded-2xl border border-line object-cover shadow-card sm:size-36"
+      />
+    </div>
+  </div>
+</section>

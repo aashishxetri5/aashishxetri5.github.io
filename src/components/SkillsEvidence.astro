@@ -1,0 +1,100 @@
+---
+/**
+ * Skills, rendered as evidence (§8).
+ *
+ * §8 is explicit that "Java: 97%" communicates nothing, and asks instead for
+ * "Java / Used in: Project A, Project B, Company X". So every claim here is
+ * followed by where it was used, resolved from validated references — a broken
+ * link fails the build rather than quietly rendering an unsupported claim.
+ *
+ * Cards are generated from the collection. §8: "Avoid manually building skill
+ * cards into the UI."
+ */
+import type { ResolvedSkill, SkillGroup } from '../lib/content';
+
+interface Props {
+  groups: SkillGroup[];
+}
+
+const { groups } = Astro.props;
+
+const LEVEL_LABEL: Record<ResolvedSkill['level'], string> = {
+  advanced: 'Advanced',
+  proficient: 'Proficient',
+  working: 'Working knowledge',
+  learning: 'Learning',
+};
+
+/** Four coarse steps, deliberately not a percentage. */
+const LEVEL_STEPS: Record<ResolvedSkill['level'], number> = {
+  learning: 1,
+  working: 2,
+  proficient: 3,
+  advanced: 4,
+};
+---
+
+<div class="space-y-10">
+  {
+    groups.map((group) => (
+      <div>
+        <h3 class="mono-label mb-4 border-b border-line pb-2">
+          {group.category}
+        </h3>
+
+        <ul class="grid gap-3 sm:grid-cols-2">
+          {group.skills.map((skill) => (
+            <li class="rounded-lg border border-line bg-surface p-4">
+              <div class="flex items-baseline justify-between gap-2">
+                <p class="font-medium">{skill.name}</p>
+
+                <span
+                  class="flex gap-0.5"
+                  title={LEVEL_LABEL[skill.level]}
+                  aria-label={LEVEL_LABEL[skill.level]}
+                >
+                  {[1, 2, 3, 4].map((step) => (
+                    <span
+                      class:list={[
+                        'size-1.5 rounded-full',
+                        step <= LEVEL_STEPS[skill.level]
+                          ? 'bg-accent'
+                          : 'bg-line',
+                      ]}
+                      aria-hidden="true"
+                    />
+                  ))}
+                </span>
+              </div>
+
+              {skill.years !== undefined && skill.years > 0 && (
+                <p class="mt-0.5 text-xs text-faint">
+                  {skill.years} {skill.years === 1 ? 'year' : 'years'}
+                </p>
+              )}
+
+              {skill.hasEvidence ? (
+                <p class="mt-2 text-sm text-muted">
+                  <span class="text-faint">Used in: </span>
+                  {[
+                    ...skill.evidence.projects.map((p) => p.name),
+                    ...skill.evidence.companies.map((c) => c.company),
+                  ].join(' · ')}
+                </p>
+              ) : (
+                /*
+                 * Stated plainly rather than hidden. A skill with no shipped
+                 * evidence is still worth listing, and saying so is more
+                 * credible than implying evidence that does not exist.
+                 */
+                <p class="mt-2 text-sm text-faint italic">
+                  No project evidence yet
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))
+  }
+</div>
