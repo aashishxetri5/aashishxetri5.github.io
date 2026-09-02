@@ -375,6 +375,18 @@ Format per `PLAN.md` §43. Superseded decisions are marked, never deleted.
 
 ---
 
+### ADR-007 — Sanitize Markdown via the legacy unified processor
+
+**Decision:** Enable `rehype-sanitize` through `markdown.rehypePlugins`, accepting the `@astrojs/markdown-remark` dependency this requires and the consequent opt-out of Astro 7's default Sätteri Markdown processor.
+
+**Reason:** §31 mandates sanitization, and the gap was verified as real rather than assumed. A Markdown body containing `<img src=x onerror="alert(1)">` and `<script>alert(2)</script>` built successfully and produced output HTML retaining both the `onerror` attribute and the inline `<script>` tag — Astro passes raw HTML in Markdown straight through. Astro 7 exposes no configuration flag to refuse raw HTML outright, which would have been the stronger control; the accepted `markdown.*` keys are `syntaxHighlight`, `shikiConfig`, `remarkPlugins`, `rehypePlugins`, `remarkRehype`, `gfm`, `smartypants`, `processor`. Using `rehypePlugins` at all requires `@astrojs/markdown-remark`, since Astro 7 no longer installs it by default. Content is repo-authored today so present risk is low, but Phase 8 adds a browser-based CMS as a second authoring path, and a control added before it is needed is worth more than one added after an incident. Verified after the fix: the probe renders inert and MDX formatting is unaffected.
+
+**Alternatives considered:** Leaving Markdown unsanitized on the grounds that all content is repo-authored and code-reviewed — rejected because §31 is unconditional and the vulnerability is demonstrated. Keeping Sätteri and sanitizing at render time in the component layer — rejected as more fragile, since it would have to be applied identically at every render site and would silently fail wherever someone forgot. Cost is build-time only; Phase 10 measures it.
+
+**Date:** 2026-09-03
+
+---
+
 ### ADR-004 — CSS-first animation, no 3D
 
 **Decision:** Implement animation with CSS transitions, keyframes, and view transitions. Introduce a JavaScript animation library only when a specific interaction cannot be expressed in CSS. Do not add Three.js.
