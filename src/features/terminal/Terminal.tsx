@@ -394,7 +394,7 @@ export default function Terminal({ snapshot }: Props) {
           value={input}
           onChange={(event) => setInput(event.target.value)}
           onKeyDown={onKeyDown}
-          className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-faint"
+          className="caret-accent min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-faint"
           placeholder="help"
           autoComplete="off"
           autoCorrect="off"

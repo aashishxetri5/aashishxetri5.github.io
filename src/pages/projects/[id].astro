@@ -144,6 +144,7 @@ const hasDossier = sections.length > 0;
                     rel="noopener noreferrer"
                     class:list={[
                       'inline-block border px-5 py-2.5 font-mono text-sm tracking-wide uppercase transition-colors',
+                      'active:translate-y-px',
                       index === 0
                         ? 'border-accent bg-accent text-bg hover:bg-accent-hover'
                         : 'border-line-strong hover:border-accent hover:text-accent',
@@ -251,7 +252,7 @@ const hasDossier = sections.length > 0;
                   <li>
                     <a
                       href="/#skills"
-                      class="inline-block border border-line px-2 py-0.5 font-mono text-[0.7rem] tracking-wide text-muted uppercase transition-colors hover:border-accent hover:text-accent"
+                      class="inline-block border border-line px-2 py-0.5 font-mono text-[0.7rem] tracking-wide text-muted uppercase transition-colors hover:border-accent hover:text-accent active:translate-y-px"
                     >
                       {skill.name}
                     </a>

@@ -26,7 +26,7 @@ const { steps } = Astro.props;
 <ol class="arch-flow" role="list">
   {
     steps.map((step, index) => (
-      <li class="arch-node">
+      <li class="arch-node reveal-item">
         <div class="flex items-start gap-3 border border-line bg-surface px-3 py-2.5">
           <span class="shrink-0 font-mono text-xs text-accent" aria-hidden="true">
             {String(index + 1).padStart(2, '0')}

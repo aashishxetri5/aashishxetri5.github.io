@@ -212,6 +212,60 @@ body::after {
   );
 }
 
+/* ── Cross-document view transitions ─────────────────────────────────────── */
+
+/*
+ * Native MPA view transitions, in pure CSS.
+ *
+ * Astro ships <ClientRouter /> for this, and it was the obvious choice — but it
+ * is JavaScript, and reader mode shipping ZERO JavaScript is a load-bearing
+ * property of ADR-001 and ADR-008, not a nice-to-have. Trading it for a page
+ * transition would be exactly the "performance below spectacle" inversion §26
+ * warns against.
+ *
+ * The `@view-transition` rule gets the same effect from the browser with no
+ * script at all. Where it is unsupported, navigation is simply instant, which is
+ * what it was before.
+ */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: vt-fade-out 140ms ease-out both;
+}
+
+::view-transition-new(root) {
+  animation: vt-fade-in 220ms ease-out both;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/*
+ * The header is the one element that genuinely persists between pages, so it is
+ * excluded from the cross-fade and stays put. Naming more elements would start
+ * choreographing the whole page, which is the screensaver failure mode §37
+ * explicitly names.
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
 /* ── Motion ──────────────────────────────────────────────────────────────── */
 
 /*
@@ -238,6 +292,35 @@ body::after {
       animation-timeline: view();
       animation-range: entry 0% entry 55%;
     }
+
+    /*
+     * Per-row reveal. Each row gets its OWN view timeline, so rows animate as
+     * they individually enter the viewport.
+     *
+     * This is why there are no animation-delay values anywhere: delay-based
+     * staggering has to guess how many items there are and how fast the reader
+     * scrolls, and it gets both wrong — a long list ends with items still
+     * waiting out a delay long after they are on screen. Giving each row its own
+     * trigger produces stagger as a side effect of scrolling, at any list length
+     * and any scroll speed, and it runs off the main thread.
+     */
+    .reveal-item {
+      animation: spec-reveal-item linear both;
+      animation-timeline: view();
+      animation-range: entry 5% entry 40%;
+    }
+  }
+}
+
+/* Shorter travel than section reveal: rows should settle, not fly. */
+@keyframes spec-reveal-item {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -322,6 +405,21 @@ body::after {
   &::-webkit-scrollbar {
     display: none;
   }
+}
+
+/*
+ * Marks the header as persistent across a view transition, so it stays put
+ * while the page body cross-fades. Exactly one element carries this: names must
+ * be unique per document, and choreographing more of the page is the failure
+ * mode §37 warns about.
+ */
+@utility vt-header {
+  view-transition-name: site-header;
+}
+
+/** Terminal insertion caret, in the accent rather than the browser default. */
+@utility caret-accent {
+  caret-color: var(--color-accent);
 }
 
 @utility caret {

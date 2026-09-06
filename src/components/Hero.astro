@@ -84,7 +84,7 @@ const specs = [
       <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
         <a
           href="#projects"
-          class="group inline-flex items-center gap-2 border border-accent bg-accent px-5 py-2.5 font-mono text-sm font-medium tracking-wide text-bg uppercase transition-colors hover:bg-accent-hover"
+          class="group inline-flex items-center gap-2 border border-accent bg-accent px-5 py-2.5 font-mono text-sm font-medium tracking-wide text-bg uppercase transition-colors hover:bg-accent-hover active:translate-y-px"
         >
           View work
           <span
@@ -101,7 +101,7 @@ const specs = [
           data.resume && (
             <a
               href={`/${data.resume.file}`}
-              class="border border-line-strong px-5 py-2.5 font-mono text-sm tracking-wide uppercase transition-colors hover:border-accent hover:text-accent"
+              class="border border-line-strong px-5 py-2.5 font-mono text-sm tracking-wide uppercase transition-colors hover:border-accent hover:text-accent active:translate-y-px"
             >
               {data.resume.label}
             </a>
