@@ -1,0 +1,42 @@
+---
+/**
+ * Bulleted dossier list with a monospace marker.
+ *
+ * The marker carries meaning: `+` for things that went well, `!` for things
+ * that were hard, `->` for what changes next time. Keeping them in one
+ * component stops the three lists drifting apart visually over time.
+ */
+import type { Tone } from '../../features/terminal/types';
+
+interface Props {
+  items: string[];
+  marker: string;
+  tone?: Tone;
+}
+
+const { items, marker, tone = 'accent' } = Astro.props;
+
+const TONE_CLASS: Record<Tone, string> = {
+  default: 'text-ink',
+  muted: 'text-muted',
+  accent: 'text-accent',
+  error: 'text-rose-400',
+  live: 'text-live',
+};
+---
+
+<ul class="max-w-2xl space-y-2.5">
+  {
+    items.map((item) => (
+      <li class="flex gap-3">
+        <span
+          class:list={['shrink-0 font-mono text-sm', TONE_CLASS[tone]]}
+          aria-hidden="true"
+        >
+          {marker}
+        </span>
+        <span class="min-w-0">{item}</span>
+      </li>
+    ))
+  }
+</ul>

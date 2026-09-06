@@ -87,6 +87,12 @@ export interface SnapshotProject {
   decisions: { decision: string; reason: string }[];
   challenges: string[];
   lessons: string[];
+  /**
+   * Skills this project is cited as evidence for, derived by reversing the
+   * skill -> project references. Carried so `project <name>` shows the same
+   * content graph the dossier page does (Rule 7).
+   */
+  evidencedSkills: string[];
 }
 
 export interface SnapshotSkill {
@@ -163,6 +169,21 @@ export async function buildSnapshot(version = '4.0'): Promise<PortfolioSnapshot>
 
   const p = profile.data;
 
+  /*
+   * Reverse the skill -> project reference direction once, rather than scanning
+   * every skill for every project. Same derivation the dossier page uses.
+   */
+  const skillsByProject = new Map<string, string[]>();
+  for (const group of skillGroups) {
+    for (const skill of group.skills) {
+      for (const evidence of skill.evidence.projects) {
+        const existing = skillsByProject.get(evidence.id);
+        if (existing) existing.push(skill.name);
+        else skillsByProject.set(evidence.id, [skill.name]);
+      }
+    }
+  }
+
   return {
     profile: {
       name: p.name,
@@ -223,6 +244,7 @@ export async function buildSnapshot(version = '4.0'): Promise<PortfolioSnapshot>
       decisions: entry.data.decisions,
       challenges: entry.data.challenges,
       lessons: entry.data.lessons,
+      evidencedSkills: skillsByProject.get(entry.id) ?? [],
     })),
 
     // Flattened: the terminal groups by category itself when rendering, and a

@@ -88,3 +88,52 @@ npm run build              # full schema validation; runs the above first
 ```
 
 Both must pass. A typo in a field name or a broken reference fails the build rather than reaching the site.
+
+---
+
+## Open content gap: project dossiers are empty
+
+Phase 5 built the dossier presentation — problem, highlights, architecture flow
+diagram, engineering decisions, challenges, lessons — but **none of your three
+real projects has any of those fields authored**:
+
+| Project | Dossier fields |
+| --- | --- |
+| `pustakalaya` | none |
+| `image-extractor` | none |
+| `buzzwire` | none |
+| `placeholder-active-project` | all (as a worked example) |
+
+The consequence is visible: those pages currently show only "Skills evidenced
+here", derived automatically from `skills.yaml`. The richest part of the site is
+built and empty.
+
+This is deliberate on my side. PLAN.md Rule 3 forbids inventing achievements,
+technologies, or engineering decisions — I cannot write your reasoning for you,
+and a plausible-sounding invented rationale is worse than an absent one.
+
+**To fill one in**, open `content/projects/<name>.mdx` and add any of:
+
+```yaml
+problem: What problem this solved, and for whom.
+highlights:
+  - A capability worth pointing at.
+architecture:
+  - Ordered steps. These render as a connected flow diagram, so write them
+    as a sequence rather than an unordered list of parts.
+decisions:
+  - decision: The choice you made.
+    reason: Why, and what you traded away.
+challenges:
+  - Something that was genuinely hard.
+lessons:
+  - What you would do differently.
+```
+
+Every field is optional and each section omits itself when empty, so partial is
+fine — one good `problem` plus two `decisions` already makes a page worth
+reading. `placeholder-active-project` exists as a worked example of the full
+shape; delete it once your own projects are filled in.
+
+Ordering note: `architecture` renders as a numbered flow with connectors, so
+sequence matters. `decisions` renders as D01, D02 in file order.

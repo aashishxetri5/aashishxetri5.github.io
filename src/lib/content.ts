@@ -239,3 +239,57 @@ export async function getLocalPosts(): Promise<PostEntry[]> {
   const posts = await getPosts();
   return posts.filter((post) => post.data.external === undefined);
 }
+
+/* -------------------------------------------------------------------------- */
+/* Project relationships                                                      */
+/* -------------------------------------------------------------------------- */
+
+export interface ProjectNeighbours {
+  previous: ProjectEntry | undefined;
+  next: ProjectEntry | undefined;
+}
+
+/**
+ * The projects either side of this one, in the canonical listing order.
+ *
+ * Archived projects are included deliberately. They are excluded from listings
+ * because they are not current focus, but excluding them here would break the
+ * chain — you could land on an archived project from a link and find no way
+ * onward, which is precisely the dead end this navigation exists to remove.
+ */
+export async function getProjectNeighbours(
+  id: string,
+): Promise<ProjectNeighbours> {
+  const all = await getProjects({ includeArchived: true });
+  const index = all.findIndex((entry) => entry.id === id);
+
+  if (index === -1) return { previous: undefined, next: undefined };
+
+  return {
+    previous: index > 0 ? all[index - 1] : undefined,
+    next: index < all.length - 1 ? all[index + 1] : undefined,
+  };
+}
+
+/**
+ * Skills this project is cited as evidence for — the reverse of the reference
+ * direction authored in content.
+ *
+ * Content declares skill -> project ("Java was used in Pustakalaya"). A dossier
+ * wants the opposite ("Pustakalaya evidences Java, JSP, JDBC"). Deriving it
+ * rather than authoring a second list means the two can never disagree, and
+ * adding a skill reference automatically enriches the project page with no
+ * content edit there (§1).
+ */
+export async function getSkillsEvidencedBy(
+  projectId: string,
+  now: Date = new Date(),
+): Promise<ResolvedSkill[]> {
+  const groups = await getSkillGroups(now);
+
+  return groups
+    .flatMap((group) => group.skills)
+    .filter((skill) =>
+      skill.evidence.projects.some((project) => project.id === projectId),
+    );
+}

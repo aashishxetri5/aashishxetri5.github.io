@@ -1,0 +1,43 @@
+---
+/**
+ * Engineering decisions (§13).
+ *
+ * The schema pairs each decision with its reason, and the pairing is the whole
+ * value of the section — "we used X" is trivia, "we used X because Y" is
+ * engineering judgement. Phase 2 rendered them as boxes, which let the reason
+ * read as a caption. Here the reason is explicitly subordinated to the decision
+ * with a continuation marker, so the causal relationship is visible at a glance.
+ *
+ * A <dl> is the correct element: each decision is a term and each reason its
+ * description, which is exactly the relationship in the data.
+ */
+interface Props {
+  decisions: { decision: string; reason: string }[];
+}
+
+const { decisions } = Astro.props;
+---
+
+<dl class="max-w-2xl border-t border-line">
+  {
+    decisions.map((entry, index) => (
+      <div class="grid grid-cols-[2.5rem_1fr] gap-x-3 border-b border-line py-4">
+        <span
+          class="row-span-2 font-mono text-xs text-line-strong"
+          aria-hidden="true"
+        >
+          D{String(index + 1).padStart(2, '0')}
+        </span>
+
+        <dt class="font-medium text-ink">{entry.decision}</dt>
+
+        <dd class="mt-1.5 flex gap-2 text-sm text-muted">
+          <span class="shrink-0 font-mono text-accent" aria-hidden="true">
+            ↳
+          </span>
+          <span class="min-w-0">{entry.reason}</span>
+        </dd>
+      </div>
+    ))
+  }
+</dl>

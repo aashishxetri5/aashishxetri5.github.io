@@ -315,6 +315,13 @@ const project: CommandDescriptor = {
           : []),
         ...section('Challenges', found.challenges, '!'),
         ...section('Lessons', found.lessons, '→'),
+        // Derived by reversing skill -> project references, same as the dossier.
+        ...(found.evidencedSkills.length > 0
+          ? [
+              { kind: 'heading' as const, text: 'Skills evidenced here' },
+              text(found.evidencedSkills.join(' · '), 'muted'),
+            ]
+          : []),
       ],
     };
   },

@@ -64,6 +64,7 @@ const snapshot: PortfolioSnapshot = {
       decisions: [{ decision: 'Fixture decision.', reason: 'Fixture reason.' }],
       challenges: ['Fixture challenge.'],
       lessons: ['Fixture lesson.'],
+      evidencedSkills: ['Fixture Lang'],
     },
     {
       id: 'lively-two',
@@ -79,6 +80,7 @@ const snapshot: PortfolioSnapshot = {
       decisions: [],
       challenges: [],
       lessons: [],
+      evidencedSkills: [],
     },
     {
       id: 'old-one',
@@ -94,6 +96,7 @@ const snapshot: PortfolioSnapshot = {
       decisions: [],
       challenges: [],
       lessons: [],
+      evidencedSkills: [],
     },
   ],
   skills: [
