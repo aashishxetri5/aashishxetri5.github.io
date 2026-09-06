@@ -4,6 +4,21 @@
   "exclude": ["dist", "node_modules"],
   "compilerOptions": {
     "strictNullChecks": true,
-    "allowJs": true
+    "allowJs": true,
+
+    // Astro's base config sets `jsx: "preserve"` with no jsxImportSource, which
+    // is correct for a pure-Astro project: .astro files are compiled by Astro
+    // itself, so nothing needs to transform JSX.
+    //
+    // Adding the React island in Phase 3 broke that assumption. Vite reads these
+    // options when transforming .tsx, and "preserve" leaves the JSX in place —
+    // so import analysis then hits raw JSX and reports "invalid JS syntax".
+    //
+    // The production build masked this: @astrojs/react's Vite plugin transforms
+    // .tsx during `astro build`, so only `astro dev` failed. Setting the React
+    // runtime here fixes dev without affecting .astro files, which never go
+    // through this path.
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   }
 }
