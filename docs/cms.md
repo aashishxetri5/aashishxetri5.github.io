@@ -1,7 +1,7 @@
 # AASHISH.OS — Content Management Evaluation
 
 > Deliverable for `PLAN.md` §4 (evaluate before selecting) and §37 Phase 8.
-> Status: **Recommendation made — awaiting owner decision. §5 proposes superseding ADR-002.**
+> Status: **Implemented in Phase 8 (2026-09-06). Sveltia CMS at `/admin`. The §5 proposal to supersede ADR-002 was rejected — Netlify stands.**
 > All facts verified against primary sources on 2026-09-02. Version numbers and pricing in this space move fast; re-verify before Phase 8 implementation.
 
 ---
@@ -163,3 +163,60 @@ Recorded honestly, per Rule 3's spirit. None of these change the recommendation,
 - **Whether GitHub Pages' 100 GB/month bandwidth and 10-builds-per-hour soft limits are ever hard-enforced.**
 - **An official GitHub statement that `_redirects` is unsupported.** For *headers* there is a named staff answer. For `_redirects` there are only community posts plus an indirect docs line recommending DNS-level redirects. The feature's absence is well-established; an explicit official denial is not.
 - **That setting a custom domain on a user site produces a 301 redirect from `<user>.github.io`.** This is the documented and widely-observed behavior and §5 leans on it, but I did not verify it against a primary source. **Verify at Phase 11 cutover** before relying on it for SEO continuity.
+
+---
+
+## 7. Implementation (Phase 8, 2026-09-06)
+
+### What shipped
+
+| Piece | Location |
+| --- | --- |
+| Admin shell | `public/admin/index.html` — Sveltia CMS pinned at `0.206.1` |
+| Collection config | `public/admin/config.yml` — all seven collections |
+| Drift guard | `scripts/lib/cms-drift.mjs`, run by the `prebuild` gate |
+
+Re-verified at implementation time rather than trusted from the Phase 0 research: `@sveltia/cms@0.206.1` resolves on unpkg and jsDelivr, published four days after the 0.205.0 the evaluation recorded — the release-cadence claim holds. The bundle is **2040 KB against Decap's 4925 KB**, which was not part of the original evaluation and reinforces the ranking rather than changing it.
+
+### The version is pinned, deliberately
+
+This is an admin tool with write access to the repository, and Sveltia is pre-1.0 with an explicit warning about breaking changes before then. A floating range means it can change between one editing session and the next with no signal. Upgrading is a one-line edit; rolling back is the same edit.
+
+### Editorial workflow is not optional
+
+`publish_mode: editorial_workflow` is enforced by the build gate, not left to convention.
+
+ADR-002 kept Netlify, whose credit-based free tier allows roughly **20 production deploys per month** and *pauses the site* on overage rather than throttling. Without editorial workflow, every content save is a direct commit to the deploy branch — a 15-credit production deploy. Around twenty edits would exhaust the month and take the site down.
+
+With it, each edit becomes a pull request. Branch deploys and deploy previews cost **0 credits**, so drafting is free and one production deploy is spent on a deliberate merge. The build fails if this setting is ever removed, because the consequence of removing it is an outage rather than a style regression.
+
+### Drift is a build failure
+
+Nothing in the toolchain links `config.yml` to `content.config.ts` — different languages, no shared types. So they can diverge silently, in two directions with different symptoms:
+
+- **Schema field missing from the CMS:** the editor keeps working and looking authoritative while quietly being unable to edit that field.
+- **CMS field missing from the schema:** the editor writes frontmatter that fails the build, discovered at deploy time rather than while editing.
+
+`cms-drift.mjs` compares top-level fields both ways and fails `npm run build`. Verified against all three failure modes — schema-only field, CMS-only field, and removed `publish_mode` — each producing a specific, actionable error.
+
+Nested object shapes are deliberately not compared: Astro's schema already validates them at build time, and checking them here would mean reimplementing the Zod type language in a regex.
+
+The scanner also self-checks. Two collections yielding identical field lists throws, because that indicates a mis-parse rather than real duplication — which is exactly the bug that occurred during implementation, when a schema formatted with whitespace between `z` and `.object({` caused one collection to be attributed another collection's fields. It produced forty confident and wrong errors; the guard turns that into one honest one.
+
+### Owner setup still required
+
+The CMS cannot authenticate until one of these exists. None of it can be done from the repository.
+
+**Option A — GitHub OAuth via a broker (recommended for ongoing use).** GitHub has put client-side PKCE for SPAs on hold (§2.1), so a static CMS cannot complete OAuth alone. Deploy the `sveltia-cms-auth` worker on Cloudflare Workers (free tier: 100,000 requests/day), register a GitHub OAuth app pointing at it, and add `base_url` to the `backend` block in `config.yml`.
+
+**Option B — personal access token (fastest to start).** Sveltia supports signing in with a fine-grained PAT scoped to this repository only. No infrastructure at all. Suitable for a single owner; the token lives in browser storage, so treat it as a credential and scope it narrowly.
+
+**Option C — Netlify Identity.** Available again since the February 2026 reversal (§2.2), but it pairs with **Git Gateway, which remains deprecated** — and Git Gateway is the half that actually commits. Working, frozen, and not worth building on.
+
+### Branch cutover
+
+`backend.branch` is `portfolio-v4`, so the CMS is usable now against the rebuild branch. **It must change to `main` at Phase 11 cutover**, or edits will land on a branch nothing deploys. Tracked as an explicit step in PLAN.md rather than left as a comment to notice.
+
+### What this does not change
+
+The CMS is a convenience layer. Content is still plain Markdown and YAML in git, still editable in any text editor, still validated by the same build gate whichever way it was written. §22 portability is satisfied by the storage format, not by the editor — which is why swapping Sveltia for Decap remains a one-line change, and why deleting `/admin` entirely would cost nothing but convenience.

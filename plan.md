@@ -15,8 +15,8 @@
 
 <!-- Maintained per §43. Update at the end of every phase, per Rule 2 step 8. -->
 
-**Current phase:** Phase 6 — Visual Polish → **complete**
-**Next phase:** Phase 7 — Optional AI → **awaiting approval**
+**Current phase:** Phase 8 — CMS / Content Admin -> **complete**
+**Next phase:** Phase 9 — Testing -> **awaiting approval**
 **Last updated:** 2026-09-06
 **Working branch:** `portfolio-v4` (local only — not yet pushed)
 
@@ -66,6 +66,16 @@
   - **No `animation-delay` anywhere.** Stagger comes from giving each row its own `animation-timeline: view()`, which is correct at any list length and scroll speed — delay-based stagger has to guess both and gets them wrong on long lists.
   - Stylesheet total: **7.6 KB gzipped**. 74 tests; `astro check` 0/0/0.
 
+- [x] **Phase 8 — CMS / Content Admin.** Sveltia CMS at `/admin`, all seven collections, editorial workflow, and a build gate that fails on CMS/schema drift.
+  - **`publish_mode: editorial_workflow` is enforced by the build, not by convention.** ADR-002 kept Netlify on a credit-based tier of roughly 20 production deploys per month that *pauses the site* on overage. A CMS committing straight to the deploy branch makes every content save a production deploy, so about twenty edits would take the site offline. Each edit is a pull request instead; branch deploys and previews cost 0 credits.
+  - **New second build gate: `scripts/lib/cms-drift.mjs`.** Nothing links `config.yml` to `content.config.ts`, so they drift silently and both directions fail badly. Verified against all three failure modes — schema-only field, CMS-only field, removed publish_mode.
+  - **A bug in that gate found itself.** The schema scanner attributed one collection the fields of another, because several schemas are formatted with whitespace between `z` and `.object({`. It produced 40 confident, wrong errors. Fixed, plus a self-check that throws when two collections yield identical field lists, since that means a mis-parse rather than real duplication.
+  - CMS version pinned exactly: an admin tool with repo write access should not change under you between sessions, and Sveltia is pre-1.0.
+  - `/admin` is kept out of search three independent ways: `noindex` meta, absent from the sitemap, and disallowed in robots.txt.
+  - **Owner action required before it works** — auth is not configurable from the repository. See `docs/cms.md` §7 for the three options.
+
+- [ ] **Phase 7 — Optional AI. DEFERRED BY CHOICE.** §15 makes it optional by design and requires the core portfolio to work without it. Skipped in favour of Phase 8, which was worth more: the CMS directly attacks the empty-dossier content gap. Revisit after deployment, if at all.
+
 ## Decisions taken
 
 | ID | Decision | Status | Where |
@@ -75,7 +85,7 @@
 | ADR-003 | Author-facing content lives at `/content/`, outside `src/` | Approved | `docs/architecture.md` |
 | ADR-004 | CSS-first animation; no Three.js; no motion library yet | Approved | `docs/architecture.md` |
 | ADR-005 | GitHub Pages primary + Cloudflare Workers | ❌ **Rejected** — retained as fallback | `docs/architecture.md` |
-| ADR-006 | *Proposed:* Sveltia CMS, with Decap documented as fallback | Awaiting decision (Phase 8) | `docs/cms.md` §3 |
+| ADR-006 | Sveltia CMS at `/admin`, editorial workflow enforced by the build | Approved, implemented | `docs/architecture.md` |
 | ADR-007 | Sanitize Markdown via the legacy unified processor | Approved | `docs/architecture.md` |
 | ADR-008 | Modes are separate routes (`/` and `/os`), not a JS toggle | Approved | `docs/architecture.md` |
 | ADR-009 | Command side effects are declared as data, not performed by handlers | Approved | `docs/architecture.md` |
@@ -90,9 +100,22 @@ The canonical Architecture Decision Log lives in `docs/architecture.md`, not her
 
 ## Remaining
 
-Phases 7–12 as specified in §37.
+Phases 9–12 as specified in §37. Phase 7 is deferred by choice (see above).
+
+**Phase 9 (Testing) is next.** §34 asks for unit, component and end-to-end coverage. Unit tests exist (74). Component and E2E do not: Playwright is named in the stack table but never installed, so the full visitor journey in §37 Phase 9 has never actually been exercised — and neither has any page in a real browser.
 
 **Phase 7 (Optional AI) is next, and is genuinely optional.** §15 requires the core portfolio to work perfectly without it and §16 forbids exposing API keys in frontend code, so it needs a Netlify function, rate limiting, caching and a graceful fallback. It is also the first phase that would introduce a paid dependency and a runtime cost, and ADR-002's ~20-production-deploy ceiling means the function shares a budget with the site itself. **Worth deciding whether to do it at all** — Phases 9–12 (testing, performance/SEO, deployment, final polish) deliver more to a recruiter-facing portfolio than an `ask` command does.
+
+
+## Phase 11 cutover checklist
+
+Steps that are correct now and become wrong at deployment. Recorded here rather than left as comments in the files they affect.
+
+1. **`public/admin/config.yml` -> `backend.branch`** is `portfolio-v4`. Change to `main` (or whichever branch Netlify deploys), or CMS edits land on a branch nothing publishes.
+2. **`site.config.mjs` -> `SITE_URL`** is the github.io origin. Change to the custom domain; canonical URLs, the sitemap and absolute OG image URLs all derive from it.
+3. **`public/robots.txt`** hardcodes the sitemap origin — update alongside `SITE_URL`.
+4. **Netlify build command must be `npm run build`**, never `npx astro build`, or the prebuild content and CMS gates are skipped.
+5. **Configure Netlify usage alerts** before the credit ceiling is reached rather than after the site pauses.
 
 ## Known issues — introduced or discovered during implementation
 

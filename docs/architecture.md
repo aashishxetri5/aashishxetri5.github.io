@@ -2,7 +2,7 @@
 
 > Originally the Phase 0 (Discovery) deliverable, per `PLAN.md` §37; maintained
 > since as the canonical Architecture Decision Log (§43).
-> Status: **Phases 0–6 complete. Phase 7 (Optional AI) awaiting approval.**
+> Status: **Phases 0–6 and 8 complete. Phase 7 (Optional AI) deferred by choice. Phase 9 (Testing) next.**
 > Last updated: 2026-09-06
 
 ---
@@ -435,5 +435,21 @@ A secondary rule falls out of this: the effect *reuses* the existing theme contr
 **Note on `clear`:** it stays a separate boolean rather than an effect, because wiping the buffer is renderer-internal state, not a change outside the terminal. The distinction is the point: `effect` means "the world outside this component".
 
 **Alternatives considered:** handler-performed side effects — rejected above. A general effect-dispatch system with registered handlers — more machinery than one effect type justifies, and §19 asks for the simplest thing that works; the union can grow when a second effect actually appears.
+
+**Date:** 2026-09-06
+
+---
+
+### ADR-006 — Sveltia CMS at /admin, with editorial workflow enforced
+
+**Decision:** Accepted and implemented in Phase 8. Sveltia CMS, pinned to an exact version, served as static files from `public/admin/`, configured with `publish_mode: editorial_workflow`. Decap remains the documented fallback; the config format is shared, so switching is a one-line change.
+
+**Reason:** §4's criteria ranked it first in `docs/cms.md` §3 — most actively maintained in the category, MIT, free, content stays as plain Markdown and YAML in git (§22), and the `/admin` surface is static files, so it satisfies §4's "on my own site" requirement without depending on a hosted editor. It deliberately avoids Netlify Git Gateway, which remains deprecated even though Netlify Identity's deprecation was reversed — and Git Gateway is the half that actually commits. Its pre-1.0 status is the one real risk, and it is cheap to reverse.
+
+**The consequential part is `editorial_workflow`, and it is enforced by the build.** ADR-002 kept Netlify on a credit-based free tier: roughly 20 production deploys per month, with overage *pausing the site*. A CMS committing straight to the deploy branch makes every content save a production deploy, so around twenty edits would take the site offline. Editorial workflow turns each edit into a pull request; branch deploys and previews cost nothing. `scripts/lib/cms-drift.mjs` fails the build if the setting is removed, because the consequence is an outage rather than a style regression.
+
+**A second build gate was added rather than trusting convention.** Nothing links `config.yml` to `content.config.ts` — different languages, no shared types — so they drift silently, and both directions fail badly: a missing CMS field leaves the editor quietly incomplete while looking authoritative; a missing schema field makes the editor write frontmatter that fails the build at deploy time. The gate compares both directions and was verified against all three failure modes.
+
+**Alternatives considered:** Decap — larger ecosystem and an official Astro guide, but its auth story descends from the deprecated Git Gateway; retained as the fallback. Keystatic — disqualified on architecture, since its GitHub mode requires server-side routes and would break a static deploy. TinaCMS — needs a database, an auth provider and a GraphQL API, which is the shape §19 tells us to avoid. Pages CMS — genuinely zero-infrastructure, but its editor lives on `app.pagescms.org`, conflicting with §4's "on my own site". CloudCannon — no free tier.
 
 **Date:** 2026-09-06
