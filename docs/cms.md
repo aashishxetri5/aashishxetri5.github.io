@@ -2,7 +2,7 @@
 
 > Deliverable for `PLAN.md` §4 (evaluate before selecting) and §37 Phase 8.
 > Status: **Implemented in Phase 8 (2026-09-06). Sveltia CMS at `/admin`. The §5 proposal to supersede ADR-002 was rejected — Netlify stands.**
-> All facts verified against primary sources on 2026-09-02. Version numbers and pricing in this space move fast; re-verify before Phase 8 implementation.
+> Landscape facts verified 2026-09-02; authentication routes re-verified against primary sources on 2026-09-06 during implementation, which corrected two errors — see "Getting signed in".
 
 ---
 
@@ -203,15 +203,63 @@ Nested object shapes are deliberately not compared: Astro's schema already valid
 
 The scanner also self-checks. Two collections yielding identical field lists throws, because that indicates a mis-parse rather than real duplication — which is exactly the bug that occurred during implementation, when a schema formatted with whitespace between `z` and `.object({` caused one collection to be attributed another collection's fields. It produced forty confident and wrong errors; the guard turns that into one honest one.
 
-### Owner setup still required
+### Getting signed in
 
-The CMS cannot authenticate until one of these exists. None of it can be done from the repository.
+> **Correction, 2026-09-06.** The first draft of this section recommended deploying a Cloudflare Worker as the primary route, and dismissed "Netlify" as a dead end. Both were wrong, and the second was wrong because of a conflation worth naming explicitly:
+>
+> - **Netlify Identity** (user accounts) paired with **Git Gateway** (commit proxy) is the frozen combination. Git Gateway is still deprecated and it is the half that actually commits. §2.2 stands as written.
+> - **Netlify as an OAuth provider** is a *separate feature* that brokers GitHub OAuth for a Git-based CMS. It is not deprecated, needs no backend server, and per Sveltia's own documentation it is the **default** authentication method when nothing is configured explicitly.
+>
+> The authenticator's own README is blunt about this: *"In most cases, you don't need this authenticator"* — specifically not when the site deploys to Netlify, and not when you or other technical users are the only editors. Both exemptions apply here. Verified against <https://github.com/sveltia/sveltia-cms-auth> and <https://sveltiacms.app/en/docs/backends/github> on 2026-09-06.
 
-**Option A — GitHub OAuth via a broker (recommended for ongoing use).** GitHub has put client-side PKCE for SPAs on hold (§2.1), so a static CMS cannot complete OAuth alone. Deploy the `sveltia-cms-auth` worker on Cloudflare Workers (free tier: 100,000 requests/day), register a GitHub OAuth app pointing at it, and add `base_url` to the `backend` block in `config.yml`.
+There are three routes, in increasing order of setup effort. Start at the top.
 
-**Option B — personal access token (fastest to start).** Sveltia supports signing in with a fine-grained PAT scoped to this repository only. No infrastructure at all. Suitable for a single owner; the token lives in browser storage, so treat it as a credential and scope it narrowly.
+#### Route 1 — Local mode. No authentication at all.
 
-**Option C — Netlify Identity.** Available again since the February 2026 reversal (§2.2), but it pairs with **Git Gateway, which remains deprecated** — and Git Gateway is the half that actually commits. Working, frozen, and not worth building on.
+Sveltia can edit the working copy directly through the File System Access API, with no token, no OAuth app and no network round trip. Per the docs: *"If you plan to only work with your local repository, you don't need to set up authentication."*
+
+1. `npm run dev`
+2. Open `http://localhost:4321/admin/index.html` **in a Chromium-based browser** — Chrome, Edge, or Brave. Firefox and Safari do not implement the File System Access API, so this route does not work there. (In Brave, enable `brave://flags/#file-system-access-api` first.)
+3. Click **Work with Local Repository** and grant access to the project root.
+4. Edit. Changes are written to the files in `content/` immediately.
+5. Review with `git diff` and commit normally.
+
+Use the `index.html` in the URL rather than a bare `/admin/`, so the dev server treats it as a static file.
+
+This is the fastest way to fill in the empty project dossiers, and it bypasses the deploy-credit question entirely because nothing publishes until you push.
+
+#### Route 2 — Personal access token. About two minutes, works from anywhere.
+
+For a single technical owner this is the documented recommendation, and it needs **no configuration change** in this repository.
+
+1. Open `/admin` on the deployed site.
+2. Click **Sign In with Token**.
+3. The dialog links to the GitHub token page with the required scopes already selected. Generate a fine-grained token scoped to **this repository only**.
+4. Paste it back into the dialog.
+
+The token is held in browser local storage, so treat it as a credential: scope it to the one repository, give it an expiry, and revoke it if the machine is shared. Signing in again on a new device means generating a new token.
+
+#### Route 3 — Netlify as the OAuth provider. The right answer once deployed.
+
+Best long-term option for this project, because the site deploys to Netlify anyway and this needs no server of your own. It is also Sveltia's default, so **no change to `config.yml` is required**.
+
+1. Register a GitHub OAuth application: <https://github.com/settings/applications/new>
+   - **Authorization callback URL:** `https://api.netlify.com/auth/done`
+2. Copy the **Client ID** and generate a **Client Secret**.
+3. In the Netlify dashboard, link the OAuth app to the site by following Netlify's guide: <https://docs.netlify.com/manage/security/secure-access-to-sites/oauth-provider-tokens/>
+4. Sign in at `/admin` with GitHub. Nothing else changes.
+
+#### Not needed: the Cloudflare Worker
+
+`sveltia-cms-auth` exists for one case that does not apply here — **non-technical** editors on GitHub, who should not be asked to manage personal access tokens. If a non-developer ever needs to edit this site, deploy the Worker, register a GitHub OAuth app against `<WORKER_URL>/callback`, and add `base_url: <WORKER_URL>` under `backend` in `config.yml`. Until then it is infrastructure with no purpose.
+
+#### PKCE, for completeness
+
+Browser-only OAuth with no broker at all is the obvious right answer and does not exist yet: GitHub planned client-side PKCE for SPAs in Q4 2025 and has put it on hold. When it ships, Routes 2 and 3 both become unnecessary.
+
+#### One thing already done correctly
+
+Sveltia's Astro troubleshooting note warns against placing the CMS under `src/pages/admin`. It lives in `public/admin/`, which is the supported location — the files are copied verbatim and never processed by Astro.
 
 ### Branch cutover
 
