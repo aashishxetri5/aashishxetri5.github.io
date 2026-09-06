@@ -1,0 +1,194 @@
+---
+/**
+ * AASHISH.OS shell (§11) — the experimental, developer-facing mode.
+ *
+ * Reader mode at `/` remains the canonical experience and still ships zero
+ * JavaScript. This route is additive: if everything here were deleted, the
+ * portfolio would be unchanged in usefulness, which is exactly the property
+ * §37's Phase 2 exit condition was designed to guarantee.
+ *
+ * Content flows one way — the same `src/lib/content.ts` queries reader mode
+ * uses are serialized by `buildSnapshot` and handed to the terminal island as
+ * props (Rule 7). No portfolio fact is authored on this page.
+ *
+ * The side panels are static HTML, not island output. That matters twice:
+ * crawlers see real content here rather than an empty shell (§23), and with
+ * JavaScript unavailable the page still navigates (§32, §39).
+ */
+import SiteHeader from '../components/SiteHeader.astro';
+import StatusBar from '../components/StatusBar.astro';
+import BootSequence from '../features/os/BootSequence.astro';
+import Panel from '../features/os/Panel.astro';
+import Terminal from '../features/terminal/Terminal';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getProfile } from '../lib/content';
+import { buildSnapshot } from '../lib/snapshot';
+
+const [profile, snapshot] = await Promise.all([getProfile(), buildSnapshot()]);
+
+const counts = {
+  projects: snapshot.projects.length,
+  experience: snapshot.experience.length,
+  skills: snapshot.skills.length,
+  posts: snapshot.posts.length,
+};
+
+/*
+ * §11 permits decorative system UI but forbids faking metrics misleadingly.
+ * Every readout below is a real number derived from content or the build.
+ */
+const systemRows = [
+  { key: 'kernel', value: `aashish.os ${snapshot.meta.version}` },
+  { key: 'host', value: snapshot.profile.location },
+  { key: 'build', value: snapshot.meta.builtAt },
+  { key: 'projects', value: String(counts.projects) },
+  { key: 'roles', value: String(counts.experience) },
+  { key: 'skills', value: String(counts.skills) },
+  { key: 'articles', value: String(counts.posts) },
+];
+
+const featured = snapshot.projects.filter((project) => project.featured).slice(0, 4);
+
+const SUGGESTIONS = ['help', 'whoami', 'projects', 'skills', 'contact'];
+---
+
+<BaseLayout
+  title="OS"
+  description={`Interactive terminal interface for ${snapshot.profile.name}'s portfolio. Type commands to explore projects, experience and skills.`}
+>
+  <BootSequence version={snapshot.meta.version} counts={counts} />
+
+  <StatusBar profile={profile} />
+  <SiteHeader showSectionNav={false} mode="os" />
+
+  <main id="main" class="mx-auto max-w-5xl px-5 py-6 sm:px-8 sm:py-8">
+    <div class="mb-6">
+      <div>
+        <p class="spec-label mb-2">
+          <span class="text-accent">§</span> shell
+        </p>
+        <h1 class="text-2xl font-bold sm:text-3xl">Terminal</h1>
+        <p class="mt-2 max-w-lg text-sm text-muted">
+          The same content as reader mode, explored by typing. Everything here
+          is also reachable without a keyboard.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid gap-4 lg:grid-cols-[1fr_18rem] lg:items-start">
+      <Panel
+        title="terminal"
+        meta="bash — aashish.os"
+        flush
+        class="h-[68vh] max-h-[40rem] min-h-[24rem]"
+      >
+        <noscript>
+          <div class="p-4 font-mono text-sm">
+            <p class="text-accent">JavaScript is disabled.</p>
+            <p class="mt-2 text-muted">
+              The terminal needs it, but nothing on this site is only available
+              here.
+            </p>
+            <p class="mt-3">
+              <a
+                href="/"
+                class="text-ink underline decoration-line-strong underline-offset-4 hover:text-accent"
+              >
+                Open reader mode instead
+              </a>
+            </p>
+          </div>
+        </noscript>
+
+        <Terminal snapshot={snapshot} client:load />
+      </Panel>
+
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+        <Panel title="system" meta="live">
+          <dl class="space-y-1.5 font-mono text-xs">
+            {
+              systemRows.map((row) => (
+                <div class="flex items-baseline justify-between gap-3">
+                  <dt class="text-faint">{row.key}</dt>
+                  <dd class="truncate text-ink">{row.value}</dd>
+                </div>
+              ))
+            }
+            <div class="flex items-baseline justify-between gap-3 pt-1">
+              <dt class="text-faint">status</dt>
+              <dd
+                class:list={[
+                  'flex items-center gap-1.5',
+                  snapshot.profile.availability.open ? 'text-live' : 'text-muted',
+                ]}
+              >
+                {
+                  snapshot.profile.availability.open && (
+                    <span
+                      class="size-1.5 rounded-full bg-live"
+                      style="animation: status-pulse 2.4s ease-in-out infinite"
+                      aria-hidden="true"
+                    />
+                  )
+                }
+                {snapshot.profile.availability.open ? 'available' : 'closed'}
+              </dd>
+            </div>
+          </dl>
+
+          <p class="spec-label mt-4 border-t border-line pt-3">Try</p>
+          <p class="mt-1.5 font-mono text-xs text-muted">
+            {SUGGESTIONS.join(' · ')}
+          </p>
+        </Panel>
+
+        <Panel title="index" meta={`${featured.length} pinned`}>
+          <ul class="space-y-2">
+            {
+              featured.map((project) => (
+                <li>
+                  <a
+                    href={project.href}
+                    class="group flex items-baseline gap-2 font-mono text-xs"
+                  >
+                    <span class="text-line-strong transition-colors group-hover:text-accent">
+                      →
+                    </span>
+                    <span class="truncate text-muted transition-colors group-hover:text-ink">
+                      {project.name}
+                    </span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+
+          <div class="mt-4 space-y-2 border-t border-line pt-3">
+            <a
+              href="/"
+              class="group flex items-baseline gap-2 font-mono text-xs"
+            >
+              <span class="text-line-strong transition-colors group-hover:text-accent">
+                →
+              </span>
+              <span class="text-muted transition-colors group-hover:text-ink">
+                Reader mode
+              </span>
+            </a>
+            <a
+              href={`mailto:${snapshot.profile.email}`}
+              class="group flex items-baseline gap-2 font-mono text-xs"
+            >
+              <span class="text-line-strong transition-colors group-hover:text-accent">
+                →
+              </span>
+              <span class="truncate text-muted transition-colors group-hover:text-ink">
+                {snapshot.profile.email}
+              </span>
+            </a>
+          </div>
+        </Panel>
+      </div>
+    </div>
+  </main>
+</BaseLayout>

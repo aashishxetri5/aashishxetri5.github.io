@@ -1,0 +1,299 @@
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from 'react';
+
+import type { PortfolioSnapshot } from '../../lib/snapshot';
+import { COMMANDS } from './commands';
+import { execute } from './execute';
+import type { CommandContext, TerminalLine, Tone } from './types';
+
+/**
+ * Terminal renderer — the end of the command pipeline in PLAN.md section 9.
+ *
+ * Knows how to draw lines and manage input. Knows nothing about what any
+ * command does: it calls `execute` and renders whatever data comes back. That
+ * separation is what stops this from becoming the "giant component containing
+ * hundreds of conditionals" that section 9 forbids.
+ *
+ * Accessibility (section 24, Rule 9) is built in rather than retrofitted:
+ *   - Output is an aria-live log region, so results are announced as they land.
+ *   - The input has a real label inside a form, so Enter submits natively and
+ *     mobile keyboards show a Go key (section 25).
+ *   - Everything works from the keyboard alone; nothing depends on hover.
+ *   - Autofocus only on fine pointers, so it does not slam a phone keyboard
+ *     open the moment the page loads.
+ */
+
+interface Props {
+  snapshot: PortfolioSnapshot;
+}
+
+const TONE_CLASS: Record<Tone, string> = {
+  default: 'text-ink',
+  muted: 'text-muted',
+  accent: 'text-accent',
+  error: 'text-rose-400',
+  live: 'text-live',
+};
+
+const toneClass = (tone: Tone | undefined) => TONE_CLASS[tone ?? 'default'];
+
+const isExternal = (href: string) => /^(https?:|mailto:)/.test(href);
+
+function Line({ line }: { line: TerminalLine }) {
+  switch (line.kind) {
+    case 'blank':
+      return <div className="h-3" aria-hidden="true" />;
+
+    case 'prompt':
+      return (
+        <div className="flex gap-2 pt-3">
+          <span className="text-accent" aria-hidden="true">
+            $
+          </span>
+          <span className="break-all text-ink">{line.text}</span>
+        </div>
+      );
+
+    case 'heading':
+      return <div className="spec-label mt-1 mb-1 text-ink">{line.text}</div>;
+
+    case 'text':
+      return (
+        <div
+          className={`break-words whitespace-pre-wrap ${toneClass(line.tone)}`}
+        >
+          {line.text}
+        </div>
+      );
+
+    case 'pair':
+      return (
+        <div className="flex flex-col gap-x-4 sm:flex-row">
+          <span className="w-full shrink-0 text-faint sm:w-40">
+            {line.label}
+          </span>
+          <span className={`min-w-0 break-words ${toneClass(line.tone)}`}>
+            {line.href ? (
+              <a
+                href={line.href}
+                target={isExternal(line.href) ? '_blank' : undefined}
+                rel={isExternal(line.href) ? 'noopener noreferrer' : undefined}
+                className="text-ink underline decoration-line-strong underline-offset-4 hover:text-accent hover:decoration-accent"
+              >
+                {line.value}
+              </a>
+            ) : (
+              line.value
+            )}
+          </span>
+        </div>
+      );
+
+    case 'entry':
+      return (
+        <div className="flex gap-3 py-1">
+          {line.index !== undefined && (
+            <span className="shrink-0 text-line-strong">{line.index}</span>
+          )}
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-x-2">
+              {line.href ? (
+                <a
+                  href={line.href}
+                  target={isExternal(line.href) ? '_blank' : undefined}
+                  rel={isExternal(line.href) ? 'noopener noreferrer' : undefined}
+                  className="font-medium text-ink underline decoration-line-strong underline-offset-4 hover:text-accent hover:decoration-accent"
+                >
+                  {line.title}
+                </a>
+              ) : (
+                <span className="font-medium text-ink">{line.title}</span>
+              )}
+              {line.badge && (
+                <span
+                  className={`border border-line px-1 text-[0.65rem] tracking-[0.12em] uppercase ${toneClass(line.badgeTone)}`}
+                >
+                  {line.badge}
+                </span>
+              )}
+            </div>
+            {line.meta && <div className="text-faint">{line.meta}</div>}
+            {line.note && <div className="text-muted">{line.note}</div>}
+          </div>
+        </div>
+      );
+
+    default: {
+      // Exhaustiveness guard: adding a TerminalLine variant without handling it
+      // here becomes a compile error rather than a silently dropped line.
+      const exhaustive: never = line;
+      void exhaustive;
+      return null;
+    }
+  }
+}
+
+export default function Terminal({ snapshot }: Props) {
+  const context = useMemo<CommandContext>(
+    () => ({ snapshot, commands: COMMANDS }),
+    [snapshot],
+  );
+
+  const [lines, setLines] = useState<TerminalLine[]>(() => [
+    { kind: 'text', text: `AASHISH.OS ${snapshot.meta.version}`, tone: 'accent' },
+    {
+      kind: 'text',
+      text: `${snapshot.profile.name} — ${snapshot.profile.headline}`,
+      tone: 'muted',
+    },
+    { kind: 'blank' },
+    { kind: 'text', text: 'Type "help" to list commands.', tone: 'muted' },
+  ]);
+
+  const [input, setInput] = useState('');
+  const [history, setHistory] = useState<string[]>([]);
+  /** -1 means "editing a fresh line" rather than browsing history. */
+  const [historyIndex, setHistoryIndex] = useState(-1);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Keep the newest output in view.
+  useEffect(() => {
+    const node = scrollRef.current;
+    if (node) node.scrollTop = node.scrollHeight;
+  }, [lines]);
+
+  useEffect(() => {
+    if (window.matchMedia('(pointer: fine)').matches) {
+      inputRef.current?.focus();
+    }
+  }, []);
+
+  const submit = useCallback(
+    (raw: string) => {
+      const result = execute(raw, context);
+      const echo: TerminalLine = { kind: 'prompt', text: raw };
+
+      setLines((previous) =>
+        result?.clear ? result.lines : [...previous, echo, ...(result?.lines ?? [])],
+      );
+
+      if (raw.trim().length > 0) {
+        setHistory((previous) => [...previous, raw]);
+      }
+      setHistoryIndex(-1);
+      setInput('');
+
+      if (result?.navigate) {
+        const { href, external } = result.navigate;
+        // Deferred so the confirmation line paints before the page changes.
+        window.setTimeout(() => {
+          if (external) window.open(href, '_blank', 'noopener,noreferrer');
+          else window.location.href = href;
+        }, 180);
+      }
+    },
+    [context],
+  );
+
+  const onKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        if (history.length === 0) return;
+        const next =
+          historyIndex === -1 ? history.length - 1 : Math.max(0, historyIndex - 1);
+        setHistoryIndex(next);
+        setInput(history[next] ?? '');
+        return;
+      }
+
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (historyIndex === -1) return;
+        const next = historyIndex + 1;
+        if (next >= history.length) {
+          setHistoryIndex(-1);
+          setInput('');
+        } else {
+          setHistoryIndex(next);
+          setInput(history[next] ?? '');
+        }
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setInput('');
+        setHistoryIndex(-1);
+      }
+    },
+    [history, historyIndex],
+  );
+
+  return (
+    <div
+      className="flex h-full min-h-0 flex-col font-mono text-sm"
+      onClick={(event) => {
+        // Focus the prompt when clicking dead space, but never steal a click
+        // meant for a link inside the output.
+        if (!(event.target instanceof HTMLElement) || !event.target.closest('a')) {
+          inputRef.current?.focus();
+        }
+      }}
+    >
+      <div
+        ref={scrollRef}
+        className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5"
+        role="log"
+        aria-live="polite"
+        aria-label="Terminal output"
+      >
+        {lines.map((line, index) => (
+          <Line key={index} line={line} />
+        ))}
+      </div>
+
+      <form
+        className="flex items-center gap-2 border-t border-line p-4 sm:p-5"
+        onSubmit={(event) => {
+          event.preventDefault();
+          submit(input);
+        }}
+      >
+        <label htmlFor="terminal-input" className="sr-only">
+          Enter a command
+        </label>
+        <span className="text-accent" aria-hidden="true">
+          $
+        </span>
+        <input
+          id="terminal-input"
+          ref={inputRef}
+          value={input}
+          onChange={(event) => setInput(event.target.value)}
+          onKeyDown={onKeyDown}
+          className="min-w-0 flex-1 bg-transparent text-ink outline-none placeholder:text-faint"
+          placeholder="help"
+          autoComplete="off"
+          autoCorrect="off"
+          autoCapitalize="off"
+          spellCheck={false}
+          aria-describedby="terminal-hint"
+        />
+      </form>
+
+      <p id="terminal-hint" className="sr-only">
+        Type a command and press Enter. Use the up and down arrow keys to recall
+        previous commands. Press Escape to clear the input.
+      </p>
+    </div>
+  );
+}

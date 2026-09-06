@@ -1,0 +1,55 @@
+---
+/**
+ * Mode switch (section 10).
+ *
+ * Two links, not a JavaScript toggle. That is the whole design:
+ *
+ *   - Reader mode lives at `/` and ships zero JavaScript. If the OS shell were
+ *     an overlay on the same page, the content would either be duplicated into
+ *     it (violating Rule 7) or hidden behind hydration (violating section 23,
+ *     "Do NOT hide important information exclusively behind JavaScript").
+ *   - As plain anchors, the switch works with JavaScript disabled, is
+ *     linkable and shareable, and lands in browser history — the three things
+ *     v3's display:none navigation destroyed.
+ *
+ * The current mode is marked with aria-current rather than only a colour, so
+ * the state is available to assistive tech and not just to sighted users.
+ */
+interface Props {
+  current: 'reader' | 'os';
+}
+
+const { current } = Astro.props;
+
+const MODES = [
+  { id: 'reader', label: 'Reader', href: '/' },
+  { id: 'os', label: 'OS', href: '/os' },
+] as const;
+---
+
+<nav aria-label="Display mode" class="shrink-0">
+  <ul class="flex items-center border border-line">
+    {
+      MODES.map((mode) => {
+        const active = mode.id === current;
+
+        return (
+          <li class="contents">
+            <a
+              href={mode.href}
+              aria-current={active ? 'page' : undefined}
+              class:list={[
+                'px-2.5 py-1.5 font-mono text-[0.7rem] tracking-[0.12em] uppercase transition-colors',
+                active
+                  ? 'bg-accent text-bg'
+                  : 'text-faint hover:text-accent',
+              ]}
+            >
+              {mode.label}
+            </a>
+          </li>
+        );
+      })
+    }
+  </ul>
+</nav>

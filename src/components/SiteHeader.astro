@@ -1,6 +1,6 @@
 ---
 /**
- * Header: wordmark, numbered section nav, theme toggle.
+ * Header: wordmark, numbered section nav, mode switch, theme toggle.
  *
  * Nav items carry their section number, so the header and the section gutters
  * share one indexing scheme and the page reads as a documented system rather
@@ -15,13 +15,16 @@
  * drawer — six short labels do not justify a menu, and §25 warns against
  * simply shrinking the desktop UI.
  */
+import ModeSwitch from './ModeSwitch.astro';
 import ThemeToggle from './ThemeToggle.astro';
 
 interface Props {
   showSectionNav?: boolean;
+  /** Which experience is currently open (§10). */
+  mode?: 'reader' | 'os';
 }
 
-const { showSectionNav = true } = Astro.props;
+const { showSectionNav = true, mode = 'reader' } = Astro.props;
 
 /* Numbers must match the `index` passed to each <Section> on the homepage. */
 const SECTIONS = [
@@ -35,7 +38,7 @@ const SECTIONS = [
 ---
 
 <header class="sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur-lg">
-  <div class="mx-auto flex h-14 max-w-5xl items-center gap-4 px-5 sm:px-8">
+  <div class="mx-auto flex h-14 max-w-5xl items-center gap-3 px-5 sm:px-8">
     <a
       href="/"
       class="shrink-0 font-mono text-sm font-bold tracking-tight transition-colors hover:text-accent"
@@ -46,9 +49,7 @@ const SECTIONS = [
     {
       showSectionNav && (
         <nav aria-label="Sections" class="min-w-0 flex-1">
-          <ul
-            class="flex items-center gap-0.5 overflow-x-auto no-scrollbar"
-          >
+          <ul class="flex items-center gap-0.5 overflow-x-auto no-scrollbar">
             {SECTIONS.map((section) => (
               <li>
                 <a
@@ -69,7 +70,13 @@ const SECTIONS = [
       )
     }
 
-    <div class:list={['shrink-0', !showSectionNav && 'ml-auto']}>
+    <div
+      class:list={[
+        'flex shrink-0 items-center gap-2',
+        !showSectionNav && 'ml-auto',
+      ]}
+    >
+      <ModeSwitch current={mode} />
       <ThemeToggle />
     </div>
   </div>

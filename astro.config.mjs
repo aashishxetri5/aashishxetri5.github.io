@@ -1,5 +1,6 @@
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
+import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
@@ -41,6 +42,9 @@ export default defineConfig({
 
   integrations: [
     mdx(),
+    // React powers exactly one island: the terminal on /os. Reader mode ships
+    // zero JavaScript and must stay that way (ADR-001, §26).
+    react(),
     // §23. Requires `site` above, which is why it lives in one constant.
     sitemap({
       filter: (page) =>

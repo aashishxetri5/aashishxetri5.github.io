@@ -1,0 +1,51 @@
+---
+/**
+ * Window panel chrome (section 11).
+ *
+ * A titled frame with hairline borders, matching the spec-sheet language
+ * established in Phase 2 rather than inventing a second visual system.
+ *
+ * Deliberately NOT draggable, resizable, free-floating windows. Section 19 is
+ * explicit that this is a portfolio, not a platform, and prefers the simplest
+ * thing that works. Real window management would mean drag state, z-order,
+ * collision handling and focus trapping — and it degrades badly on mobile,
+ * where section 25 wants panels full-screen anyway. A tiled layout delivers the
+ * OS reading without any of that machinery.
+ */
+interface Props {
+  title: string;
+  /** Monospace metadata shown at the right of the title bar. */
+  meta?: string | undefined;
+  /** Removes body padding, for panels that manage their own (the terminal). */
+  flush?: boolean;
+  class?: string | undefined;
+}
+
+const { title, meta, flush = false, class: className } = Astro.props;
+---
+
+<section
+  class:list={[
+    'flex min-h-0 flex-col border border-line bg-surface',
+    className,
+  ]}
+>
+  <header
+    class="flex shrink-0 items-center gap-3 border-b border-line px-3 py-2"
+  >
+    <!-- Window controls: decorative, so hidden from assistive tech. -->
+    <span class="flex shrink-0 gap-1.5" aria-hidden="true">
+      <span class="size-2 border border-line-strong"></span>
+      <span class="size-2 border border-line-strong"></span>
+      <span class="size-2 border border-line-strong"></span>
+    </span>
+
+    <h2 class="spec-label truncate text-ink">{title}</h2>
+
+    {meta && <span class="spec-label ml-auto shrink-0 truncate">{meta}</span>}
+  </header>
+
+  <div class:list={['min-h-0 flex-1', !flush && 'p-4 sm:p-5']}>
+    <slot />
+  </div>
+</section>
