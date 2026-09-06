@@ -1,8 +1,9 @@
 # AASHISH.OS — Architecture
 
-> Phase 0 (Discovery) deliverable, per `PLAN.md` §37.
-> Status: **Phase 0 complete — awaiting approval to begin Phase 1.**
-> Last updated: 2026-09-02
+> Originally the Phase 0 (Discovery) deliverable, per `PLAN.md` §37; maintained
+> since as the canonical Architecture Decision Log (§43).
+> Status: **Phases 0–3 complete. Phase 4 (Terminal Engine) awaiting approval.**
+> Last updated: 2026-09-06
 
 ---
 
@@ -361,6 +362,18 @@ Format per `PLAN.md` §43. Superseded decisions are marked, never deleted.
 
 ---
 
+### ADR-004 — CSS-first animation, no 3D
+
+**Decision:** Implement animation with CSS transitions, keyframes, and view transitions. Introduce a JavaScript animation library only when a specific interaction cannot be expressed in CSS. Do not add Three.js.
+
+**Reason:** §26 explicitly says to avoid large animation libraries where CSS suffices, and not to load Three.js globally for one page's benefit. §6's polish targets — micro-interactions, timeline reveals, terminal cursor effects, hover states — are all CSS-expressible. Rule 4 requires a reason per dependency, and none of these clear that bar yet. §10 also ranks performance above visual spectacle.
+
+**Alternatives considered:** Adopting a motion library upfront — rejected as speculative weight. Revisit if Phase 6 finds a concrete interaction CSS cannot express.
+
+**Date:** 2026-09-02
+
+---
+
 ### ADR-005 — GitHub Pages primary with Cloudflare Workers — **REJECTED**
 
 **Decision:** Rejected 2026-09-02. Netlify remains primary per ADR-002.
@@ -387,12 +400,20 @@ Format per `PLAN.md` §43. Superseded decisions are marked, never deleted.
 
 ---
 
-### ADR-004 — CSS-first animation, no 3D
+### ADR-008 — Terminal and reader mode are separate routes
 
-**Decision:** Implement animation with CSS transitions, keyframes, and view transitions. Introduce a JavaScript animation library only when a specific interaction cannot be expressed in CSS. Do not add Three.js.
+**Decision:** Reader mode lives at `/` and ships zero JavaScript. The AASHISH.OS shell lives at `/os` and hydrates one React island. The mode switch (§10) is a pair of plain anchors, not a client-side toggle. Both routes read the same content: `/os` serializes the output of `src/lib/content.ts` via `src/lib/snapshot.ts` and hands it to the island as props.
 
-**Reason:** §26 explicitly says to avoid large animation libraries where CSS suffices, and not to load Three.js globally for one page's benefit. §6's polish targets — micro-interactions, timeline reveals, terminal cursor effects, hover states — are all CSS-expressible. Rule 4 requires a reason per dependency, and none of these clear that bar yet. §10 also ranks performance above visual spectacle.
+**Reason:** §10 asks for two experiences over one content source, and Rule 7 forbids duplicating content between them. The obvious implementation — an OS overlay on `/` — fails whichever way it is built. If the shell holds its own copy of the portfolio, Rule 7 is broken and every job, project and skill now exists twice. If instead reader mode renders only after hydration, §23 is broken: "Do NOT hide important information exclusively behind JavaScript."
 
-**Alternatives considered:** Adopting a motion library upfront — rejected as speculative weight. Revisit if Phase 6 finds a concrete interaction CSS cannot express.
+Separate routes dissolve the conflict. `/` stays static HTML with a verified zero JavaScript islands, so the recruiter path and the crawler path are untouched by anything experimental. React's ~62 KB gzipped is charged only to visitors who choose the OS, which is what islands are for. The switch being an anchor rather than a handler means it survives a script failure, is linkable and shareable, and lands in browser history — the three properties v3's `display:none` navigation destroyed.
 
-**Date:** 2026-09-02
+The snapshot is the part that makes Rule 7 structural rather than a promise. A client island cannot call `getCollection()`, so without it the natural move is to type facts into command handlers. Instead handlers receive data and contain none, which unit tests assert against a deliberately fake fixture: if any fact were hardcoded, the tests would surface real values.
+
+**Alternatives considered:** Overlay on `/` — rejected above. A single route rendering both modes with CSS — same hydration problem, plus double the DOM on every page load. Client-side routing between modes — would put reader mode behind JavaScript for the sake of a transition, inverting §26's priority of performance over spectacle.
+
+**Consequence for Phase 7:** the AI `ask` endpoint belongs to `/os`, so an AI outage cannot affect the canonical reader experience at all.
+
+**Date:** 2026-09-06
+
+---

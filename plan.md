@@ -15,9 +15,9 @@
 
 <!-- Maintained per §43. Update at the end of every phase, per Rule 2 step 8. -->
 
-**Current phase:** Phase 2 — Reader Mode → **complete**
-**Next phase:** Phase 3 — AASHISH.OS Shell → **awaiting approval**
-**Last updated:** 2026-09-03
+**Current phase:** Phase 3 — AASHISH.OS Shell → **complete**
+**Next phase:** Phase 4 — Terminal Engine → **awaiting approval**
+**Last updated:** 2026-09-06
 **Working branch:** `portfolio-v4` (local only — not yet pushed)
 
 ## Completed
@@ -42,6 +42,11 @@
   - **Scope adjustment:** project pages were built in Phase 2 rather than Phase 5, because Phase 2 ships project cards and a card linking nowhere is a dead end. The dossier fields already existed in the schema from Phase 1, so rendering them cost nothing. **Phase 5 is now presentation depth** — architecture diagrams, richer decision layout — rather than plumbing.
   - Deliverable: `src/layouts/BaseLayout.astro`, `src/components/**` (12 components), `src/pages/**`, `src/lib/content.ts`, `src/styles/global.css`
 
+- [x] **Phase 3 — AASHISH.OS Shell.** Boot sequence, window panels, system status, terminal surface, command registry, mode switch.
+  - `/` reader mode verified still at **zero JavaScript**; React (~62 KB gz) confined to `/os`
+  - Rule 7 enforced structurally via `src/lib/snapshot.ts`, not by discipline
+  - 46 unit tests; `astro check` 0 errors / 0 warnings / 0 hints
+
 ## Decisions taken
 
 | ID | Decision | Status | Where |
@@ -53,6 +58,7 @@
 | ADR-005 | GitHub Pages primary + Cloudflare Workers | ❌ **Rejected** — retained as fallback | `docs/architecture.md` |
 | ADR-006 | *Proposed:* Sveltia CMS, with Decap documented as fallback | Awaiting decision (Phase 8) | `docs/cms.md` §3 |
 | ADR-007 | Sanitize Markdown via the legacy unified processor | Approved | `docs/architecture.md` |
+| ADR-008 | Modes are separate routes (`/` and `/os`), not a JS toggle | Approved | `docs/architecture.md` |
 
 The canonical Architecture Decision Log lives in `docs/architecture.md`, not here. §43 asks for a decision log and §35 asks for `docs/architecture.md`; keeping ADRs in both places would guarantee drift, which defeats §43's own stated purpose of being understandable months later. This section indexes them instead.
 
@@ -64,7 +70,9 @@ The canonical Architecture Decision Log lives in `docs/architecture.md`, not her
 
 ## Remaining
 
-Phases 2–12 as specified in §37. **Phase 2 is the critical milestone:** its exit condition is that the portfolio is already genuinely useful with every experimental feature removed.
+Phases 4–12 as specified in §37.
+
+**Phase 4 (Terminal Engine) is next.** The registry, parser, dispatcher and renderer already exist from Phase 3, so Phase 4 is additive rather than structural: flag parsing (`projects --featured`, `skills --backend`), a `project <slug>` detail view, tab completion, and history persistence. Adding a command touches `src/features/terminal/commands.ts` and no UI file.
 
 ## Known issues — introduced or discovered during implementation
 
