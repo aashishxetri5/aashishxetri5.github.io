@@ -71,6 +71,22 @@ export interface SnapshotProject {
   href: string;
   github?: string;
   demo?: string;
+  documentation?: string;
+  /*
+   * Dossier fields (section 13), carried so `project <name>` shows the same
+   * substance as the reader-mode page rather than a thinner summary. Rule 7
+   * means the terminal is a different VIEW of the content, not a lesser copy.
+   *
+   * This is the largest contributor to snapshot size. It is text-only and the
+   * project count is small, so the cost is a few kB against the alternative of
+   * the terminal quietly being the worse way to read the same thing.
+   */
+  problem?: string;
+  highlights: string[];
+  architecture: string[];
+  decisions: { decision: string; reason: string }[];
+  challenges: string[];
+  lessons: string[];
 }
 
 export interface SnapshotSkill {
@@ -198,6 +214,15 @@ export async function buildSnapshot(version = '4.0'): Promise<PortfolioSnapshot>
       href: `/projects/${entry.id}`,
       ...(entry.data.links.github ? { github: entry.data.links.github } : {}),
       ...(entry.data.links.demo ? { demo: entry.data.links.demo } : {}),
+      ...(entry.data.links.documentation
+        ? { documentation: entry.data.links.documentation }
+        : {}),
+      ...(entry.data.problem ? { problem: entry.data.problem } : {}),
+      highlights: entry.data.highlights,
+      architecture: entry.data.architecture,
+      decisions: entry.data.decisions,
+      challenges: entry.data.challenges,
+      lessons: entry.data.lessons,
     })),
 
     // Flattened: the terminal groups by category itself when rendering, and a

@@ -9,16 +9,21 @@ import {
 
 import type { PortfolioSnapshot } from '../../lib/snapshot';
 import { COMMANDS } from './commands';
-import { execute } from './execute';
-import type { CommandContext, TerminalLine, Tone } from './types';
+import { complete, execute } from './execute';
+import type {
+  CommandContext,
+  CommandEffect,
+  TerminalLine,
+  Tone,
+} from './types';
 
 /**
  * Terminal renderer — the end of the command pipeline in PLAN.md section 9.
  *
- * Knows how to draw lines and manage input. Knows nothing about what any
- * command does: it calls `execute` and renders whatever data comes back. That
- * separation is what stops this from becoming the "giant component containing
- * hundreds of conditionals" that section 9 forbids.
+ * Knows how to draw lines, manage input, and perform declared effects. Knows
+ * nothing about what any command does: it calls `execute` and renders whatever
+ * data comes back. That separation is what stops this from becoming the "giant
+ * component containing hundreds of conditionals" that section 9 forbids.
  *
  * Accessibility (section 24, Rule 9) is built in rather than retrofitted:
  *   - Output is an aria-live log region, so results are announced as they land.
@@ -45,6 +50,85 @@ const toneClass = (tone: Tone | undefined) => TONE_CLASS[tone ?? 'default'];
 
 const isExternal = (href: string) => /^(https?:|mailto:)/.test(href);
 
+const HISTORY_KEY = 'terminal-history';
+const HISTORY_LIMIT = 50;
+
+/**
+ * History survives reloads. Every storage access is guarded: private mode and
+ * blocked-storage settings throw on access, and a terminal that cannot remember
+ * commands must still run them.
+ */
+function loadHistory(): string[] {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((entry): entry is string => typeof entry === 'string')
+      .slice(-HISTORY_LIMIT);
+  } catch {
+    return [];
+  }
+}
+
+function saveHistory(entries: string[]): void {
+  try {
+    localStorage.setItem(
+      HISTORY_KEY,
+      JSON.stringify(entries.slice(-HISTORY_LIMIT)),
+    );
+  } catch {
+    /* Storage blocked: history still works for this page view. */
+  }
+}
+
+/**
+ * Perform a declared effect.
+ *
+ * The theme contract is shared with ThemeToggle.astro and the pre-paint script
+ * in BaseLayout.astro: `data-theme` on the root element, mirrored to
+ * localStorage['theme'], with the key ABSENT meaning "follow the system".
+ * Reimplementing it differently here would produce a terminal that disagrees
+ * with the header button, so the three sites deliberately share one contract.
+ */
+function applyEffect(effect: CommandEffect): void {
+  if (effect.type !== 'theme') return;
+
+  const root = document.documentElement;
+  let next: 'light' | 'dark' | null;
+
+  if (effect.value === 'system') {
+    next = null;
+  } else if (effect.value === 'toggle') {
+    const explicit = root.getAttribute('data-theme');
+    const isDark =
+      explicit === 'dark' ||
+      (explicit === null &&
+        window.matchMedia('(prefers-color-scheme: dark)').matches);
+    next = isDark ? 'light' : 'dark';
+  } else {
+    next = effect.value;
+  }
+
+  if (next === null) {
+    root.removeAttribute('data-theme');
+    try {
+      localStorage.removeItem('theme');
+    } catch {
+      /* Storage blocked: the change still applies to this page view. */
+    }
+    return;
+  }
+
+  root.setAttribute('data-theme', next);
+  try {
+    localStorage.setItem('theme', next);
+  } catch {
+    /* Storage blocked: the change still applies to this page view. */
+  }
+}
+
 function Line({ line }: { line: TerminalLine }) {
   switch (line.kind) {
     case 'blank':
@@ -66,7 +150,7 @@ function Line({ line }: { line: TerminalLine }) {
     case 'text':
       return (
         <div
-          className={`break-words whitespace-pre-wrap ${toneClass(line.tone)}`}
+          className={`wrap-break-word whitespace-pre-wrap ${toneClass(line.tone)}`}
         >
           {line.text}
         </div>
@@ -78,7 +162,7 @@ function Line({ line }: { line: TerminalLine }) {
           <span className="w-full shrink-0 text-faint sm:w-40">
             {line.label}
           </span>
-          <span className={`min-w-0 break-words ${toneClass(line.tone)}`}>
+          <span className={`min-w-0 wrap-break-word ${toneClass(line.tone)}`}>
             {line.href ? (
               <a
                 href={line.href}
@@ -171,6 +255,10 @@ export default function Terminal({ snapshot }: Props) {
   }, [lines]);
 
   useEffect(() => {
+    // Read storage after mount, never during render: this component is
+    // server-rendered by Astro, where localStorage does not exist.
+    setHistory(loadHistory());
+
     if (window.matchMedia('(pointer: fine)').matches) {
       inputRef.current?.focus();
     }
@@ -186,10 +274,16 @@ export default function Terminal({ snapshot }: Props) {
       );
 
       if (raw.trim().length > 0) {
-        setHistory((previous) => [...previous, raw]);
+        setHistory((previous) => {
+          const next = [...previous, raw].slice(-HISTORY_LIMIT);
+          saveHistory(next);
+          return next;
+        });
       }
       setHistoryIndex(-1);
       setInput('');
+
+      if (result?.effect) applyEffect(result.effect);
 
       if (result?.navigate) {
         const { href, external } = result.navigate;
@@ -205,6 +299,26 @@ export default function Terminal({ snapshot }: Props) {
 
   const onKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === 'Tab') {
+        // Must preventDefault before anything else, or focus leaves the input.
+        event.preventDefault();
+
+        const result = complete(input, context);
+        if (result.candidates.length === 0) return;
+
+        setInput(result.value);
+
+        // Ambiguous: show the options, the way a shell does.
+        if (result.candidates.length > 1) {
+          setLines((previous) => [
+            ...previous,
+            { kind: 'prompt', text: input },
+            { kind: 'text', text: result.candidates.join('   '), tone: 'muted' },
+          ]);
+        }
+        return;
+      }
+
       if (event.key === 'ArrowUp') {
         event.preventDefault();
         if (history.length === 0) return;
@@ -235,7 +349,7 @@ export default function Terminal({ snapshot }: Props) {
         setHistoryIndex(-1);
       }
     },
-    [history, historyIndex],
+    [context, history, historyIndex, input],
   );
 
   return (
@@ -291,8 +405,9 @@ export default function Terminal({ snapshot }: Props) {
       </form>
 
       <p id="terminal-hint" className="sr-only">
-        Type a command and press Enter. Use the up and down arrow keys to recall
-        previous commands. Press Escape to clear the input.
+        Type a command and press Enter. Press Tab to complete a command name or
+        argument. Use the up and down arrow keys to recall previous commands.
+        Press Escape to clear the input.
       </p>
     </div>
   );

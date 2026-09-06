@@ -1,40 +1,62 @@
 /**
- * Command parser and dispatcher.
+ * Command parser, dispatcher and completion engine.
  *
  * The middle of §9's pipeline: parse raw input, resolve it against the
  * registry, run the handler. Pure and framework-free, so it is unit-testable
  * without mounting a component (§34 lists "command parser" and "command
  * registry" as required unit tests).
  */
-import type { CommandContext, CommandDescriptor, CommandResult } from './types';
+import type {
+  CommandContext,
+  CommandDescriptor,
+  CommandInput,
+  CommandResult,
+} from './types';
 
-export interface ParsedInput {
+export interface ParsedInput extends CommandInput {
   name: string;
-  args: string[];
 }
 
-/**
- * Split raw input into a command name and arguments.
- *
- * Quoted segments are kept intact so Phase 4's `project "image extractor"`
- * works without revisiting the parser.
- */
-export function parseInput(raw: string): ParsedInput | null {
-  const trimmed = raw.trim();
-  if (trimmed.length === 0) return null;
+/** Split a line into tokens, keeping quoted segments intact. */
+function tokenize(input: string): string[] {
+  const tokens = input.match(/"[^"]*"|'[^']*'|\S+/g) ?? [];
 
-  const tokens = trimmed.match(/"[^"]*"|'[^']*'|\S+/g) ?? [];
-  const cleaned = tokens.map((token) =>
+  return tokens.map((token) =>
     (token.startsWith('"') && token.endsWith('"')) ||
     (token.startsWith("'") && token.endsWith("'"))
       ? token.slice(1, -1)
       : token,
   );
+}
 
-  const [name, ...args] = cleaned;
+/**
+ * Split raw input into a command name, positional arguments and flags.
+ *
+ * Flags are long-form only (`--featured`). Short flags are deliberately not
+ * supported: nothing in §9's command list needs them, and Rule 4 asks for a
+ * reason before adding surface area. Quoted segments survive, so
+ * `project "image extractor"` works.
+ */
+export function parseInput(raw: string): ParsedInput | null {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) return null;
+
+  const tokens = tokenize(trimmed);
+  const [name, ...rest] = tokens;
   if (name === undefined) return null;
 
-  return { name: name.toLowerCase(), args };
+  const args: string[] = [];
+  const flags = new Set<string>();
+
+  for (const token of rest) {
+    if (token.startsWith('--') && token.length > 2) {
+      flags.add(token.slice(2).toLowerCase());
+    } else {
+      args.push(token);
+    }
+  }
+
+  return { name: name.toLowerCase(), args, flags };
 }
 
 /** Resolve by canonical name first, then by alias. */
@@ -58,7 +80,7 @@ export function resolveCommand(
  * least likely to be suggested. Counting a swap as one edit fixes that without
  * loosening the threshold and matching everything to everything.
  */
-function distance(a: string, b: string): number {
+export function distance(a: string, b: string): number {
   if (a === b) return 0;
   if (a.length === 0) return b.length;
   if (b.length === 0) return a.length;
@@ -79,12 +101,7 @@ function distance(a: string, b: string): number {
         (previous[j] as number) + 1, // delete
       );
 
-      if (
-        i > 1 &&
-        j > 1 &&
-        a[i - 1] === b[j - 2] &&
-        a[i - 2] === b[j - 1]
-      ) {
+      if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) {
         best = Math.min(best, (twoBack[j - 2] as number) + 1); // transpose
       }
 
@@ -124,6 +141,89 @@ export function suggest(
   return best?.name;
 }
 
+/* -------------------------------------------------------------------------- */
+/* Completion                                                                 */
+/* -------------------------------------------------------------------------- */
+
+export interface Completion {
+  /** Every candidate matching the token under the cursor. */
+  candidates: string[];
+  /** The input line with the longest unambiguous completion applied. */
+  value: string;
+}
+
+function longestCommonPrefix(values: string[]): string {
+  if (values.length === 0) return '';
+  let prefix = values[0] as string;
+
+  for (const value of values.slice(1)) {
+    while (!value.startsWith(prefix)) {
+      prefix = prefix.slice(0, -1);
+      if (prefix.length === 0) return '';
+    }
+  }
+
+  return prefix;
+}
+
+/**
+ * Tab completion (§37: "Support Tab completion where practical").
+ *
+ * Two levels, and the split matters. Command NAMES are completed centrally,
+ * because the registry already knows all of them. ARGUMENTS are completed by
+ * the command itself via an optional `complete`, because only `project` knows
+ * that its argument is a project id. Building a generic argument-completion
+ * language would be exactly the speculative machinery §19 warns against.
+ *
+ * Never completes to a hidden command: Tab must not reveal an easter egg.
+ */
+export function complete(raw: string, ctx: CommandContext): Completion {
+  const endsWithSpace = /\s$/.test(raw);
+  const tokens = tokenize(raw);
+
+  // Completing the command name: no arguments typed yet.
+  if (tokens.length === 0 || (tokens.length === 1 && !endsWithSpace)) {
+    const partial = (tokens[0] ?? '').toLowerCase();
+
+    const candidates = ctx.commands
+      .filter((command) => !command.hidden && command.name.startsWith(partial))
+      .map((command) => command.name)
+      .sort();
+
+    if (candidates.length === 0) return { candidates: [], value: raw };
+
+    const filled = longestCommonPrefix(candidates);
+    return {
+      candidates,
+      // A single match is a complete word, so add the space the user would.
+      value: candidates.length === 1 ? `${filled} ` : filled,
+    };
+  }
+
+  // Completing an argument.
+  const parsed = parseInput(raw);
+  if (parsed === null) return { candidates: [], value: raw };
+
+  const command = resolveCommand(parsed.name, ctx.commands);
+  if (command?.complete === undefined) return { candidates: [], value: raw };
+
+  const partial = endsWithSpace ? '' : ((tokens.at(-1) ?? '').toLowerCase());
+  const candidates = command
+    .complete(parsed, ctx)
+    .filter((candidate) => candidate.toLowerCase().startsWith(partial))
+    .sort();
+
+  if (candidates.length === 0) return { candidates: [], value: raw };
+
+  const filled = longestCommonPrefix(candidates);
+  const head = endsWithSpace ? tokens : tokens.slice(0, -1);
+  const value = [...head, filled].join(' ');
+
+  return { candidates, value: candidates.length === 1 ? `${value} ` : value };
+}
+
+/* -------------------------------------------------------------------------- */
+
 /**
  * Execute one line of input.
  *
@@ -159,7 +259,7 @@ export function execute(raw: string, ctx: CommandContext): CommandResult | null 
   }
 
   try {
-    return command.run(parsed.args, ctx);
+    return command.run(parsed, ctx);
   } catch (error) {
     // §32: a malformed content entry must not blank the terminal.
     return {

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { COMMANDS } from '../../src/features/terminal/commands.ts';
 import {
+  complete,
   execute,
   parseInput,
   resolveCommand,
@@ -56,6 +57,28 @@ const snapshot: PortfolioSnapshot = {
       featured: true,
       technologies: ['Fixture Lang'],
       href: '/projects/live-one',
+      github: 'https://github.com/fixture/live-one',
+      problem: 'A fixture problem statement.',
+      highlights: ['Fixture highlight.'],
+      architecture: ['Fixture architecture note.'],
+      decisions: [{ decision: 'Fixture decision.', reason: 'Fixture reason.' }],
+      challenges: ['Fixture challenge.'],
+      lessons: ['Fixture lesson.'],
+    },
+    {
+      id: 'lively-two',
+      name: 'Lively Fixture',
+      shortDescription: 'A second visible fixture project.',
+      status: 'completed',
+      type: 'tool',
+      featured: false,
+      technologies: ['Fixture Lang'],
+      href: '/projects/lively-two',
+      highlights: [],
+      architecture: [],
+      decisions: [],
+      challenges: [],
+      lessons: [],
     },
     {
       id: 'old-one',
@@ -66,6 +89,11 @@ const snapshot: PortfolioSnapshot = {
       featured: false,
       technologies: ['Fixture Lang'],
       href: '/projects/old-one',
+      highlights: [],
+      architecture: [],
+      decisions: [],
+      challenges: [],
+      lessons: [],
     },
   ],
   skills: [
@@ -102,8 +130,8 @@ const snapshot: PortfolioSnapshot = {
 const ctx: CommandContext = { snapshot, commands: COMMANDS };
 
 /** Flatten a result's lines into searchable text. */
-const textOf = (lines: ReturnType<typeof execute>) =>
-  JSON.stringify(lines?.lines ?? []);
+const textOf = (result: ReturnType<typeof execute>) =>
+  JSON.stringify(result?.lines ?? []);
 
 describe('parseInput', () => {
   it('returns null for empty or whitespace-only input', () => {
@@ -111,29 +139,37 @@ describe('parseInput', () => {
     expect(parseInput('   ')).toBeNull();
   });
 
-  it('splits a command from its arguments', () => {
-    expect(parseInput('projects --featured')).toEqual({
-      name: 'projects',
-      args: ['--featured'],
-    });
+  it('separates flags from positional arguments', () => {
+    const parsed = parseInput('projects --featured');
+    expect(parsed?.name).toBe('projects');
+    expect(parsed?.args).toEqual([]);
+    expect([...(parsed?.flags ?? [])]).toEqual(['featured']);
   });
 
-  it('lowercases the command but preserves argument case', () => {
-    expect(parseInput('HELP Foo')).toEqual({ name: 'help', args: ['Foo'] });
+  it('keeps positionals and flags apart regardless of order', () => {
+    const parsed = parseInput('project --all pustakalaya');
+    expect(parsed?.args).toEqual(['pustakalaya']);
+    expect(parsed?.flags.has('all')).toBe(true);
   });
 
-  it('keeps quoted arguments intact, for Phase 4 detail lookups', () => {
-    expect(parseInput('project "image extractor"')).toEqual({
-      name: 'project',
-      args: ['image extractor'],
-    });
+  it('lowercases the command and flags but preserves argument case', () => {
+    const parsed = parseInput('HELP --Loud Foo');
+    expect(parsed?.name).toBe('help');
+    expect(parsed?.args).toEqual(['Foo']);
+    expect(parsed?.flags.has('loud')).toBe(true);
+  });
+
+  it('treats a bare -- as a positional, not a flag', () => {
+    expect(parseInput('projects --')?.args).toEqual(['--']);
+  });
+
+  it('keeps quoted arguments intact', () => {
+    const parsed = parseInput('project "image extractor"');
+    expect(parsed?.args).toEqual(['image extractor']);
   });
 
   it('collapses arbitrary whitespace between tokens', () => {
-    expect(parseInput('  projects    a   b ')).toEqual({
-      name: 'projects',
-      args: ['a', 'b'],
-    });
+    expect(parseInput('  projects    a   b ')?.args).toEqual(['a', 'b']);
   });
 });
 
@@ -161,6 +197,16 @@ describe('resolveCommand', () => {
       }
     }
   });
+
+  it('gives every command a summary, and usage wherever it takes arguments', () => {
+    for (const command of COMMANDS) {
+      expect(command.summary.length, `${command.name} has no summary`).toBeGreaterThan(0);
+      // A command that can complete arguments must document that it takes them.
+      if (command.complete) {
+        expect(command.usage, `${command.name} completes args but has no usage`).toBeDefined();
+      }
+    }
+  });
 });
 
 describe('suggest', () => {
@@ -174,8 +220,61 @@ describe('suggest', () => {
   });
 
   it('never suggests a hidden command, which would spoil the easter egg', () => {
-    // `neofetch` is hidden; a near-miss must not reveal it.
     expect(suggest('neofetc', COMMANDS)).toBeUndefined();
+  });
+});
+
+describe('complete (Tab)', () => {
+  it('completes a unique command name and adds a trailing space', () => {
+    const result = complete('who', ctx);
+    expect(result.candidates).toEqual(['whoami']);
+    expect(result.value).toBe('whoami ');
+  });
+
+  it('fills only the common prefix when several commands match', () => {
+    const result = complete('pro', ctx);
+    expect(result.candidates).toEqual(['project', 'projects']);
+    // "project" is the longest unambiguous prefix, and no space is added.
+    expect(result.value).toBe('project');
+  });
+
+  it('never completes to a hidden command', () => {
+    expect(complete('neo', ctx).candidates).toEqual([]);
+  });
+
+  it('leaves the line untouched when nothing matches', () => {
+    expect(complete('zzz', ctx)).toEqual({ candidates: [], value: 'zzz' });
+  });
+
+  it('completes a unique project id and adds a trailing space', () => {
+    const result = complete('project old', ctx);
+    expect(result.candidates).toEqual(['old-one']);
+    expect(result.value).toBe('project old-one ');
+  });
+
+  it('fills only the common prefix when project ids are ambiguous', () => {
+    // "live" prefixes both live-one and lively-two.
+    const result = complete('project live', ctx);
+    expect(result.candidates).toEqual(['live-one', 'lively-two']);
+    expect(result.value).toBe('project live');
+  });
+
+  it('offers every project id after a trailing space', () => {
+    const result = complete('project ', ctx);
+    expect(result.candidates).toEqual(['live-one', 'lively-two', 'old-one']);
+  });
+
+  it('completes theme values', () => {
+    expect(complete('theme d', ctx).value).toBe('theme dark ');
+  });
+
+  it('completes skill category flags derived from content', () => {
+    const result = complete('skills --', ctx);
+    expect(result.candidates).toEqual(['--languages', '--tools']);
+  });
+
+  it('returns nothing for a command with no argument completer', () => {
+    expect(complete('about ', ctx).candidates).toEqual([]);
   });
 });
 
@@ -219,6 +318,92 @@ describe('execute', () => {
   });
 });
 
+describe('flags', () => {
+  it('projects hides archived entries by default, matching reader mode', () => {
+    const output = textOf(execute('projects', ctx));
+    expect(output).toContain('Live Fixture');
+    expect(output).not.toContain('Archived Fixture');
+  });
+
+  it('projects --all reveals archived entries', () => {
+    const output = textOf(execute('projects --all', ctx));
+    expect(output).toContain('Archived Fixture');
+  });
+
+  it('projects --featured narrows to featured entries only', () => {
+    const output = textOf(execute('projects --featured', ctx));
+    expect(output).toContain('Live Fixture');
+    expect(output).not.toContain('Lively Fixture');
+  });
+
+  it('skills --<category> filters by a category derived from content', () => {
+    const output = textOf(execute('skills --tools', ctx));
+    expect(output).toContain('Unproven Skill');
+    expect(output).not.toContain('Fixture Lang');
+  });
+
+  it('reports an unknown skill filter instead of silently showing everything', () => {
+    const output = textOf(execute('skills --nonsense', ctx));
+    expect(output).toContain('Unknown filter');
+    // The failure must not look like a filter that matched nothing.
+    expect(output).not.toContain('Unproven Skill');
+  });
+});
+
+describe('project <name>', () => {
+  it('resolves by exact id', () => {
+    const output = textOf(execute('project live-one', ctx));
+    expect(output).toContain('Live Fixture');
+    expect(output).toContain('A fixture problem statement.');
+  });
+
+  it('resolves by name, case-insensitively', () => {
+    expect(textOf(execute('project "live fixture"', ctx))).toContain('Live Fixture');
+  });
+
+  it('resolves a near-miss via edit distance', () => {
+    expect(textOf(execute('project liveone', ctx))).toContain('Live Fixture');
+  });
+
+  it('omits dossier sections that have no content', () => {
+    // lively-two has empty highlight/architecture/lesson arrays.
+    const output = textOf(execute('project lively-two', ctx));
+    expect(output).toContain('Lively Fixture');
+    expect(output).not.toContain('Highlights');
+    expect(output).not.toContain('Architecture');
+  });
+
+  it('lists the options when called with no argument', () => {
+    const output = textOf(execute('project', ctx));
+    expect(output).toContain('Usage: project <name>');
+    expect(output).toContain('live-one');
+  });
+
+  it('reports a genuine miss rather than guessing wildly', () => {
+    const output = textOf(execute('project qqqqqqqqqq', ctx));
+    expect(output).toContain('No project matches');
+  });
+});
+
+describe('theme', () => {
+  it('declares a toggle effect with no argument, and touches no DOM', () => {
+    const result = execute('theme', ctx);
+    expect(result?.effect).toEqual({ type: 'theme', value: 'toggle' });
+  });
+
+  it('declares an explicit effect for each supported value', () => {
+    expect(execute('theme dark', ctx)?.effect).toEqual({ type: 'theme', value: 'dark' });
+    expect(execute('theme light', ctx)?.effect).toEqual({ type: 'theme', value: 'light' });
+    expect(execute('theme system', ctx)?.effect).toEqual({ type: 'theme', value: 'system' });
+  });
+
+  it('rejects an unknown value without emitting an effect', () => {
+    const result = execute('theme neon', ctx);
+    expect(result?.effect).toBeUndefined();
+    expect(textOf(result)).toContain('Unknown theme');
+  });
+});
+
 describe('commands read from the snapshot, not from themselves (Rule 7)', () => {
   it('whoami reflects fixture identity', () => {
     const output = textOf(execute('whoami', ctx));
@@ -235,19 +420,29 @@ describe('commands read from the snapshot, not from themselves (Rule 7)', () => 
     expect(output).toContain('2026 — Present');
   });
 
-  it('projects hides archived entries by default, matching reader mode', () => {
-    const output = textOf(execute('projects', ctx));
-    expect(output).toContain('Live Fixture');
-    expect(output).not.toContain('Archived Fixture');
-    expect(output).toContain('1 archived project(s) hidden');
-  });
-
   it('skills shows evidence and says so plainly when there is none (§8)', () => {
     const output = textOf(execute('skills', ctx));
     expect(output).toContain('Live Fixture');
     expect(output).toContain('no shipped evidence yet');
     // §8 forbids invented proficiency percentages.
     expect(output).not.toMatch(/\d+%/);
+  });
+
+  it('github navigates to the profile from content', () => {
+    expect(execute('github', ctx)?.navigate).toEqual({
+      href: 'https://github.com/fixture',
+      external: true,
+    });
+  });
+
+  it('github degrades when no profile is configured (§32)', () => {
+    const without: PortfolioSnapshot = {
+      ...snapshot,
+      profile: { ...snapshot.profile, socials: [] },
+    };
+    const result = execute('github', { snapshot: without, commands: COMMANDS });
+    expect(result?.navigate).toBeUndefined();
+    expect(textOf(result)).toContain('No GitHub profile is configured');
   });
 
   it('resume degrades gracefully when no file is published (§32)', () => {
@@ -262,13 +457,11 @@ describe('commands read from the snapshot, not from themselves (Rule 7)', () => 
 
     expect(result?.navigate).toBeUndefined();
     expect(textOf(result)).toContain('No resume file is published yet');
-    // Still offers a route to the person.
     expect(textOf(result)).toContain('fixture@example.com');
   });
 
   it('resume navigates when a file exists', () => {
-    const result = execute('resume', ctx);
-    expect(result?.navigate).toEqual({
+    expect(execute('resume', ctx)?.navigate).toEqual({
       href: '/resume/fixture.pdf',
       external: true,
     });
@@ -282,7 +475,7 @@ describe('commands read from the snapshot, not from themselves (Rule 7)', () => 
     const output = textOf(execute('neofetch', ctx));
     expect(output).toContain('Fixture Person');
     expect(output).toContain('aashish.os 9.9');
-    // 2 projects, 1 of them active.
-    expect(output).toContain('2 (1 active)');
+    // 3 projects, 1 of them active.
+    expect(output).toContain('3 (1 active)');
   });
 });
