@@ -2,7 +2,7 @@
 
 > Originally the Phase 0 (Discovery) deliverable, per `PLAN.md` §37; maintained
 > since as the canonical Architecture Decision Log (§43).
-> Status: **Phases 0–3 complete. Phase 4 (Terminal Engine) awaiting approval.**
+> Status: **Phases 0–4 complete. Phase 5 (Project Dossiers) awaiting approval.**
 > Last updated: 2026-09-06
 
 ---
@@ -417,3 +417,23 @@ The snapshot is the part that makes Rule 7 structural rather than a promise. A c
 **Date:** 2026-09-06
 
 ---
+
+---
+
+### ADR-009 — Command side effects are declared as data, not performed by handlers
+
+**Decision:** A command handler never touches the DOM, storage, or navigation directly. It returns a `CommandResult` that may carry a declarative `effect`, and the terminal renderer performs it.
+
+**Reason:** Through Phase 3 every handler was accidentally pure — a function of `(input, snapshot)` returning lines — because nothing yet needed to change the world. `theme` broke that. It has to set `data-theme` on the root element and mirror the choice to `localStorage`.
+
+Reaching for `document` inside the handler would have worked immediately and cost nothing visible. What it would have cost is the property the registry's testability rests on: that a handler can be executed in a plain unit test with no DOM, and asserted on its return value. It would also have set the precedent, so the next side-effecting command would follow it, and the boundary would be gone before anyone noticed it had eroded.
+
+Declaring the effect as data keeps handlers pure, keeps every DOM mutation in one reviewable place, and makes `theme` testable by asserting the effect it returns rather than by mounting jsdom.
+
+A secondary rule falls out of this: the effect *reuses* the existing theme contract — `data-theme` on the root mirrored to `localStorage['theme']`, with the key absent meaning "follow the system" — shared with `ThemeToggle.astro` and the pre-paint script in `BaseLayout.astro`. Reimplementing it in the terminal would have produced a mode that disagrees with the header button, which is the same class of duplication Rule 7 forbids for content.
+
+**Note on `clear`:** it stays a separate boolean rather than an effect, because wiping the buffer is renderer-internal state, not a change outside the terminal. The distinction is the point: `effect` means "the world outside this component".
+
+**Alternatives considered:** handler-performed side effects — rejected above. A general effect-dispatch system with registered handlers — more machinery than one effect type justifies, and §19 asks for the simplest thing that works; the union can grow when a second effect actually appears.
+
+**Date:** 2026-09-06

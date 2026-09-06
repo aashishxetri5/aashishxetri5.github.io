@@ -15,8 +15,8 @@
 
 <!-- Maintained per §43. Update at the end of every phase, per Rule 2 step 8. -->
 
-**Current phase:** Phase 3 — AASHISH.OS Shell → **complete**
-**Next phase:** Phase 4 — Terminal Engine → **awaiting approval**
+**Current phase:** Phase 4 — Terminal Engine → **complete**
+**Next phase:** Phase 5 — Project Dossiers → **awaiting approval**
 **Last updated:** 2026-09-06
 **Working branch:** `portfolio-v4` (local only — not yet pushed)
 
@@ -47,6 +47,13 @@
   - Rule 7 enforced structurally via `src/lib/snapshot.ts`, not by discipline
   - 46 unit tests; `astro check` 0 errors / 0 warnings / 0 hints
 
+- [x] **Phase 4 — Terminal Engine.** Central flag parsing, `project <name>`, `theme`, `github`, Tab completion, persistent history. Registry is now 16 commands and every command §9 lists exists.
+  - **Gap found by audit, not memory:** checking the registry against §9's command list surfaced `project`, `theme` and `github` as missing, and flags as parsed-but-uninterpreted.
+  - **`theme` forced an architectural decision.** It is the first command needing a side effect. Rather than let it touch the DOM — which would have killed the pure-handler property the registry's testability rests on, and set a precedent for the next such command — `CommandResult` gained a declarative `effect` the renderer performs. It shares the existing `data-theme` + `localStorage['theme']` contract with `ThemeToggle.astro` and the pre-paint script instead of forking it.
+  - Skill category flags are **derived from content**: adding a category to the schema yields `skills --<category>` plus its completion with no code change.
+  - 74 unit tests (was 46); `astro check` 0/0/0; reader mode verified still at 0 islands.
+  - **Dev server verified explicitly this time** — the Phase 3 regression was dev-only because build and `astro check` both passed while `astro dev` was never started.
+
 ## Decisions taken
 
 | ID | Decision | Status | Where |
@@ -59,6 +66,7 @@
 | ADR-006 | *Proposed:* Sveltia CMS, with Decap documented as fallback | Awaiting decision (Phase 8) | `docs/cms.md` §3 |
 | ADR-007 | Sanitize Markdown via the legacy unified processor | Approved | `docs/architecture.md` |
 | ADR-008 | Modes are separate routes (`/` and `/os`), not a JS toggle | Approved | `docs/architecture.md` |
+| ADR-009 | Command side effects are declared as data, not performed by handlers | Approved | `docs/architecture.md` |
 
 The canonical Architecture Decision Log lives in `docs/architecture.md`, not here. §43 asks for a decision log and §35 asks for `docs/architecture.md`; keeping ADRs in both places would guarantee drift, which defeats §43's own stated purpose of being understandable months later. This section indexes them instead.
 
@@ -70,9 +78,9 @@ The canonical Architecture Decision Log lives in `docs/architecture.md`, not her
 
 ## Remaining
 
-Phases 4–12 as specified in §37.
+Phases 5–12 as specified in §37.
 
-**Phase 4 (Terminal Engine) is next.** The registry, parser, dispatcher and renderer already exist from Phase 3, so Phase 4 is additive rather than structural: flag parsing (`projects --featured`, `skills --backend`), a `project <slug>` detail view, tab completion, and history persistence. Adding a command touches `src/features/terminal/commands.ts` and no UI file.
+**Phase 5 (Project Dossiers) is next, and is already partly done.** Project pages were built in Phase 2 (a card linking nowhere is a dead end) and the terminal gained `project <name>` in Phase 4. Phase 5 is therefore *presentation depth*, not plumbing: richer decision layout, architecture diagrams, and making a thin project read well next to a deep one.
 
 ## Known issues — introduced or discovered during implementation
 
