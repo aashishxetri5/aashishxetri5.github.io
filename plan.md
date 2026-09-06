@@ -15,8 +15,8 @@
 
 <!-- Maintained per §43. Update at the end of every phase, per Rule 2 step 8. -->
 
-**Current phase:** Phase 5 — Project Dossiers → **complete**
-**Next phase:** Phase 6 — Visual Polish → **awaiting approval**
+**Current phase:** Phase 6 — Visual Polish → **complete**
+**Next phase:** Phase 7 — Optional AI → **awaiting approval**
 **Last updated:** 2026-09-06
 **Working branch:** `portfolio-v4` (local only — not yet pushed)
 
@@ -61,6 +61,11 @@
   - 74 tests; `astro check` 0/0/0; reader mode still 0 islands.
   - ⚠️ **Surfaced an open content gap — see "Known issues" #5.**
 
+- [x] **Phase 6 — Visual Polish.** All seven §37 categories: micro-interactions, transitions, terminal cursor, background texture, project and timeline animation, hover states.
+  - **Cross-page view transitions with zero JavaScript.** Astro's `<ClientRouter />` was the obvious tool and was rejected: it is JS, and reader mode's zero-JS property is load-bearing (ADR-001, ADR-008). The CSS-only `@view-transition` rule gets the same effect natively. Verified `/` still has 0 islands and 0 script tags.
+  - **No `animation-delay` anywhere.** Stagger comes from giving each row its own `animation-timeline: view()`, which is correct at any list length and scroll speed — delay-based stagger has to guess both and gets them wrong on long lists.
+  - Stylesheet total: **7.6 KB gzipped**. 74 tests; `astro check` 0/0/0.
+
 ## Decisions taken
 
 | ID | Decision | Status | Where |
@@ -85,9 +90,9 @@ The canonical Architecture Decision Log lives in `docs/architecture.md`, not her
 
 ## Remaining
 
-Phases 6–12 as specified in §37.
+Phases 7–12 as specified in §37.
 
-**Phase 6 (Visual Polish) is next:** micro-interactions, transitions, terminal cursor effects, timeline and project animations. §37 warns to keep animation restrained — "sophisticated, not like a screensaver escaped from a graphics course" — and §26 ranks performance above spectacle, so the CSS-first constraint of ADR-004 still binds.
+**Phase 7 (Optional AI) is next, and is genuinely optional.** §15 requires the core portfolio to work perfectly without it and §16 forbids exposing API keys in frontend code, so it needs a Netlify function, rate limiting, caching and a graceful fallback. It is also the first phase that would introduce a paid dependency and a runtime cost, and ADR-002's ~20-production-deploy ceiling means the function shares a budget with the site itself. **Worth deciding whether to do it at all** — Phases 9–12 (testing, performance/SEO, deployment, final polish) deliver more to a recruiter-facing portfolio than an `ask` command does.
 
 ## Known issues — introduced or discovered during implementation
 

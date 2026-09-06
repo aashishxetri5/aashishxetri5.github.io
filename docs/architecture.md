@@ -2,7 +2,7 @@
 
 > Originally the Phase 0 (Discovery) deliverable, per `PLAN.md` §37; maintained
 > since as the canonical Architecture Decision Log (§43).
-> Status: **Phases 0–5 complete. Phase 6 (Visual Polish) awaiting approval.**
+> Status: **Phases 0–6 complete. Phase 7 (Optional AI) awaiting approval.**
 > Last updated: 2026-09-06
 
 ---
