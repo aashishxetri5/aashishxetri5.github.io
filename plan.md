@@ -15,8 +15,8 @@
 
 <!-- Maintained per §43. Update at the end of every phase, per Rule 2 step 8. -->
 
-**Current phase:** Phase 4 — Terminal Engine → **complete**
-**Next phase:** Phase 5 — Project Dossiers → **awaiting approval**
+**Current phase:** Phase 5 — Project Dossiers → **complete**
+**Next phase:** Phase 6 — Visual Polish → **awaiting approval**
 **Last updated:** 2026-09-06
 **Working branch:** `portfolio-v4` (local only — not yet pushed)
 
@@ -54,6 +54,13 @@
   - 74 unit tests (was 46); `astro check` 0/0/0; reader mode verified still at 0 islands.
   - **Dev server verified explicitly this time** — the Phase 3 regression was dev-only because build and `astro check` both passed while `astro dev` was never started.
 
+- [x] **Phase 5 — Project Dossiers.** §13's framed record header, architecture rendered as a connected flow diagram, decisions as a term/description table, reverse content-graph lookup, prev/next navigation, graceful thin-project path.
+  - **Architecture stopped being a list.** The field is an ordered `string[]`; Phase 2 rendered boxed lines, which showed the steps but not that they were connected — the only thing a reader wants from an architecture section. Now real nodes with real connectors, pure CSS per ADR-004, markup still a plain `<ol>`.
+  - **The content graph is read backwards.** Content authors skill → project; the dossier wants project → skills. Derived rather than authored twice, so they cannot disagree, and adding a skill reference enriches the project page with no edit to the project file. Mirrored into the snapshot so the terminal shows the same graph.
+  - Prev/next verified across all 6 pages: linear chain, **0 broken neighbour links**, ends handled. Archived projects are in the chain deliberately — excluded from listings, but excluding them here would strand anyone arriving from a link.
+  - 74 tests; `astro check` 0/0/0; reader mode still 0 islands.
+  - ⚠️ **Surfaced an open content gap — see "Known issues" #5.**
+
 ## Decisions taken
 
 | ID | Decision | Status | Where |
@@ -78,15 +85,16 @@ The canonical Architecture Decision Log lives in `docs/architecture.md`, not her
 
 ## Remaining
 
-Phases 5–12 as specified in §37.
+Phases 6–12 as specified in §37.
 
-**Phase 5 (Project Dossiers) is next, and is already partly done.** Project pages were built in Phase 2 (a card linking nowhere is a dead end) and the terminal gained `project <name>` in Phase 4. Phase 5 is therefore *presentation depth*, not plumbing: richer decision layout, architecture diagrams, and making a thin project read well next to a deep one.
+**Phase 6 (Visual Polish) is next:** micro-interactions, transitions, terminal cursor effects, timeline and project animations. §37 warns to keep animation restrained — "sophisticated, not like a screensaver escaped from a graphics course" — and §26 ranks performance above spectacle, so the CSS-first constraint of ADR-004 still binds.
 
 ## Known issues — introduced or discovered during implementation
 
 1. **`reference()` does not fail the build.** Astro validates reference *shape* at schema level but resolves existence lazily in `getEntry()`. A broken reference logs `[ERROR] [content]` and the build still exits 0. Mitigated by `scripts/validate-content.mjs` as a `prebuild` gate. **Consequence: `npm run build` is the only safe build entry point — `npx astro build` bypasses the gate.** Netlify's build command must be `npm run build`.
 2. **Empty collections log a misleading error.** `achievements` is deliberately empty, which makes Astro print *"does not exist or is empty. Please check your content config file for errors."* There is no config error; the build succeeds and `getCollection()` returns `[]`. Noise disappears once a real achievement exists.
 3. **TypeScript is pinned to ^6, not ^7.** `@astrojs/check@0.9.10` peers `typescript@^5 || ^6`. TS 7 produces an `ERESOLVE` failure. Revisit when `@astrojs/check` supports TS 7.
+5. **Project dossiers are built but empty.** Phase 5 shipped the full dossier presentation, and none of the three real projects (`pustakalaya`, `image-extractor`, `buzzwire`) has `problem`, `architecture`, `decisions`, `challenges` or `lessons` authored — so they render only the auto-derived "Skills evidenced here". The richest part of the site is complete and unused. **Not fixable by Claude:** Rule 3 forbids inventing engineering decisions, and a plausible invented rationale is worse than an absent one. Exact YAML and a worked example are in `content/README.md`; `placeholder-active-project` demonstrates the full shape.
 4. ✅ **Markdown sanitization — resolved in Phase 2, and the gap was real.** A probe containing `<img src=x onerror="alert(1)">` and `<script>alert(2)</script>` built successfully and kept **both** the `onerror` attribute and the inline script in the output HTML. Now fixed via `rehype-sanitize`; see ADR-007 for the Sätteri trade-off this required.
 5. **`site.config.mjs` points at the `github.io` origin, not the custom domain.** Placeholder until the domain is supplied. Affects canonical URLs, sitemap base, absolute OG image URLs, and the `Sitemap:` line in `public/robots.txt` — **that one is hardcoded and must be updated at the same time.**
 6. **Netlify has an unmetered-deploy trap for content edits.** Recorded fully in ADR-002: branch deploys cost 0 credits but production deploys cost 15, so Phase 8's CMS must commit to a non-production branch and publish on a deliberate merge.
