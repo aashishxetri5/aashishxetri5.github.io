@@ -206,13 +206,18 @@ export function validatePortfolio(doc: unknown): string[] {
         continue;
       }
 
+      const known = [...(ids[target] ?? [])];
+
       for (const ref of refs) {
-        if (!ids[target]?.has(String(ref))) {
-          problems.push(
-            `${describe('skills', index, skill)} lists "${String(ref)}" under \`${field}:\`, ` +
-              `but no entry in \`${target}:\` has that id.`,
-          );
-        }
+        if (ids[target]?.has(String(ref))) continue;
+
+        // A wrong reference is usually a near-miss, so name the likely fix.
+        const hint = nearest(String(ref), known);
+        problems.push(
+          `${describe('skills', index, skill)} lists "${String(ref)}" under \`${field}:\`, ` +
+            `but no entry in \`${target}:\` has that id.` +
+            (hint ? ` Did you mean "${hint}"?` : ` Ids there: ${known.join(', ') || '(none)'}.`),
+        );
       }
     }
   });

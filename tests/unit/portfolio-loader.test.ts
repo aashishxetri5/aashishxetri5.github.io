@@ -114,6 +114,19 @@ describe('validatePortfolio', () => {
     expect(problems[0]).toContain('"gamma" under `projects:`');
   });
 
+  it('suggests the nearest id for a misspelled reference', () => {
+    const doc = valid();
+    doc.projects[0]!.id = 'pustakalaya';
+    doc.skills[0]!.projects = ['pustakalya'];
+    expect(validatePortfolio(doc)[0]).toContain('Did you mean "pustakalaya"?');
+  });
+
+  it('lists the valid ids when nothing is close', () => {
+    const doc = valid();
+    doc.skills[0]!.projects = ['zzz'];
+    expect(validatePortfolio(doc)[0]).toContain('Ids there: alpha, beta.');
+  });
+
   it('rejects a skill citing a job that does not exist', () => {
     const doc = valid();
     doc.skills[0]!.companies = ['nowhere'];
