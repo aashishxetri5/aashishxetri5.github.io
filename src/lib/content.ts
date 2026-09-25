@@ -53,7 +53,7 @@ export async function getProfile(): Promise<ProfileEntry> {
 
   if (entries.length === 0) {
     throw new Error(
-      'No profile found. Expected exactly one file in content/profile/ — see content/README.md.',
+      'No profile found. Add a `profile:` section to content/portfolio.yaml — see content/README.md.',
     );
   }
   if (entries.length > 1) {
@@ -151,9 +151,10 @@ export interface SkillGroup {
  * to know that evidence is stored as references.
  *
  * Unresolvable references are dropped rather than crashing the render — but
- * they cannot reach production, because scripts/validate-content.mjs fails the
- * build on them first. This is belt-and-braces for `astro dev`, where the
- * prebuild gate has not run.
+ * they cannot occur in practice, because the portfolio loader rejects any skill
+ * reference that points at a missing id before a collection is populated, in
+ * `astro dev` as well as in builds (src/lib/portfolio-loader.ts). This is
+ * belt-and-braces.
  */
 async function resolveSkill(skill: SkillEntry, now: Date): Promise<ResolvedSkill> {
   const [projects, companies] = await Promise.all([

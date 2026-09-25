@@ -6,24 +6,28 @@
  * are enforced rather than merely intended: no portfolio fact may live in a
  * component, a page, or a terminal command handler.
  *
+ * All content is read from ONE file, content/portfolio.yaml — each collection
+ * loads its own section of it (src/lib/portfolio-loader.ts, ADR-010).
+ *
+ * Every object schema is STRICT. With content hand-edited in a single file, the
+ * likeliest mistake is a misspelled key, and a non-strict schema would drop it
+ * without a word — `feautred: true` would simply not feature the project. §33
+ * asks for "a useful error instead of silently breaking the site", so unknown
+ * keys fail the build and name the key.
+ *
  * Field-by-field reference and authoring guide: docs/content-model.md
  *
  * API notes (verified against astro@7.2.10 on 2026-09-02):
  *   - `z` comes from 'astro/zod', not 'astro:content' (deprecated in Astro 6,
  *     slated for removal in Astro 8). It is Zod 4, so format validators are
  *     top-level: z.email() / z.url(), not z.string().email().
- *   - Entries are keyed by `id` derived from the filename. Astro 6 removed
- *     `slug`; the original path is available as `filePath`.
+ *   - Entries are keyed by the `id` written on each list entry in
+ *     portfolio.yaml. Astro 6 removed `slug`; the id is the URL segment.
  */
 import { defineCollection, reference } from 'astro:content';
-import { file, glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
-/** Content lives at the repository root, outside src/ — see ADR-003. */
-const CONTENT_DIR = './content';
-
-const MARKDOWN = '**/*.{md,mdx}';
-const DATA = '**/*.{yaml,yml}';
+import { portfolioSection } from './lib/portfolio-loader';
 
 /* -------------------------------------------------------------------------- */
 /* Shared validation                                                          */
@@ -63,7 +67,7 @@ const dateRangeCheck = (
   }
 };
 
-const link = z.object({
+const link = z.strictObject({
   label: z.string(),
   url: z.url(),
 });
@@ -92,9 +96,9 @@ const contentDate = z.coerce.date().refine((d) => d.getUTCFullYear() >= 1990, {
 /* -------------------------------------------------------------------------- */
 
 const profile = defineCollection({
-  loader: glob({ base: `${CONTENT_DIR}/profile`, pattern: DATA }),
+  loader: portfolioSection('profile'),
   schema: ({ image }) =>
-    z.object({
+    z.strictObject({
       name: z.string(),
       /** One line. Drives the hero and the <title>. */
       headline: z.string(),
@@ -125,7 +129,7 @@ const profile = defineCollection({
        * ⚠️ PRE-LAUNCH BLOCKER — see content/README.md.
        */
       resume: z
-        .object({
+        .strictObject({
           /** Path under public/resume/ */
           file: z.string(),
           updated: contentDate,
@@ -136,11 +140,11 @@ const profile = defineCollection({
        * Drives the "#OpenToWork" treatment. v3 hardcoded that string into
        * markup; as a boolean, toggling it is a content change.
        */
-      availability: z.object({
+      availability: z.strictObject({
         open: z.boolean(),
         message: z.string().optional(),
       }),
-      socials: z.object({
+      socials: z.strictObject({
         github: z.url().optional(),
         linkedin: z.url().optional(),
         website: z.url().optional(),
@@ -155,10 +159,10 @@ const profile = defineCollection({
 /* -------------------------------------------------------------------------- */
 
 const experience = defineCollection({
-  loader: glob({ base: `${CONTENT_DIR}/experience`, pattern: MARKDOWN }),
+  loader: portfolioSection('experience'),
   schema: ({ image }) =>
     z
-      .object({
+      .strictObject({
         company: z.string(),
         role: z.string(),
         location: z.string().optional(),
@@ -194,9 +198,9 @@ const experience = defineCollection({
 /* -------------------------------------------------------------------------- */
 
 const projects = defineCollection({
-  loader: glob({ base: `${CONTENT_DIR}/projects`, pattern: MARKDOWN }),
+  loader: portfolioSection('projects'),
   schema: ({ image }) =>
-    z.object({
+    z.strictObject({
       name: z.string(),
       /** Card and terminal list view. */
       shortDescription: z.string(),
@@ -215,7 +219,7 @@ const projects = defineCollection({
       image: image().optional(),
       technologies: z.array(z.string()).min(1),
       links: z
-        .object({
+        .strictObject({
           github: z.url().optional(),
           demo: z.url().optional(),
           documentation: z.url().optional(),
@@ -229,7 +233,7 @@ const projects = defineCollection({
       architecture: z.array(z.string()).default([]),
       decisions: z
         .array(
-          z.object({
+          z.strictObject({
             decision: z.string(),
             reason: z.string(),
           }),
@@ -247,15 +251,8 @@ const projects = defineCollection({
 /* -------------------------------------------------------------------------- */
 
 const skills = defineCollection({
-  /**
-   * One file holding an array, rather than a file per skill. Skills are
-   * one-line entries that get edited in batches — "I learned X, I'd no longer
-   * claim Y" — so a single list is the better authoring surface, and a CMS can
-   * present it as a repeatable list field. Every entry needs an explicit `id`,
-   * which is what the reference() links in other collections resolve against.
-   */
-  loader: file(`${CONTENT_DIR}/skills/skills.yaml`),
-  schema: z.object({
+  loader: portfolioSection('skills'),
+  schema: z.strictObject({
     name: z.string(),
     category: z.enum([
       'Languages',
@@ -295,10 +292,10 @@ const skills = defineCollection({
 /* -------------------------------------------------------------------------- */
 
 const education = defineCollection({
-  loader: glob({ base: `${CONTENT_DIR}/education`, pattern: MARKDOWN }),
+  loader: portfolioSection('education'),
   schema: ({ image }) =>
     z
-      .object({
+      .strictObject({
         institution: z.string(),
         degree: z.string(),
         field: z.string().optional(),
@@ -318,8 +315,8 @@ const education = defineCollection({
 /* -------------------------------------------------------------------------- */
 
 const achievements = defineCollection({
-  loader: glob({ base: `${CONTENT_DIR}/achievements`, pattern: MARKDOWN }),
-  schema: z.object({
+  loader: portfolioSection('achievements'),
+  schema: z.strictObject({
     title: z.string(),
     issuer: z.string().optional(),
     date: contentDate,
@@ -342,15 +339,15 @@ const achievements = defineCollection({
 /* -------------------------------------------------------------------------- */
 
 const posts = defineCollection({
-  loader: glob({ base: `${CONTENT_DIR}/posts`, pattern: MARKDOWN }),
+  loader: portfolioSection('posts'),
   schema: ({ image }) =>
-    z.object({
+    z.strictObject({
       title: z.string(),
       publishDate: contentDate,
       summary: z.string(),
       /**
        * Set → renders as an outbound card (how the existing Hashnode posts are
-       * represented). Absent → the MDX body renders locally at /writing/<id>.
+       * represented). Absent → `body` renders locally at /writing/<id>.
        * Starting a self-hosted blog is therefore a content change, not a code
        * change.
        */

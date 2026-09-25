@@ -1,0 +1,478 @@
+# ══════════════════════════════════════════════════════════════════════════════
+#  AASHISH.OS — ALL PORTFOLIO CONTENT LIVES IN THIS ONE FILE
+# ══════════════════════════════════════════════════════════════════════════════
+#
+#  Edit, save, and the site updates. `npm run dev` reloads it live.
+#  Nothing else needs to change to add a job, a project, a skill or a post.
+#
+#  Rules of thumb
+#  ──────────────
+#  • Every entry in a list needs an `id:` — lowercase letters, numbers and
+#    dashes (e.g. `my-project`). For projects and posts it is the URL:
+#    /projects/my-project. Skills refer to projects and jobs by id.
+#  • Quote dates: "2023" or "2023-04-01". Unquoted, YAML reads 2023 as a
+#    number and the build will stop you.
+#  • `body: |` is Markdown, shown on a project's or post's own page.
+#    Everywhere else, use `summary:`.
+#  • Typos fail the build with a message saying what and where. A misspelled
+#    field is an error, not silently ignored.
+#
+#  Markers used in the comments below:
+#    REAL         migrated from your v3 site — your own words
+#    CONFIRM      real, but may be out of date; check it
+#    PLACEHOLDER  not real; replace or delete before launch
+#
+#  Field reference: docs/content-model.md · Editing guide: content/README.md
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+# ── PROFILE ────────────────────────────────────────────────────────────────────
+# One set of fields, not a list. Drives the hero, page titles and link previews.
+
+profile:
+  name: Aashish Katwal # REAL
+
+  # CONFIRM — your own self-description from the v3 site (2023).
+  headline: Backend Developer
+
+  # CONFIRM — adapted from your v3 copy, with the stale facts removed
+  # (v3 said "age 21" and "0 Years of Experience", both written in 2023).
+  shortBio: >-
+    Backend developer based in Kathmandu, working primarily with Java and the
+    Spring ecosystem. I build systems, and occasionally turn ideas into
+    experiments.
+
+  # Separate paragraphs with one blank line.
+  longBio: >-
+    I'm a backend developer with a strong interest in how systems fit together.
+    I work mostly with Java — Spring, Hibernate, JDBC — and I'm comfortable
+    going full-stack when a project needs it.
+
+
+    I care about the parts of software that don't show up in a screenshot: data
+    modelling, failure behaviour, and making things straightforward to change
+    later. I enjoy discussing and collaborating on projects and ideas.
+
+  location: Kathmandu, Nepal # REAL
+  email: thisisaashish1@gmail.com # REAL — published on the v3 site
+
+  # REAL — your v3 portrait, now a local file instead of a Google Drive link.
+  avatar: ./images/avatar.jpg
+
+  # ⚠️ PRE-LAUNCH: no résumé PDF exists yet, so the button is hidden.
+  # Put a PDF in public/resume/ and uncomment:
+  #
+  # resume:
+  #   file: resume/aashish-katwal-resume.pdf
+  #   updated: "2026-09-01"
+
+  # CONFIRM — v3 said "#OpenToWork" in 2023.
+  availability:
+    open: true
+    message: Open to backend engineering roles
+
+  socials: # REAL — from the v3 sidebar and résumé page
+    github: https://github.com/aashishxetri5
+    linkedin: https://www.linkedin.com/in/aashishkatwal/
+    hashnode: https://aashishk.hashnode.dev
+
+
+# ── EXPERIENCE ─────────────────────────────────────────────────────────────────
+# Order doesn't matter: current roles go first, then newest. `current: true`
+# shows "2026 — Present"; otherwise give an `endDate`.
+#
+# employmentType: full-time | part-time | contract | freelance | internship
+#                 | hackathon | self-employed
+
+experience:
+  # ⚠️ PLACEHOLDER — not a real job. Shows how a current role looks.
+  - id: placeholder-current-role
+    company: PLACEHOLDER — Example Employer
+    role: PLACEHOLDER — Your Current Role
+    location: Kathmandu, Nepal
+    employmentType: full-time
+    startDate: "2026-03-01"
+    current: true
+    summary: PLACEHOLDER — one line describing what you do here.
+    responsibilities:
+      - PLACEHOLDER — a responsibility.
+      - PLACEHOLDER — another responsibility.
+    achievements:
+      - PLACEHOLDER — a measurable outcome.
+    technologies: [Java, Spring Boot, PostgreSQL]
+
+  # ⚠️ PLACEHOLDER — not a real job. Shows how a past role looks.
+  # v3 also listed "Fullstack Web Developer / Self Learning / 2018–Present" and
+  # "Freelancing / Self Employed / 2023–Present". Not migrated, because whether
+  # they are still current is unknown. Re-add them if they still apply.
+  - id: placeholder-past-role
+    company: PLACEHOLDER — Previous Employer
+    role: PLACEHOLDER — Previous Role
+    location: Kathmandu, Nepal
+    employmentType: contract
+    startDate: "2024-01-01"
+    endDate: "2026-02-01"
+    current: false
+    summary: PLACEHOLDER — one line describing what you did here.
+    responsibilities:
+      - PLACEHOLDER — a responsibility.
+    technologies: [Java, MySQL]
+
+  # REAL — from the v3 experience section. v3 also named the result
+  # "Cyber Legal Partners"; add it to the summary if you want it shown.
+  - id: techtrix-hackathon
+    company: TechTrix Hackathon
+    role: Team Member
+    employmentType: hackathon
+    startDate: "2023" # year only — v3 gave no month
+    endDate: "2023"
+    current: false
+    summary: Built a web portal connecting people with lawyers, in a team of four.
+    responsibilities:
+      - Worked in a team of four to build a web application within the event's time limit.
+    technologies: [PHP, Laravel]
+
+
+# ── PROJECTS ───────────────────────────────────────────────────────────────────
+# Required: id, name, shortDescription, status, type, technologies.
+# Everything else is optional; empty sections simply don't appear.
+#
+# status: active | completed | archived | experimental
+#         (archived projects are hidden from listings but keep their page)
+# type:   web | backend | library | tool | game | experiment | other
+#
+# Project page sections — fill these in to make a project page worth reading:
+#   problem, highlights, architecture (ordered steps, drawn as a flow diagram),
+#   decisions (decision + reason), challenges, lessons.
+# The placeholder-active-project entry below shows every one of them.
+
+projects:
+  # REAL — from the v3 site.
+  # ⭐ Highest-value edit on the site: add problem / architecture / decisions.
+  - id: pustakalaya
+    name: Pustakalaya
+    shortDescription: >-
+      A library management system with separate librarian and member panels,
+      built on JSP/Servlet and JDBC.
+    featured: true
+    status: completed
+    type: web
+    image: ./images/pustakalaya.jpeg
+    technologies: [Java, JSP, Servlet, JDBC, MySQL]
+    links:
+      github: https://github.com/aashishxetri5/Pustakalaya
+    body: |
+      A library management system with two roles. The **admin (librarian)** panel
+      manages the catalogue; the **member** panel lets members borrow books and see
+      what they currently have out.
+
+      Built with JSP and Servlets over JDBC.
+
+  # REAL — from the v3 site (v3 misspelled it "Image Extactor").
+  - id: image-extractor
+    name: Image Extractor
+    shortDescription: >-
+      Extracts every image from a given URL and lists them alongside their
+      names, using the Jsoup library.
+    featured: false
+    status: completed
+    type: tool
+    image: ./images/image-extractor.jpeg
+    technologies: [Java, Jsoup]
+    links:
+      github: https://github.com/aashishxetri5/ImageExtractor
+    body: |
+      Give it a URL and it scrapes the page for images, then displays each one along
+      with its name. Uses [Jsoup](https://jsoup.org/) to parse the HTML.
+
+      The owner also wrote up the underlying technique — see the "Web Scraping with
+      Java Jsoup" post under Writing.
+
+  # REAL — from the v3 site.
+  - id: buzzwire
+    name: Buzzwire
+    shortDescription: >-
+      A browser take on the old-school buzz wire game — steer the cursor along
+      the wire without touching the edges.
+    featured: false
+    status: completed
+    type: game
+    image: ./images/buzzwire.jpg
+    technologies: [HTML, CSS, JavaScript]
+    links:
+      github: https://github.com/aashishxetri5/Buzzwire
+      demo: https://aashishxetri5.github.io/Buzzwire/
+    body: |
+      Just like that old school science project: move your cursor through the wire
+      without it getting out of the line, and you win.
+
+      Plain HTML, CSS and JavaScript — no libraries.
+
+  # ⚠️ PLACEHOLDER — not a real project. A worked example of a FULL project
+  # page, with every optional section filled in. Delete once yours are done.
+  - id: placeholder-active-project
+    name: PLACEHOLDER — Distributed Task Scheduler
+    shortDescription: >-
+      PLACEHOLDER — one line describing what the project does and why it
+      matters.
+    featured: true
+    status: active
+    type: backend
+    startDate: "2026-01-01"
+    technologies: [Java, Spring Boot, Redis, Docker]
+    links:
+      github: https://github.com/aashishxetri5
+    problem: >-
+      PLACEHOLDER — what problem did this solve, and for whom? State the
+      situation before the project existed.
+    highlights:
+      - PLACEHOLDER — a notable capability.
+      - PLACEHOLDER — another notable capability.
+    architecture:
+      - PLACEHOLDER — a component and its responsibility.
+      - PLACEHOLDER — how components communicate.
+      - PLACEHOLDER — where state lives.
+    decisions:
+      - decision: PLACEHOLDER — a choice you made.
+        reason: PLACEHOLDER — why you made it, and what you gave up.
+      - decision: PLACEHOLDER — another choice.
+        reason: PLACEHOLDER — the tradeoff you accepted.
+    challenges:
+      - PLACEHOLDER — something that turned out to be hard, and how you handled it.
+    lessons:
+      - PLACEHOLDER — what you would do differently next time.
+    body: |
+      **This is placeholder content.** Replace or delete this entry.
+
+      The body is where long-form narrative goes, written in Markdown.
+
+  # ⚠️ PLACEHOLDER — shows the `archived` status: hidden from listings,
+  # still reachable at its URL and via `projects --all` in the terminal.
+  - id: placeholder-archived
+    name: PLACEHOLDER — Retired Project
+    shortDescription: PLACEHOLDER — something you no longer maintain.
+    status: archived
+    type: other
+    technologies: [PHP]
+    body: |
+      **This is placeholder content.** Replace or delete this entry.
+
+      An archived project should be reachable but not promoted — it is evidence of
+      history, not of current focus.
+
+  # ⚠️ PLACEHOLDER — the minimum a project needs. Proves a thin project still
+  # looks intentional.
+  - id: placeholder-experimental
+    name: PLACEHOLDER — Weekend Experiment
+    shortDescription: PLACEHOLDER — a small thing you tried out.
+    status: experimental
+    type: experiment
+    technologies: [Python]
+    body: |
+      **This is placeholder content.** Replace or delete this entry.
+
+      This entry carries only the required fields, which is the point: a project with
+      nothing but a name, a description, a status, a type and one technology should
+      still look intentional.
+
+
+# ── SKILLS ─────────────────────────────────────────────────────────────────────
+# No percentages. `level` is one of: learning | working | proficient | advanced
+# Evidence: list project ids under `projects:` and job ids under `companies:`.
+# A skill's project page link and the "Skills evidenced here" list on each
+# project are both derived from these — you only write it once, here.
+#
+# category: Languages | Backend | Frontend | Databases | DevOps | Cloud | Tools
+#           | Concepts | Other
+#
+# All REAL — from the v3 skills section and résumé page. Add `since: "2021"`
+# to any skill to show how many years you've used it.
+
+skills:
+  # Languages
+  - id: java
+    name: Java
+    category: Languages
+    level: advanced
+    featured: true
+    projects: [pustakalaya, image-extractor]
+
+  - id: python
+    name: Python
+    category: Languages
+    level: working
+    featured: true
+    # No project evidence yet — shown honestly as having none.
+
+  - id: javascript
+    name: JavaScript
+    category: Languages
+    level: working
+    projects: [buzzwire]
+
+  - id: php
+    name: PHP
+    category: Languages
+    level: working
+    companies: [techtrix-hackathon]
+
+  - id: c-cpp
+    name: C / C++
+    category: Languages
+    level: learning
+
+  # Backend
+  - id: spring
+    name: Spring
+    category: Backend
+    level: proficient
+    featured: true
+
+  - id: hibernate
+    name: Hibernate
+    category: Backend
+    level: proficient
+
+  - id: jsp-servlet
+    name: JSP / Servlet
+    category: Backend
+    level: proficient
+    projects: [pustakalaya]
+
+  - id: jdbc
+    name: JDBC
+    category: Backend
+    level: proficient
+    projects: [pustakalaya]
+
+  - id: laravel
+    name: Laravel
+    category: Backend
+    level: working
+    companies: [techtrix-hackathon]
+
+  - id: jsoup
+    name: Jsoup
+    category: Backend
+    level: working
+    projects: [image-extractor]
+
+  # Databases
+  - id: mysql
+    name: MySQL
+    category: Databases
+    level: proficient
+    featured: true
+    projects: [pustakalaya]
+
+  # Frontend
+  - id: html-css
+    name: HTML & CSS
+    category: Frontend
+    level: proficient
+    projects: [buzzwire]
+
+  - id: bootstrap
+    name: Bootstrap
+    category: Frontend
+    level: working
+
+  # Tools
+  - id: git
+    name: Git
+    category: Tools
+    level: proficient
+    featured: true
+
+  - id: linux
+    name: Linux
+    category: Tools
+    level: working
+
+  - id: junit
+    name: JUnit
+    category: Tools
+    level: working
+
+
+# ── EDUCATION ──────────────────────────────────────────────────────────────────
+
+education:
+  # ⚠️ CONFIRM — the v3 site contradicted itself: index.html said "Tribhuvan
+  # University", resume.html said "ACHS college, Lalitpur". Probably both true
+  # (ACHS is Tribhuvan-affiliated). Confirm the institution name.
+  # Dates are PLACEHOLDERS — if still studying, set `current: true` and delete
+  # the `endDate` line.
+  - id: undergraduate
+    institution: PLACEHOLDER — confirm institution name
+    degree: BSc CSIT
+    field: Computer Science and Information Technology
+    location: Lalitpur, Nepal
+    startDate: "2020-01-01" # PLACEHOLDER
+    endDate: "2024-01-01" # PLACEHOLDER
+    current: false
+
+
+# ── ACHIEVEMENTS ───────────────────────────────────────────────────────────────
+# Empty for now, so the section is hidden. Example:
+#
+#   - id: aws-developer
+#     title: AWS Certified Developer
+#     issuer: Amazon Web Services
+#     date: "2026-05-01"
+#     type: certification   # certification | award | recognition
+#                           # | publication | talk | other
+#     credentialUrl: https://...
+
+achievements: []
+
+
+# ── WRITING ────────────────────────────────────────────────────────────────────
+# With `external:` the post links out (e.g. to Hashnode).
+# Without it, `body:` is published here at /writing/<id>.
+# `draft: true` keeps a post off the live site.
+
+posts:
+  # REAL — your Hashnode post. Covers the technique behind Image Extractor.
+  - id: web-scraping-with-java-jsoup
+    title: Web Scraping with Java Jsoup
+    publishDate: "2022-02-16"
+    summary: >-
+      How to pull structured data out of a web page in Java using the Jsoup
+      library.
+    external: https://aashishk.hashnode.dev/web-scraping-with-java-jsoup
+    tags: [Java, Jsoup, Web Scraping]
+
+  # REAL — your Hashnode post.
+  - id: uploading-a-file-with-java-servlet
+    title: Uploading a file with Java Servlet
+    publishDate: "2022-02-01"
+    summary: Handling multipart file uploads in a Java Servlet.
+    external: https://aashishk.hashnode.dev/uploading-a-file-with-java-servlet
+    tags: [Java, Servlet]
+
+  # REAL — your Hashnode post. v3 dated this Feb 3, before the Feb 1 post it
+  # follows on from. Kept as published; correct it if v3 had it wrong.
+  - id: renaming-uploaded-file-with-java-servlet
+    title: Renaming uploaded file with Java Servlet
+    publishDate: "2022-02-03"
+    summary: Renaming a file on upload rather than keeping the client-supplied name.
+    external: https://aashishk.hashnode.dev/renaming-uploaded-file-with-java-servlet
+    tags: [Java, Servlet]
+
+  # ⚠️ PLACEHOLDER — shows a post published on this site rather than linked.
+  - id: placeholder-local-post
+    title: PLACEHOLDER — A Post Written Here
+    publishDate: "2026-08-01"
+    summary: PLACEHOLDER — one or two sentences summarising the post.
+    tags: [PLACEHOLDER]
+    draft: false
+    body: |
+      **This is placeholder content.** Replace or delete this entry.
+
+      Because `external` is absent, this body renders as a real page on the site
+      rather than linking out to Hashnode. Both kinds of entry live in the same
+      list and render through the same page, so mixing them requires no special
+      handling.
+
+      Setting `draft: true` removes an entry from production builds and the sitemap.
