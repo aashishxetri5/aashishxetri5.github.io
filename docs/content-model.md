@@ -1,20 +1,20 @@
 # AASHISH.OS — Content Model
 
-> Phase 0 (Discovery) deliverable, per `PLAN.md` §37.
+> Phase 0 (Discovery) deliverable, per `PLAN.md` section 37.
 > Status: **Specified — implemented in Phase 1.**
 > Last updated: 2026-09-02
 
-This document is the contract between content and code. `PLAN.md` §1 calls their separation the single most important product requirement; these schemas are how that separation is enforced rather than merely intended.
+This document is the contract between content and code. `PLAN.md` section 1 calls their separation the single most important product requirement; these schemas are how that separation is enforced rather than merely intended.
 
 ---
 
 ## 1. Principles
 
 1. **Content is data, not markup.** No portfolio fact may live in a component, a page, or a terminal command handler.
-2. **Schemas are the single source of truth.** `src/content.config.ts` defines every field. Reader mode and terminal mode both read from it (§10, Rule 7).
-3. **The build fails on bad content.** A missing or malformed field is a build error naming the file and field, never a visual surprise after deploy (§33).
-4. **Presentation is derived, never authored.** Date ranges, status badges, sort order, and section visibility are computed from data. `PLAN.md` §6 and §14 forbid hardcoding them.
-5. **Content stays portable.** Plain Markdown, MDX, and YAML in git. No proprietary format, so §22 holds and any CMS can be swapped out.
+2. **Schemas are the single source of truth.** `src/content.config.ts` defines every field. Reader mode and terminal mode both read from it (section 10, Rule 7).
+3. **The build fails on bad content.** A missing or malformed field is a build error naming the file and field, never a visual surprise after deploy (section 33).
+4. **Presentation is derived, never authored.** Date ranges, status badges, sort order, and section visibility are computed from data. `PLAN.md` section 6 and section 14 forbid hardcoding them.
+5. **Content stays portable.** Plain Markdown, MDX, and YAML in git. No proprietary format, so section 22 holds and any CMS can be swapped out.
 6. **Placeholders are labelled as placeholders.** Per Rule 3, nothing invented is ever presentable as fact.
 
 ---
@@ -31,7 +31,7 @@ This document is the contract between content and code. `PLAN.md` §1 calls thei
 | `achievements` | `content/achievements/*.md` | Markdown + frontmatter | many |
 | `posts` | `content/posts/*.mdx` | MDX + frontmatter | many |
 
-Format choice per collection is deliberate: YAML where content is purely structured fields, Markdown where there is prose, MDX where prose may embed components (project dossiers, §13).
+Format choice per collection is deliberate: YAML where content is purely structured fields, Markdown where there is prose, MDX where prose may embed components (project dossiers, section 13).
 
 ---
 
@@ -51,7 +51,7 @@ Verified against the current toolchain on 2026-09-02. These are easy to get wron
 
 ## 3. Profile
 
-Single entry. Covers `PLAN.md` §5, plus §29's requirement that the résumé be treated as content rather than hardcoded into the UI.
+Single entry. Covers `PLAN.md` section 5, plus section 29's requirement that the résumé be treated as content rather than hardcoded into the UI.
 
 ```ts
 const profile = z.object({
@@ -92,7 +92,7 @@ Notes:
 
 ## 4. Experience
 
-Covers §6 and §14. The current-role determination is the important part.
+Covers section 6 and section 14. The current-role determination is the important part.
 
 ```ts
 const experience = z.object({
@@ -131,11 +131,11 @@ const experience = z.object({
 })
 ```
 
-The Markdown body holds the long-form description, so §6's `description` field is the document body rather than a frontmatter string.
+The Markdown body holds the long-form description, so section 6's `description` field is the document body rather than a frontmatter string.
 
 ### Derived date display
 
-`PLAN.md` §6 requires the UI to choose the label from the data, and §14 forbids hardcoding the current company. A single helper in `src/lib/dates.ts` owns this and is unit-tested (§34):
+`PLAN.md` section 6 requires the UI to choose the label from the data, and section 14 forbids hardcoding the current company. A single helper in `src/lib/dates.ts` owns this and is unit-tested (section 34):
 
 | Data | Rendered |
 | --- | --- |
@@ -149,7 +149,7 @@ Sort order is `current` first, then `startDate` descending, then `order`. No com
 
 ## 5. Projects
 
-Covers §7 and §13. The dossier sections are content fields, so a dossier's depth is an authoring decision, not a code change.
+Covers section 7 and section 13. The dossier sections are content fields, so a dossier's depth is an authoring decision, not a code change.
 
 ```ts
 const projects = z.object({
@@ -166,10 +166,10 @@ const projects = z.object({
     demo:          z.url().optional(),
     documentation: z.url().optional(),
   }).default({}),
-  problem:      z.string().optional(),               // §13 "Problem"
+  problem:      z.string().optional(),               // section 13 "Problem"
   highlights:   z.array(z.string()).default([]),
-  architecture: z.array(z.string()).default([]),     // §13 "Architecture"
-  decisions:    z.array(z.object({                   // §13 "Engineering Decisions"
+  architecture: z.array(z.string()).default([]),     // section 13 "Architecture"
+  decisions:    z.array(z.object({                   // section 13 "Engineering Decisions"
     decision: z.string(),
     reason:   z.string(),
   })).default([]),
@@ -183,14 +183,14 @@ Rendering rules, all derived:
 
 - Dossier sections with empty arrays are **omitted entirely** — no empty headings. A thin project stays presentable.
 - `status` maps to a badge via a lookup table in the design system, so adding a status means touching one map, not every card.
-- `featured: true` drives both the reader-mode featured grid and `$ projects --featured` (§9). One flag, both modes.
+- `featured: true` drives both the reader-mode featured grid and `$ projects --featured` (section 9). One flag, both modes.
 - `archived` projects are excluded from default listings and reachable via `$ projects --all`.
 
 ---
 
 ## 6. Skills
 
-Covers §8, which is emphatic about what *not* to do: no invented percentages. `Java: 97%` communicates nothing. Evidence does.
+Covers section 8, which is emphatic about what *not* to do: no invented percentages. `Java: 97%` communicates nothing. Evidence does.
 
 ```ts
 const skills = z.object({
@@ -209,15 +209,15 @@ const skills = z.object({
 
 Two things this buys:
 
-- **Referential integrity at build time — but not from `reference()` alone.** This was verified empirically rather than assumed, and the assumption was wrong. `reference()` validates the *shape* of a reference at schema level, but resolves existence lazily inside `getEntry()`. Against `astro@7.2.10`, a skill pointing at a non-existent project logs `[ERROR] [content] Invalid content reference: …` and then **the build completes and exits 0**, deploying a site with the evidence silently missing. Since §33 requires the opposite, existence is enforced by `scripts/validate-content.mjs`, wired to `prebuild` so `npm run build` fails before Astro starts. See §10.
-- **Evidence rendering comes free.** The UI resolves the references and renders §8's prescribed shape:
+- **Referential integrity at build time — but not from `reference()` alone.** This was verified empirically rather than assumed, and the assumption was wrong. `reference()` validates the *shape* of a reference at schema level, but resolves existence lazily inside `getEntry()`. Against `astro@7.2.10`, a skill pointing at a non-existent project logs `[ERROR] [content] Invalid content reference: …` and then **the build completes and exits 0**, deploying a site with the evidence silently missing. Since section 33 requires the opposite, existence is enforced by `scripts/validate-content.mjs`, wired to `prebuild` so `npm run build` fails before Astro starts. See section 10.
+- **Evidence rendering comes free.** The UI resolves the references and renders section 8's prescribed shape:
 
   ```
   Java
   Used in: Pustakalaya · Image Extractor
   ```
 
-  No skill card is authored by hand (§8: *"Avoid manually building skill cards into the UI"*). Categories become sections by grouping the collection; `$ skills --backend` filters the same data.
+  No skill card is authored by hand (section 8: *"Avoid manually building skill cards into the UI"*). Categories become sections by grouping the collection; `$ skills --backend` filters the same data.
 
 `level` is a coarse four-value enum rather than a number precisely because it resists false precision. `since` exists so "used for N years" can be computed at build rather than becoming stale prose.
 
@@ -266,7 +266,7 @@ Empty is a valid state: if the collection has no entries, the reader-mode sectio
 
 ## 9. Posts
 
-Reader mode has a "Writing" section (§10). Existing posts live on Hashnode, and §40 lists a self-hosted blog as a possible future. One schema covers both, so migrating later is a content change:
+Reader mode has a "Writing" section (section 10). Existing posts live on Hashnode, and section 40 lists a self-hosted blog as a possible future. One schema covers both, so migrating later is a content change:
 
 ```ts
 const posts = z.object({
@@ -289,7 +289,7 @@ const posts = z.object({
 
 ## 10. Validation behavior
 
-Schemas execute during `astro build`. Example of the failure mode §33 asks for:
+Schemas execute during `astro build`. Example of the failure mode section 33 asks for:
 
 ```
 [content] experience → content/experience/cloud-tech.md
@@ -306,7 +306,7 @@ Three layers, the first two enforced by Astro and the third by us:
 
 1. **Schema** — types, enums, required fields, URL and email formats. Astro fails the build. ✅ verified.
 2. **Refinements** — cross-field logic (`current` vs `endDate`, date ordering, and the year-quoting guard below). Astro fails the build. ✅ verified.
-3. **References** — existence of skill→project and skill→experience links. **Astro does *not* fail the build here** (see §6), so `scripts/validate-content.mjs` runs as `prebuild` and does. ✅ verified.
+3. **References** — existence of skill→project and skill→experience links. **Astro does *not* fail the build here** (see section 6), so `scripts/validate-content.mjs` runs as `prebuild` and does. ✅ verified.
 
 Layer 3's checker also catches two failure modes that are otherwise completely silent: a **duplicate skill `id`**, which makes the `file()` loader overwrite one entry with another so a skill simply vanishes, and a **missing `id`**, which the loader requires. Its logic lives in `scripts/lib/content-integrity.mjs` and is unit-tested in `tests/unit/content-integrity.test.ts`.
 
@@ -338,13 +338,13 @@ Additionally, `astro check` runs in CI, so a component reading a field that no l
 
 ### Known cosmetic noise
 
-An intentionally empty collection (currently `achievements`) makes Astro log `No files found matching …` and `The collection "achievements" does not exist or is empty. Please check your content config file for errors.` The build succeeds and `getCollection()` correctly returns `[]`. The message is misleading — there is no config error — but the empty collection is deliberate, since §8's derived-visibility requirement needs an empty case to prove the section omits itself rather than rendering a bare heading. The noise disappears once a real achievement is added.
+An intentionally empty collection (currently `achievements`) makes Astro log `No files found matching …` and `The collection "achievements" does not exist or is empty. Please check your content config file for errors.` The build succeeds and `getCollection()` correctly returns `[]`. The message is misleading — there is no config error — but the empty collection is deliberate, since section 8's derived-visibility requirement needs an empty case to prove the section omits itself rather than rendering a bare heading. The noise disappears once a real achievement is added.
 
 ---
 
 ## 11. Authoring workflows
 
-### Adding a job (§21)
+### Adding a job (section 21)
 
 Create `content/experience/acme-corp.md`:
 
@@ -369,7 +369,7 @@ Longer prose about the role goes here, in Markdown.
 
 Then `git push`. Netlify rebuilds. The timeline gains an entry, it is automatically marked current and sorted to the top, `2026 — Present` is derived, the technology chips render, and `$ experience` in the terminal includes it.
 
-**Files edited: one. Components edited: zero.** This is the §39 maintenance criterion.
+**Files edited: one. Components edited: zero.** This is the section 39 maintenance criterion.
 
 ### Adding a project
 
@@ -390,7 +390,7 @@ companies:
 
 ### Updating the résumé
 
-Drop the new PDF in `public/resume/`, then update `profile.resume.file` and `resume.updated`. Both the "View" and "Download" affordances (§29) point at the config value, so neither is hardcoded.
+Drop the new PDF in `public/resume/`, then update `profile.resume.file` and `resume.updated`. Both the "View" and "Download" affordances (section 29) point at the config value, so neither is hardcoded.
 
 ---
 
@@ -410,9 +410,9 @@ Phase 1 ships placeholder content per Rule 3 and the approved decision. Rules:
 
 | Omitted | Why |
 | --- | --- |
-| Numeric skill percentages | §8 rejects them as arbitrary |
+| Numeric skill percentages | Section 8 rejects them as arbitrary |
 | `age` | Goes stale yearly; weak signal. The old site's "21" is now wrong |
-| "Years of experience" counter | §8's evidence principle applies; derive from `experience` if ever wanted |
+| "Years of experience" counter | Section 8's evidence principle applies; derive from `experience` if ever wanted |
 | "Happy clients" counter | Unverifiable vanity metric; the old site's value was 1 |
 | Free-text `technologies` on skills | Would defeat `reference()` integrity checking |
-| A database | §19 and §4 both say not without genuine need. There is none |
+| A database | Section 19 and section 4 both say not without genuine need. There is none |

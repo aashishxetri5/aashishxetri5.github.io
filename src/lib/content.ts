@@ -46,7 +46,7 @@ const CATEGORY_ORDER: readonly SkillCategory[] = [
  *
  * Throws rather than returning undefined: the profile drives the site title,
  * meta description and hero, so its absence is a build-stopping content error,
- * not a state any page should try to render around (33).
+ * not a state any page should try to render around (section 33).
  */
 export async function getProfile(): Promise<ProfileEntry> {
   const entries = await getCollection('profile');
@@ -71,7 +71,7 @@ export async function getProfile(): Promise<ProfileEntry> {
 /* Experience                                                                 */
 /* -------------------------------------------------------------------------- */
 
-/** All roles, current first, then most recent (14). */
+/** All roles, current first, then most recent (section 14). */
 export async function getExperience(): Promise<ExperienceEntry[]> {
   const entries = await getCollection('experience');
   return entries.sort((a, b) => compareByRecency(a.data, b.data));
@@ -146,7 +146,7 @@ export interface SkillGroup {
 /**
  * Resolve a skill's reference lists into real entries.
  *
- * 8 wants evidence rather than invented percentages: "Java / Used in: Project
+ * Section 8 wants evidence rather than invented percentages: "Java / Used in: Project
  * A, Project B, Company X". Resolution happens here so no component ever has
  * to know that evidence is stored as references.
  *
@@ -203,7 +203,7 @@ export async function getSkillGroups(now: Date = new Date()): Promise<SkillGroup
       .filter((skill) => skill.category === category)
       .sort((a, b) => {
         if (a.featured !== b.featured) return a.featured ? -1 : 1;
-        // Evidence-backed skills lead, since evidence is the whole point (8).
+        // Evidence-backed skills lead, since evidence is the whole point (section 8).
         if (a.hasEvidence !== b.hasEvidence) return a.hasEvidence ? -1 : 1;
         return a.name.localeCompare(b.name);
       }),
@@ -280,7 +280,7 @@ export async function getProjectNeighbours(
  * wants the opposite ("Pustakalaya evidences Java, JSP, JDBC"). Deriving it
  * rather than authoring a second list means the two can never disagree, and
  * adding a skill reference automatically enriches the project page with no
- * content edit there (1).
+ * content edit there (section 1).
  */
 export async function getSkillsEvidencedBy(
   projectId: string,

@@ -1,19 +1,19 @@
 ---
 /**
- * AASHISH.OS shell (11) — the experimental, developer-facing mode.
+ * AASHISH.OS shell (section 11) — the experimental, developer-facing mode.
  *
  * Reader mode at `/` remains the canonical experience and still ships zero
  * JavaScript. This route is additive: if everything here were deleted, the
  * portfolio would be unchanged in usefulness, which is exactly the property
- * 37's Phase 2 exit condition was designed to guarantee.
+ * Section 37's Phase 2 exit condition was designed to guarantee.
  *
  * Content flows one way — the same `src/lib/content.ts` queries reader mode
  * uses are serialized by `buildSnapshot` and handed to the terminal island as
  * props (Rule 7). No portfolio fact is authored on this page.
  *
  * The side panels are static HTML, not island output. That matters twice:
- * crawlers see real content here rather than an empty shell (23), and with
- * JavaScript unavailable the page still navigates (32, 39).
+ * crawlers see real content here rather than an empty shell (section 23), and with
+ * JavaScript unavailable the page still navigates (section 32, section 39).
  */
 import SiteHeader from '../components/SiteHeader.astro';
 import StatusBar from '../components/StatusBar.astro';
@@ -34,7 +34,7 @@ const counts = {
 };
 
 /*
- * 11 permits decorative system UI but forbids faking metrics misleadingly.
+ * Section 11 permits decorative system UI but forbids faking metrics misleadingly.
  * Every readout below is a real number derived from content or the build.
  */
 const systemRows = [
@@ -65,7 +65,7 @@ const SUGGESTIONS = ['help', 'whoami', 'projects', 'skills', 'contact'];
     <div class="mb-6">
       <div>
         <p class="spec-label mb-2">
-          <span class="text-accent"></span> shell
+          shell
         </p>
         <h1 class="text-2xl font-bold sm:text-3xl">Terminal</h1>
         <p class="mt-2 max-w-lg text-sm text-muted">

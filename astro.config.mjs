@@ -7,7 +7,7 @@ import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { SITE_URL } from './site.config.mjs';
 
 /**
- * §31: "Never render arbitrary Markdown/HTML without sanitization."
+ * Section 31: "Never render arbitrary Markdown/HTML without sanitization."
  *
  * This is not theoretical. Verified against this project on 2026-09-03: with no
  * sanitizer, a Markdown body containing
@@ -41,9 +41,9 @@ export default defineConfig({
 
   integrations: [
     // React powers exactly one island: the terminal on /os. Reader mode ships
-    // zero JavaScript and must stay that way (ADR-001, §26).
+    // zero JavaScript and must stay that way (ADR-001, section 26).
     react(),
-    // §23. Requires `site` above, which is why it lives in one constant.
+    // Section 23. Requires `site` above, which is why it lives in one constant.
     sitemap({
       filter: (page) =>
         // The Phase 1 smoke page and the 404 must never be indexed.

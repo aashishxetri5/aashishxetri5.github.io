@@ -391,7 +391,7 @@ const skills: CommandDescriptor = {
           .map<TerminalLine>((skill) => ({
             kind: 'pair',
             label: skill.name,
-            // 8: evidence, never a percentage.
+            // Section 8: evidence, never a percentage.
             value:
               skill.evidence.length > 0
                 ? skill.evidence.join(' · ')
@@ -467,7 +467,7 @@ const github: CommandDescriptor = {
       (social) => social.label.toLowerCase() === 'github',
     );
 
-    // 32: never a dead link. The social list is content, so it can be absent.
+    // Section 32: never a dead link. The social list is content, so it can be absent.
     if (!link) {
       return { lines: [text('No GitHub profile is configured.', 'error')] };
     }
@@ -486,7 +486,7 @@ const resume: CommandDescriptor = {
   run: (_input, { snapshot }) => {
     const file = snapshot.profile.resume;
 
-    // 32: no dead links. The resume is optional content until a PDF exists.
+    // Section 32: no dead links. The resume is optional content until a PDF exists.
     if (!file) {
       return {
         lines: [
@@ -553,7 +553,7 @@ const reader: CommandDescriptor = {
   }),
 };
 
-/** 28. Hidden from `help`, built entirely from real snapshot data. */
+/** section 28. Hidden from `help`, built entirely from real snapshot data. */
 const neofetch: CommandDescriptor = {
   name: 'neofetch',
   summary: 'System summary',

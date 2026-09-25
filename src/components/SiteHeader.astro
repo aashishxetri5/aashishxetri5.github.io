@@ -9,10 +9,10 @@
  * Plain anchors to real ids. v3 intercepted clicks and toggled display:none,
  * which meant no section was linkable, shareable or in browser history.
  * Anchors restore all three and need no script, so navigation survives a
- * script failure (26, 39).
+ * script failure (section 26, section 39).
  *
  * On small screens the nav scrolls horizontally rather than collapsing into a
- * drawer — six short labels do not justify a menu, and 25 warns against
+ * drawer — six short labels do not justify a menu, and section 25 warns against
  * simply shrinking the desktop UI.
  */
 import ModeSwitch from './ModeSwitch.astro';
@@ -20,7 +20,7 @@ import ThemeToggle from './ThemeToggle.astro';
 
 interface Props {
   showSectionNav?: boolean;
-  /** Which experience is currently open (10). */
+  /** Which experience is currently open (section 10). */
   mode?: 'reader' | 'os';
 }
 

@@ -12,7 +12,7 @@
  * a warm off-white against near-black gives the page a material quality that
  * costs nothing.
  *
- * Still no webfonts (§26). Character comes from the system monospace — which is
+ * Still no webfonts (section 26). Character comes from the system monospace — which is
  * genuinely distinctive across platforms — paired with heavy, tightly tracked
  * system sans at display sizes. A webfont would buy better display type at the
  * cost of a render-blocking request and a layout shift on every page, and the
@@ -145,7 +145,7 @@
     text-wrap: pretty;
   }
 
-  /* §24: focus-visible only, so the ring never gets removed for aesthetics. */
+  /* section 24: focus-visible only, so the ring never gets removed for aesthetics. */
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 3px;
@@ -220,7 +220,7 @@ body::after {
  * Astro ships <ClientRouter /> for this, and it was the obvious choice — but it
  * is JavaScript, and reader mode shipping ZERO JavaScript is a load-bearing
  * property of ADR-001 and ADR-008, not a nice-to-have. Trading it for a page
- * transition would be exactly the "performance below spectacle" inversion §26
+ * transition would be exactly the "performance below spectacle" inversion section 26
  * warns against.
  *
  * The `@view-transition` rule gets the same effect from the browser with no
@@ -255,7 +255,7 @@ body::after {
 /*
  * The header is the one element that genuinely persists between pages, so it is
  * excluded from the cross-fade and stays put. Naming more elements would start
- * choreographing the whole page, which is the screensaver failure mode §37
+ * choreographing the whole page, which is the screensaver failure mode section 37
  * explicitly names.
  */
 @media (prefers-reduced-motion: reduce) {
@@ -348,7 +348,7 @@ body::after {
 }
 
 /*
- * §24, §25: reduced motion is honoured globally rather than per-component, so a
+ * Section 24, section 25: reduced motion is honoured globally rather than per-component, so a
  * future animation cannot forget to opt in. Smooth scrolling is motion too.
  */
 @media (prefers-reduced-motion: reduce) {
@@ -411,7 +411,7 @@ body::after {
  * Marks the header as persistent across a view transition, so it stays put
  * while the page body cross-fades. Exactly one element carries this: names must
  * be unique per document, and choreographing more of the page is the failure
- * mode §37 warns about.
+ * mode section 37 warns about.
  */
 @utility vt-header {
   view-transition-name: site-header;

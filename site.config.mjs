@@ -8,6 +8,6 @@
  *
  * TODO(owner): replace with the custom domain. The value below is the current
  * real origin, not a guess — swapping it is the only change required, per
- * docs/architecture.md §4 "Open item".
+ * docs/architecture.md section 4 "Open item".
  */
 export const SITE_URL = 'https://aashishxetri5.github.io';

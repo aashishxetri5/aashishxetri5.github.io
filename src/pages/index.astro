@@ -1,6 +1,6 @@
 ---
 /**
- * Reader mode (10) — the conventional, recruiter-friendly experience.
+ * Reader mode (section 10) — the conventional, recruiter-friendly experience.
  *
  * Phase 2's exit condition is that this page is already genuinely useful with
  * every experimental feature removed, which is what makes the AASHISH.OS shell
@@ -8,8 +8,8 @@
  *
  * Section numbers are passed explicitly rather than derived from position,
  * because a section that omits itself must not renumber the ones after it —
- * 05 vanishing when there are no achievements is correct; 06 silently
- * becoming 05 would make the header nav lie.
+ * Section 05 vanishing when there are no achievements is correct; section 06 silently
+ * becoming section 05 would make the header nav lie.
  */
 import AchievementsList from '../components/AchievementsList.astro';
 import ContactSection from '../components/ContactSection.astro';
@@ -57,7 +57,7 @@ const [profile, experience, projects, skillGroups, education, achievements, post
       {/*
         longBio is authored as plain text with blank-line paragraph breaks, so
         it is split rather than rendered as HTML — no sanitization question
-        arises for profile copy (31).
+        arises for profile copy (section 31).
       */}
       <div class="max-w-xl space-y-4 text-lg text-muted">
         {
@@ -128,7 +128,7 @@ const [profile, experience, projects, skillGroups, education, achievements, post
       )
     }
 
-    {/* Empty by design — proves the section omits itself (8). */}
+    {/* Empty by design — proves the section omits itself (section 8). */}
     {
       achievements.length > 0 && (
         <Section

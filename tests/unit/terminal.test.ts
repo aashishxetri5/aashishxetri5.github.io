@@ -15,7 +15,7 @@ import type {
 import type { PortfolioSnapshot } from '../../src/lib/snapshot.ts';
 
 /**
- * 34 lists "command parser" and "command registry" as required unit tests.
+ * Section 34 lists "command parser" and "command registry" as required unit tests.
  *
  * The fixture is deliberately fake. Its whole purpose is to prove the commands
  * read from the snapshot rather than containing portfolio facts (Rule 7) — if
@@ -306,7 +306,7 @@ describe('execute', () => {
     }
   });
 
-  it('catches a throwing handler instead of blanking the terminal (32)', () => {
+  it('catches a throwing handler instead of blanking the terminal (section 32)', () => {
     const exploding: CommandDescriptor = {
       name: 'boom',
       summary: 'throws',
@@ -423,11 +423,11 @@ describe('commands read from the snapshot, not from themselves (Rule 7)', () => 
     expect(output).toContain('2026 — Present');
   });
 
-  it('skills shows evidence and says so plainly when there is none (8)', () => {
+  it('skills shows evidence and says so plainly when there is none (section 8)', () => {
     const output = textOf(execute('skills', ctx));
     expect(output).toContain('Live Fixture');
     expect(output).toContain('no shipped evidence yet');
-    // 8 forbids invented proficiency percentages.
+    // Section 8 forbids invented proficiency percentages.
     expect(output).not.toMatch(/\d+%/);
   });
 
@@ -438,7 +438,7 @@ describe('commands read from the snapshot, not from themselves (Rule 7)', () => 
     });
   });
 
-  it('github degrades when no profile is configured (32)', () => {
+  it('github degrades when no profile is configured (section 32)', () => {
     const without: PortfolioSnapshot = {
       ...snapshot,
       profile: { ...snapshot.profile, socials: [] },
@@ -448,7 +448,7 @@ describe('commands read from the snapshot, not from themselves (Rule 7)', () => 
     expect(textOf(result)).toContain('No GitHub profile is configured');
   });
 
-  it('resume degrades gracefully when no file is published (32)', () => {
+  it('resume degrades gracefully when no file is published (section 32)', () => {
     const withoutResume: PortfolioSnapshot = {
       ...snapshot,
       profile: { ...snapshot.profile, resume: undefined },

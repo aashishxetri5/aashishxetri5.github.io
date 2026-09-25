@@ -7,7 +7,7 @@
  * section number and label sit in a narrow left column while content occupies
  * the wide right one, which produces the asymmetry a centred single column
  * cannot. Below `lg` the gutter collapses to a stacked header, because a 6rem
- * column on a phone would just squeeze the content (25 — do not merely shrink
+ * column on a phone would just squeeze the content (section 25 — do not merely shrink
  * the desktop layout).
  */
 interface Props {
@@ -30,7 +30,7 @@ const ordinal = String(index).padStart(2, '0');
       {/*
         One label node, re-laid-out per breakpoint rather than duplicated with
         lg:hidden / hidden lg:block. A duplicate would be invisible but still
-        announced twice by a screen reader (24) — the row becomes a column on
+        announced twice by a screen reader (section 24) — the row becomes a column on
         wide screens, and only the separator glyph is dropped.
       */}
       <p class="spec-label flex items-baseline gap-2 lg:flex-col lg:items-start lg:gap-1">

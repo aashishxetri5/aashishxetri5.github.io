@@ -9,7 +9,7 @@ node_modules/
 dist/
 .astro/
 
-# Environment — never commit secrets (§16, §31)
+# Environment — never commit secrets (section 16, section 31)
 .env
 .env.*
 !.env.example

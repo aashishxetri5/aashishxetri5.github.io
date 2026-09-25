@@ -1,11 +1,11 @@
 /**
  * Date derivation for timeline content.
  *
- * PLAN.md 6: "The UI should automatically determine whether to display
+ * PLAN.md section 6: "The UI should automatically determine whether to display
  * '2026 - Present' or '2023 - 2026' based on the content. Do not hardcode
  * dates into components."
  *
- * PLAN.md 14: "Current employment should be visually distinguishable. Do not
+ * PLAN.md section 14: "Current employment should be visually distinguishable. Do not
  * hardcode the current company. Use `current: true` and let the UI determine
  * presentation."
  *
@@ -87,7 +87,7 @@ export function sortByRecency<T extends DateRange & { order?: number | undefined
 }
 
 /**
- * Whole years elapsed since a date, for skill longevity (8 prefers derived
+ * Whole years elapsed since a date, for skill longevity (section 8 prefers derived
  * evidence over authored prose that goes stale).
  *
  * `now` is injectable so behavior is deterministic under test.

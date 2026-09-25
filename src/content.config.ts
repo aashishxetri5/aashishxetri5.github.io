@@ -1,7 +1,7 @@
 /**
  * Content schemas — the single source of truth for every portfolio fact.
  *
- * PLAN.md 1 makes content/code separation the top product requirement and 33
+ * PLAN.md section 1 makes content/code separation the top product requirement and section 33
  * requires the build to fail clearly on invalid content. This file is how both
  * are enforced rather than merely intended: no portfolio fact may live in a
  * component, a page, or a terminal command handler.
@@ -11,7 +11,7 @@
  *
  * Every object schema is STRICT. With content hand-edited in a single file, the
  * likeliest mistake is a misspelled key, and a non-strict schema would drop it
- * without a word — `feautred: true` would simply not feature the project. 33
+ * without a word — `feautred: true` would simply not feature the project. Section 33
  * asks for "a useful error instead of silently breaking the site", so unknown
  * keys fail the build and name the key.
  *
@@ -36,7 +36,7 @@ import { portfolioSection } from './lib/portfolio-loader';
 /**
  * Cross-field date validation shared by `experience` and `education`.
  *
- * PLAN.md 6 and 14 require the UI to derive "2026 — Present" vs "2023 — 2026"
+ * PLAN.md section 6 and section 14 require the UI to derive "2026 — Present" vs "2023 — 2026"
  * from the data. That only works if the data is coherent, so incoherence is a
  * build error rather than a rendering surprise.
  */
@@ -81,7 +81,7 @@ const link = z.strictObject({
  * site would render "1970 — Present" with no error anywhere.
  *
  * The floor check turns that into a build failure with an actionable message,
- * which is precisely what 33 asks for. Year-only values are legitimate and
+ * which is precisely what section 33 asks for. Year-only values are legitimate and
  * supported — quote them (`"2023"`) and they coerce to January 1st. Since
  * every rendered label derives only the year (src/lib/dates.ts), a year-only
  * input produces a year-only output with no invented precision.
@@ -92,7 +92,7 @@ const contentDate = z.coerce.date().refine((d) => d.getUTCFullYear() >= 1990, {
 });
 
 /* -------------------------------------------------------------------------- */
-/* Profile — exactly one entry (5, 29)                                      */
+/* Profile — exactly one entry (section 5, section 29)                                      */
 /* -------------------------------------------------------------------------- */
 
 const profile = defineCollection({
@@ -117,13 +117,13 @@ const profile = defineCollection({
       avatar: image(),
       ogImage: image().optional(),
       /**
-       * 29 requires view + download to be easy to find, and 29 also says the
+       * Section 29 requires view + download to be easy to find, and section 29 also says the
        * résumé file is content/configuration rather than something hardcoded
        * into the UI.
        *
        * Optional deliberately: no PDF exists in the repository yet (v3 linked
        * a Google Drive file). A required field pointing at a missing asset
-       * would guarantee a broken link, which 32 forbids. Optional lets the UI
+       * would guarantee a broken link, which section 32 forbids. Optional lets the UI
        * omit the affordance cleanly until the file is supplied.
        *
        * ⚠️ PRE-LAUNCH BLOCKER — see content/README.md.
@@ -155,7 +155,7 @@ const profile = defineCollection({
 });
 
 /* -------------------------------------------------------------------------- */
-/* Experience (6, 14)                                                      */
+/* Experience (section 6, section 14)                                                      */
 /* -------------------------------------------------------------------------- */
 
 const experience = defineCollection({
@@ -177,7 +177,7 @@ const experience = defineCollection({
         ]),
         startDate: contentDate,
         endDate: contentDate.optional(),
-        /** 14: never hardcode the current company. This flag drives it. */
+        /** section 14: never hardcode the current company. This flag drives it. */
         current: z.boolean().default(false),
         logo: image().optional(),
         website: z.url().optional(),
@@ -194,7 +194,7 @@ const experience = defineCollection({
 });
 
 /* -------------------------------------------------------------------------- */
-/* Projects (7, 13)                                                        */
+/* Projects (section 7, section 13)                                                        */
 /* -------------------------------------------------------------------------- */
 
 const projects = defineCollection({
@@ -226,7 +226,7 @@ const projects = defineCollection({
         })
         .default({}),
 
-      /* Dossier sections (13). Empty arrays are omitted from the UI entirely,
+      /* Dossier sections (section 13). Empty arrays are omitted from the UI entirely,
        * so a thin project stays presentable and no empty headings render. */
       problem: z.string().optional(),
       highlights: z.array(z.string()).default([]),
@@ -247,7 +247,7 @@ const projects = defineCollection({
 });
 
 /* -------------------------------------------------------------------------- */
-/* Skills (8)                                                               */
+/* Skills (section 8)                                                               */
 /* -------------------------------------------------------------------------- */
 
 const skills = defineCollection({
@@ -266,7 +266,7 @@ const skills = defineCollection({
       'Other',
     ]),
     /**
-     * 8 explicitly rejects invented percentages ("Java: 97%") as arbitrary.
+     * Section 8 explicitly rejects invented percentages ("Java: 97%") as arbitrary.
      * A coarse enum resists false precision; evidence below carries the weight.
      */
     level: z.enum(['learning', 'working', 'proficient', 'advanced']),
@@ -275,7 +275,7 @@ const skills = defineCollection({
     icon: z.string().optional(),
 
     /**
-     * Evidence, as validated references rather than free text. 33 applied to
+     * Evidence, as validated references rather than free text. Section 33 applied to
      * relationships: renaming or deleting a referenced project fails the build
      * instead of silently orphaning the claim.
      */
@@ -335,7 +335,7 @@ const achievements = defineCollection({
 });
 
 /* -------------------------------------------------------------------------- */
-/* Posts (10 "Writing", 40 future blog)                                    */
+/* Posts (section 10 "Writing", section 40 future blog)                                    */
 /* -------------------------------------------------------------------------- */
 
 const posts = defineCollection({

@@ -13,7 +13,7 @@
 
 # LIVE STATUS
 
-<!-- Maintained per §43. Update at the end of every phase, per Rule 2 step 8. -->
+<!-- Maintained per section 43. Update at the end of every phase, per Rule 2 step 8. -->
 
 **Current phase:** Phase 8 — CMS / Content Admin -> **complete**
 **Next phase:** Phase 9 — Testing -> **awaiting approval**
@@ -22,10 +22,10 @@
 
 ## Completed
 
-- [x] **Phase 0 — Discovery.** Repository inspected, existing stack and deployment determined, reusable assets identified, stack alternatives evaluated against §18, architecture proposed and approved, content model specified.
+- [x] **Phase 0 — Discovery.** Repository inspected, existing stack and deployment determined, reusable assets identified, stack alternatives evaluated against section 18, architecture proposed and approved, content model specified.
   - Deliverable: `docs/architecture.md`
   - Deliverable: `docs/content-model.md`
-  - Deliverable: `docs/cms.md` (§4 content-management evaluation)
+  - Deliverable: `docs/cms.md` (section 4 content-management evaluation)
 
 - [x] **Phase 1 — Content System.** Astro 7.2.10 + Tailwind 4.3.3 scaffolded; all seven collection schemas written with Zod 4; content loading, validation, and referential integrity working; content tree populated per Rule 3.
   - **Exit condition met:** `npm run build` exits 0 clean and exits 1 on invalid content, verified against four distinct failure modes (missing required field, incoherent `current`/`endDate`, the YAML unquoted-year trap, broken cross-collection reference).
@@ -36,9 +36,9 @@
 
 - [x] **Phase 2 — Reader Mode.** One design system, page shell with full SEO, all reader-mode sections, project and writing routes, 404, and Markdown sanitization.
   - **Exit condition met:** the portfolio is already genuinely useful with every experimental feature removed. This is what makes the AASHISH.OS shell additive rather than load-bearing.
-  - **Ships zero JavaScript files.** Verified: `find dist -name '*.js'` returns 0. The only scripts on any page are two inline theme snippets and a JSON-LD block, so §26 and §39's "does it survive JS failing" are structural, not aspirational.
+  - **Ships zero JavaScript files.** Verified: `find dist -name '*.js'` returns 0. The only scripts on any page are two inline theme snippets and a JSON-LD block, so section 26 and section 39's "does it survive JS failing" are structural, not aspirational.
   - 9 pages built; `astro check` 0 errors / 0 warnings; 21 tests passing. Images optimized 184 kB → 17 kB.
-  - §31 sanitization was verified as a **real exploitable gap**, not assumed — see ADR-007 and "Known issues" #4 below.
+  - Section 31 sanitization was verified as a **real exploitable gap**, not assumed — see ADR-007 and "Known issues" #4 below.
   - **Scope adjustment:** project pages were built in Phase 2 rather than Phase 5, because Phase 2 ships project cards and a card linking nowhere is a dead end. The dossier fields already existed in the schema from Phase 1, so rendering them cost nothing. **Phase 5 is now presentation depth** — architecture diagrams, richer decision layout — rather than plumbing.
   - Deliverable: `src/layouts/BaseLayout.astro`, `src/components/**` (12 components), `src/pages/**`, `src/lib/content.ts`, `src/styles/global.css`
 
@@ -47,21 +47,21 @@
   - Rule 7 enforced structurally via `src/lib/snapshot.ts`, not by discipline
   - 46 unit tests; `astro check` 0 errors / 0 warnings / 0 hints
 
-- [x] **Phase 4 — Terminal Engine.** Central flag parsing, `project <name>`, `theme`, `github`, Tab completion, persistent history. Registry is now 16 commands and every command §9 lists exists.
-  - **Gap found by audit, not memory:** checking the registry against §9's command list surfaced `project`, `theme` and `github` as missing, and flags as parsed-but-uninterpreted.
+- [x] **Phase 4 — Terminal Engine.** Central flag parsing, `project <name>`, `theme`, `github`, Tab completion, persistent history. Registry is now 16 commands and every command section 9 lists exists.
+  - **Gap found by audit, not memory:** checking the registry against section 9's command list surfaced `project`, `theme` and `github` as missing, and flags as parsed-but-uninterpreted.
   - **`theme` forced an architectural decision.** It is the first command needing a side effect. Rather than let it touch the DOM — which would have killed the pure-handler property the registry's testability rests on, and set a precedent for the next such command — `CommandResult` gained a declarative `effect` the renderer performs. It shares the existing `data-theme` + `localStorage['theme']` contract with `ThemeToggle.astro` and the pre-paint script instead of forking it.
   - Skill category flags are **derived from content**: adding a category to the schema yields `skills --<category>` plus its completion with no code change.
   - 74 unit tests (was 46); `astro check` 0/0/0; reader mode verified still at 0 islands.
   - **Dev server verified explicitly this time** — the Phase 3 regression was dev-only because build and `astro check` both passed while `astro dev` was never started.
 
-- [x] **Phase 5 — Project Dossiers.** §13's framed record header, architecture rendered as a connected flow diagram, decisions as a term/description table, reverse content-graph lookup, prev/next navigation, graceful thin-project path.
+- [x] **Phase 5 — Project Dossiers.** Section 13's framed record header, architecture rendered as a connected flow diagram, decisions as a term/description table, reverse content-graph lookup, prev/next navigation, graceful thin-project path.
   - **Architecture stopped being a list.** The field is an ordered `string[]`; Phase 2 rendered boxed lines, which showed the steps but not that they were connected — the only thing a reader wants from an architecture section. Now real nodes with real connectors, pure CSS per ADR-004, markup still a plain `<ol>`.
   - **The content graph is read backwards.** Content authors skill → project; the dossier wants project → skills. Derived rather than authored twice, so they cannot disagree, and adding a skill reference enriches the project page with no edit to the project file. Mirrored into the snapshot so the terminal shows the same graph.
   - Prev/next verified across all 6 pages: linear chain, **0 broken neighbour links**, ends handled. Archived projects are in the chain deliberately — excluded from listings, but excluding them here would strand anyone arriving from a link.
   - 74 tests; `astro check` 0/0/0; reader mode still 0 islands.
   - ⚠️ **Surfaced an open content gap — see "Known issues" #5.**
 
-- [x] **Phase 6 — Visual Polish.** All seven §37 categories: micro-interactions, transitions, terminal cursor, background texture, project and timeline animation, hover states.
+- [x] **Phase 6 — Visual Polish.** All seven section 37 categories: micro-interactions, transitions, terminal cursor, background texture, project and timeline animation, hover states.
   - **Cross-page view transitions with zero JavaScript.** Astro's `<ClientRouter />` was the obvious tool and was rejected: it is JS, and reader mode's zero-JS property is load-bearing (ADR-001, ADR-008). The CSS-only `@view-transition` rule gets the same effect natively. Verified `/` still has 0 islands and 0 script tags.
   - **No `animation-delay` anywhere.** Stagger comes from giving each row its own `animation-timeline: view()`, which is correct at any list length and scroll speed — delay-based stagger has to guess both and gets them wrong on long lists.
   - Stylesheet total: **7.6 KB gzipped**. 74 tests; `astro check` 0/0/0.
@@ -72,9 +72,9 @@
   - **A bug in that gate found itself.** The schema scanner attributed one collection the fields of another, because several schemas are formatted with whitespace between `z` and `.object({`. It produced 40 confident, wrong errors. Fixed, plus a self-check that throws when two collections yield identical field lists, since that means a mis-parse rather than real duplication.
   - CMS version pinned exactly: an admin tool with repo write access should not change under you between sessions, and Sveltia is pre-1.0.
   - `/admin` is kept out of search three independent ways: `noindex` meta, absent from the sitemap, and disallowed in robots.txt.
-  - **Owner action required before it works** — auth is not configurable from the repository. See `docs/cms.md` §7 for the three options.
+  - **Owner action required before it works** — auth is not configurable from the repository. See `docs/cms.md` section 7 for the three options.
 
-- [ ] **Phase 7 — Optional AI. DEFERRED BY CHOICE.** §15 makes it optional by design and requires the core portfolio to work without it. Skipped in favour of Phase 8, which was worth more: the CMS directly attacks the empty-dossier content gap. Revisit after deployment, if at all.
+- [ ] **Phase 7 — Optional AI. DEFERRED BY CHOICE.** Section 15 makes it optional by design and requires the core portfolio to work without it. Skipped in favour of Phase 8, which was worth more: the CMS directly attacks the empty-dossier content gap. Revisit after deployment, if at all.
 
 ## Decisions taken
 
@@ -90,21 +90,21 @@
 | ADR-008 | Modes are separate routes (`/` and `/os`), not a JS toggle | Approved | `docs/architecture.md` |
 | ADR-009 | Command side effects are declared as data, not performed by handlers | Approved | `docs/architecture.md` |
 
-The canonical Architecture Decision Log lives in `docs/architecture.md`, not here. §43 asks for a decision log and §35 asks for `docs/architecture.md`; keeping ADRs in both places would guarantee drift, which defeats §43's own stated purpose of being understandable months later. This section indexes them instead.
+The canonical Architecture Decision Log lives in `docs/architecture.md`, not here. Section 43 asks for a decision log and section 35 asks for `docs/architecture.md`; keeping ADRs in both places would guarantee drift, which defeats section 43's own stated purpose of being understandable months later. This section indexes them instead.
 
 ## Corrections to this document
 
-§43 says historical decisions must not be deleted without explanation. Recording a factual correction rather than silently editing §20:
+Section 43 says historical decisions must not be deleted without explanation. Recording a factual correction rather than silently editing section 20:
 
-- **§20 is inaccurate as written.** It states the current deployment is `GitHub → Netlify → Custom Domain` and instructs preserving that workflow. Discovery found no `netlify.toml`, no `CNAME`, and no `package.json` in the working tree or anywhere in git history. The live site is plain **GitHub Pages** serving `main` at `aashishxetri5.github.io`. Netlify was adopted as the target by decision (ADR-002) because Phases 7 and 8 require serverless execution — not because it already existed.
+- **Section 20 is inaccurate as written.** It states the current deployment is `GitHub → Netlify → Custom Domain` and instructs preserving that workflow. Discovery found no `netlify.toml`, no `CNAME`, and no `package.json` in the working tree or anywhere in git history. The live site is plain **GitHub Pages** serving `main` at `aashishxetri5.github.io`. Netlify was adopted as the target by decision (ADR-002) because Phases 7 and 8 require serverless execution — not because it already existed.
 
 ## Remaining
 
-Phases 9–12 as specified in §37. Phase 7 is deferred by choice (see above).
+Phases 9–12 as specified in section 37. Phase 7 is deferred by choice (see above).
 
-**Phase 9 (Testing) is next.** §34 asks for unit, component and end-to-end coverage. Unit tests exist (74). Component and E2E do not: Playwright is named in the stack table but never installed, so the full visitor journey in §37 Phase 9 has never actually been exercised — and neither has any page in a real browser.
+**Phase 9 (Testing) is next.** Section 34 asks for unit, component and end-to-end coverage. Unit tests exist (74). Component and E2E do not: Playwright is named in the stack table but never installed, so the full visitor journey in section 37 Phase 9 has never actually been exercised — and neither has any page in a real browser.
 
-**Phase 7 (Optional AI) is next, and is genuinely optional.** §15 requires the core portfolio to work perfectly without it and §16 forbids exposing API keys in frontend code, so it needs a Netlify function, rate limiting, caching and a graceful fallback. It is also the first phase that would introduce a paid dependency and a runtime cost, and ADR-002's ~20-production-deploy ceiling means the function shares a budget with the site itself. **Worth deciding whether to do it at all** — Phases 9–12 (testing, performance/SEO, deployment, final polish) deliver more to a recruiter-facing portfolio than an `ask` command does.
+**Phase 7 (Optional AI) is next, and is genuinely optional.** Section 15 requires the core portfolio to work perfectly without it and section 16 forbids exposing API keys in frontend code, so it needs a Netlify function, rate limiting, caching and a graceful fallback. It is also the first phase that would introduce a paid dependency and a runtime cost, and ADR-002's ~20-production-deploy ceiling means the function shares a budget with the site itself. **Worth deciding whether to do it at all** — Phases 9–12 (testing, performance/SEO, deployment, final polish) deliver more to a recruiter-facing portfolio than an `ask` command does.
 
 
 ## Phase 11 cutover checklist
@@ -140,10 +140,10 @@ Found during discovery. Each must be resolved by the rebuild, not reproduced. St
 
 ## Open questions
 
-- **⚠️ ADR-002 is contested and blocks Phase 11 (not Phase 1).** Netlify's free tier is now credit-based for accounts created on/after 2025-09-04, capping production deploys at roughly 20/month, with overage *pausing* the site. Since §21's publish workflow makes every content save a production deploy, ADR-002's own use case would exhaust the budget. `docs/cms.md` §5 proposes ADR-005 — GitHub Pages primary via Actions, Cloudflare Workers for the two serverless needs — which also removes the mirror and upgrades the `github.io` canonical hint to a real 301. **Owner decision needed.**
+- **⚠️ ADR-002 is contested and blocks Phase 11 (not Phase 1).** Netlify's free tier is now credit-based for accounts created on/after 2025-09-04, capping production deploys at roughly 20/month, with overage *pausing* the site. Since section 21's publish workflow makes every content save a production deploy, ADR-002's own use case would exhaust the budget. `docs/cms.md` section 5 proposes ADR-005 — GitHub Pages primary via Actions, Cloudflare Workers for the two serverless needs — which also removes the mirror and upgrades the `github.io` canonical hint to a real 301. **Owner decision needed.**
 - **Custom domain name not yet supplied.** Owner confirmed one exists. `SITE_URL` is a single config constant marked `TODO` until provided — canonical URLs, sitemap base, and absolute OG image URLs all read from it. One-line change, no code edits.
-- **Résumé source of truth.** The v3 site had both a hosted PDF (Google Drive) and a hand-built `resume.html`. §29 wants view + download and treats the file as content. Decide in Phase 2 whether the HTML résumé page is regenerated from content or retired in favour of the PDF alone.
-- **Markdown sanitization dependency.** Astro 7 no longer installs `@astrojs/markdown-remark` by default. §31 requires sanitized rendering, so a rehype sanitizer must be added explicitly in Phase 1 rather than assumed present.
+- **Résumé source of truth.** The v3 site had both a hosted PDF (Google Drive) and a hand-built `resume.html`. Section 29 wants view + download and treats the file as content. Decide in Phase 2 whether the HTML résumé page is regenerated from content or retired in favour of the PDF alone.
+- **Markdown sanitization dependency.** Astro 7 no longer installs `@astrojs/markdown-remark` by default. Section 31 requires sanitized rendering, so a rehype sanitizer must be added explicitly in Phase 1 rather than assumed present.
 
 ## Repository housekeeping
 
