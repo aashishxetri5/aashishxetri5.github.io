@@ -7,6 +7,31 @@ import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import { SITE_URL } from './site.config.mjs';
 
 /**
+ * Give development its own Vite dependency cache, apart from every other mode.
+ *
+ * Without this, `astro build` breaks the terminal in `astro dev`. The build
+ * runs an internal Vite server to load content, and that server pre-bundles
+ * React into node_modules/.vite/deps — the same folder the dev server reads —
+ * in production mode. React 19's production JSX runtime deliberately exports
+ * `jsxDEV` as undefined, so the next time the dev server renders the React
+ * island it throws "TypeError: _jsxDEV is not a function" and the terminal
+ * disappears. Reproduced by removing the cache, running a build, and finding it
+ * recreated with the production runtime.
+ *
+ * Keyed on Vite's `mode` rather than the CLI command, because that internal
+ * server is a `serve` in production mode: only real development uses the
+ * default cache, and build, check and sync get their own.
+ */
+function separateNonDevCache() {
+  return {
+    name: 'aashish-os:separate-non-dev-cache',
+    config(_config, { mode }) {
+      if (mode !== 'development') return { cacheDir: 'node_modules/.vite-build' };
+    },
+  };
+}
+
+/**
  * Section 31: "Never render arbitrary Markdown/HTML without sanitization."
  *
  * This is not theoretical. Verified against this project on 2026-09-03: with no
@@ -59,6 +84,6 @@ export default defineConfig({
   // deprecated and its peerDependencies never declared Astro 6 or 7, so it is
   // unusable here — see docs/architecture.md "Verified toolchain".
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [tailwindcss(), separateNonDevCache()],
   },
 });
