@@ -23,7 +23,7 @@ const { id, index, label, heading, lede } = Astro.props;
 const ordinal = String(index).padStart(2, '0');
 ---
 
-<section id={id} class="scroll-mt-24 border-t border-line">
+<section id={id} class="reveal scroll-mt-24 border-t border-line">
   <div class="lg:grid lg:grid-cols-[7rem_1fr] lg:gap-10">
     <!-- Gutter: sticks while its section scrolls, so you always know where you are. -->
     <div class="pt-8 lg:sticky lg:top-24 lg:self-start lg:pt-10">
@@ -40,7 +40,7 @@ const ordinal = String(index).padStart(2, '0');
       </p>
     </div>
 
-    <div class="reveal pt-4 pb-16 lg:pt-10 lg:pb-24">
+    <div class="pt-4 pb-16 lg:pt-10 lg:pb-24">
       <h2 class="text-3xl font-bold sm:text-4xl">{heading}</h2>
       {lede && <p class="mt-4 max-w-xl text-muted">{lede}</p>}
 

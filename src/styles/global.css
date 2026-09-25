@@ -269,12 +269,40 @@ body::after {
 /* ── Motion ──────────────────────────────────────────────────────────────── */
 
 /*
- * Scroll-driven reveal with ZERO JavaScript, using native scroll-linked
- * animation. Where unsupported, content is simply visible — the @supports guard
- * means there is no flash-of-hidden-content fallback to get wrong, and no
- * observer to ship.
+ * Reveal on scroll: every section, and every row inside one, animates in ONCE
+ * when it first comes into view, then stays put.
+ *
+ * This replaced a scroll-linked version (animation-timeline: view()), which
+ * scrubbed opacity against scroll position. Measured in Chrome, a heading sat
+ * at 54% opacity when it was 80% of the way down the screen and only reached
+ * full opacity halfway up — so stopping mid-scroll left content washed out,
+ * and it never read as "appearing". Triggering once needs to know when an
+ * element crosses into view, which CSS cannot express in every browser, so a
+ * small inline script in BaseLayout.astro adds the classes below.
+ *
+ * Nothing is hidden unless that script runs. It adds `reveal-ready` to <html>
+ * only after marking everything already on screen as `was-visible`, so there
+ * is no flash of hidden content above the fold, and with JavaScript disabled,
+ * or reduced motion requested, every element is simply visible.
+ *
+ * Rows that come into view together get a short delay each (70ms, capped), so
+ * they follow one another rather than landing as a block. The delay is
+ * relative to the batch, not to position in the list — a long list never has
+ * items still waiting out a delay after they are on screen.
  */
-@keyframes spec-reveal {
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Shorter travel for rows: they should settle, not fly. */
+@keyframes reveal-in-item {
   from {
     opacity: 0;
     transform: translateY(14px);
@@ -285,43 +313,16 @@ body::after {
   }
 }
 
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .reveal {
-      animation: spec-reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 55%;
-    }
-
-    /*
-     * Per-row reveal. Each row gets its OWN view timeline, so rows animate as
-     * they individually enter the viewport.
-     *
-     * This is why there are no animation-delay values anywhere: delay-based
-     * staggering has to guess how many items there are and how fast the reader
-     * scrolls, and it gets both wrong — a long list ends with items still
-     * waiting out a delay long after they are on screen. Giving each row its own
-     * trigger produces stagger as a side effect of scrolling, at any list length
-     * and any scroll speed, and it runs off the main thread.
-     */
-    .reveal-item {
-      animation: spec-reveal-item linear both;
-      animation-timeline: view();
-      animation-range: entry 5% entry 40%;
-    }
-  }
+html.reveal-ready :is(.reveal, .reveal-item):not(.is-revealed, .was-visible) {
+  opacity: 0;
 }
 
-/* Shorter travel than section reveal: rows should settle, not fly. */
-@keyframes spec-reveal-item {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
+html.reveal-ready .reveal.is-revealed {
+  animation: reveal-in 800ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms) both;
+}
+
+html.reveal-ready .reveal-item.is-revealed {
+  animation: reveal-in-item 650ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms) both;
 }
 
 @keyframes caret-blink {

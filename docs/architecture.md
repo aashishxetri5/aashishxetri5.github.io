@@ -362,6 +362,8 @@ Format per `PLAN.md` section 43. Superseded decisions are marked, never deleted.
 
 **Date:** 2026-09-02
 
+**Amended 2026-09-25 — reveal on scroll now uses a small inline script.** The Phase 6 reveal was pure CSS (`animation-timeline: view()`), which ties opacity to scroll position. Measured in Chrome, a heading sat at 54% opacity when 80% of the way down the screen and reached full opacity only halfway up, so stopping mid-scroll left content washed out, and the owner could not see it "appear" at all. Playing an animation *once* when an element enters view is exactly the kind of interaction this ADR allows JavaScript for: CSS cannot express it in every browser. An `IntersectionObserver` inline in `BaseLayout.astro` (under 1 KB, no bundle, no island) adds the classes; `global.css` does the animating. Nothing is hidden unless the script runs, content already on screen is never hidden, and reduced motion skips it entirely. Reader mode still ships no JavaScript files.
+
 ---
 
 ### ADR-005 — GitHub Pages primary with Cloudflare Workers — **REJECTED**

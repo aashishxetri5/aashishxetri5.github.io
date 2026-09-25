@@ -33,7 +33,8 @@
 - [x] **Phase 3 — AASHISH.OS Shell.** Boot sequence, panels, system status, terminal surface, command registry, mode switch. React confined to `/os`; `/` still zero JS (ADR-008).
 - [x] **Phase 4 — Terminal Engine.** Flag parsing, `project <name>`, `theme`, `github`, Tab completion, persistent history; 16 commands. Command side effects are declared as data (ADR-009).
 - [x] **Phase 5 — Project Dossiers.** Framed record header, architecture as a connected flow diagram, decision table, reverse skill lookup, prev/next navigation.
-- [x] **Phase 6 — Visual Polish.** CSS-only view transitions (no router, so still zero JS), per-row scroll reveal with no `animation-delay`, micro-interactions. Stylesheet 7.6 KB gzipped.
+- [x] **Phase 6 — Visual Polish.** CSS-only view transitions (no router, so still no JavaScript files), micro-interactions, and a reveal-on-scroll for every section. Stylesheet 7.6 KB gzipped.
+  - **Reveal on scroll reworked 2026-09-25** at the owner's request. The original scroll-linked version faded content in proportion to scroll position and left it half-transparent when scrolling stopped (measured: 54% opacity with the heading 80% down the screen). Sections and rows now animate in once when they enter view, via a small inline script; with JavaScript off or reduced motion on, everything is simply visible. See ADR-004.
 - [x] **Content consolidation (replaces Phase 8).** Everything moved into `content/portfolio.yaml` (ADR-010), verified to render identically: of 10 pages, 6 byte-identical and 4 differing only in reworded placeholder copy. Schemas made strict, so a misspelled field is a build error; nine kinds of editing mistake tested, all caught with a message naming what and where. Works in `astro dev`: a broken save keeps the last good content on screen.
 
 ## Not done, by choice

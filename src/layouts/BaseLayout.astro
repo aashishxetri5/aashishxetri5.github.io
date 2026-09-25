@@ -134,5 +134,56 @@ const personSchema = {
     </a>
 
     <slot />
+
+    <!--
+      Reveal on scroll: see the Motion section of global.css for the full
+      reasoning. Inline and tiny rather than a bundled island, so reader mode
+      still ships no JavaScript files.
+
+      Order matters. Everything already on screen is marked `was-visible`
+      BEFORE `reveal-ready` is added to <html>, so nothing above the fold is
+      ever hidden and there is no flash on load. If this script does not run,
+      `reveal-ready` is never set and every element stays visible.
+    -->
+    <script is:inline>
+      (function () {
+        if (!('IntersectionObserver' in window)) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        var targets = document.querySelectorAll('.reveal, .reveal-item');
+        if (targets.length === 0) return;
+
+        // Must match the observer's bottom margin below.
+        var line = window.innerHeight * 0.92;
+        var pending = [];
+
+        for (var i = 0; i < targets.length; i++) {
+          var box = targets[i].getBoundingClientRect();
+          if (box.top < line && box.bottom > 0) targets[i].classList.add('was-visible');
+          else pending.push(targets[i]);
+        }
+
+        document.documentElement.classList.add('reveal-ready');
+
+        var observer = new IntersectionObserver(
+          function (entries) {
+            var order = 0;
+            for (var j = 0; j < entries.length; j++) {
+              if (!entries[j].isIntersecting) continue;
+              var el = entries[j].target;
+              // Items arriving together follow one another; capped so a
+              // large batch never keeps anything waiting long.
+              el.style.setProperty('--reveal-delay', Math.min(order, 5) * 70 + 'ms');
+              el.classList.add('is-revealed');
+              observer.unobserve(el);
+              order += 1;
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0 },
+        );
+
+        for (var k = 0; k < pending.length; k++) observer.observe(pending[k]);
+      })();
+    </script>
   </body>
 </html>
