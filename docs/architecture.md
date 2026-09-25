@@ -2,8 +2,8 @@
 
 > Originally the Phase 0 (Discovery) deliverable, per `PLAN.md` section 37; maintained
 > since as the canonical Architecture Decision Log (section 43).
-> Status: **Phases 0–6 and 8 complete. Phase 7 (Optional AI) deferred by choice. Phase 9 (Testing) next.**
-> Last updated: 2026-09-06
+> Status: **Phases 0–6 complete. Phase 7 (Optional AI) deferred. Phase 8 (CMS) replaced by single-file content — ADR-010. Phase 9 (Testing) next.**
+> Last updated: 2026-09-25
 
 ---
 
@@ -214,22 +214,12 @@ Adapted to Astro conventions, as section 36 permits.
 │   ├── architecture.md         ← this file
 │   ├── content-model.md        ← schemas, field reference, authoring guide
 │   ├── deployment.md           ← Netlify + Pages + domain cutover
-│   ├── cms.md                  ← Phase 8 CMS evaluation and decision
 │   └── contributing.md
 │
-├── scripts/
-│   ├── validate-content.mjs    ← prebuild gate: reference integrity
-│   └── lib/content-integrity.mjs
-│
 ├── content/                    ← AUTHOR-FACING. Deliberately outside src/
-│   ├── README.md               ← placeholder status + pre-launch blockers
-│   ├── profile/
-│   ├── experience/
-│   ├── projects/
-│   ├── skills/
-│   ├── education/
-│   ├── achievements/
-│   └── posts/
+│   ├── portfolio.yaml          ← ALL content, one section per collection (ADR-010)
+│   ├── images/                 ← avatar and project screenshots
+│   └── README.md               ← editing guide + owner to-do list
 │
 ├── public/
 │   ├── images/
@@ -244,7 +234,7 @@ Adapted to Astro conventions, as section 36 permits.
 │   ├── features/
 │   │   ├── terminal/           ← registry, parser, handlers, renderer
 │   │   └── ai/                 ← optional; Phase 7
-│   ├── lib/                    ← date derivation, filtering, formatting
+│   ├── lib/                    ← content loader, queries, dates, snapshot
 │   └── styles/
 │
 └── tests/
@@ -301,7 +291,7 @@ Sequence follows `PLAN.md` section 37. Each phase ends with the Rule 2 cycle: ex
 | 5 | Project dossiers: problem, architecture, decisions, challenges, lessons | Dossiers render entirely from content schema |
 | 6 | Visual polish: micro-interactions, timeline and terminal effects | Restrained; reduced-motion honored |
 | 7 | Optional AI `ask` (Netlify function, rate limited, graceful fallback) | Site fully functional with the AI disabled |
-| 8 | CMS / content admin | Owner can add a job without touching source code |
+| 8 | ~~CMS / content admin~~ — replaced by single-file content (ADR-010) | Owner can add a job without touching source code — met by editing `content/portfolio.yaml` |
 | 9 | Testing: unit, component, E2E, a11y, mobile, build | Suites pass |
 | 10 | Performance + SEO audit — measure before optimizing | Lighthouse reviewed and acted on |
 | 11 | Deployment: Netlify + Pages mirror + custom domain | Push → build → deploy verified on both |
@@ -331,12 +321,12 @@ Format per `PLAN.md` section 43. Superseded decisions are marked, never deleted.
 
 > ✅ **STATUS: REAFFIRMED 2026-09-02, after the credit-model finding below was put to the owner.**
 >
-> Research completed *after* this ADR was first approved found that Netlify's free tier moved to a **credit-based model** for accounts created on/after 2025-09-04, which a new account for this project would land on. Effect: a ceiling of roughly **20 production deploys per month**, with overage **pausing** the site rather than throttling it, and no ability to buy credits on the Free plan. Because section 21's publish workflow makes every content save a production deploy, this ADR's own primary use case is what would consume the budget. `docs/cms.md` section 4 documents the numbers in full; section 5 there proposed superseding this ADR with GitHub Pages + Cloudflare Workers.
+> Research completed *after* this ADR was first approved found that Netlify's free tier moved to a **credit-based model** for accounts created on/after 2025-09-04, which a new account for this project would land on. Effect: a ceiling of roughly **20 production deploys per month**, with overage **pausing** the site rather than throttling it, and no ability to buy credits on the Free plan. Because section 21's publish workflow makes every content save a production deploy, this ADR's own primary use case is what would consume the budget. `docs/cms.md` section 4 documented the numbers in full (removed with the CMS; `git show e805049:docs/cms.md`); section 5 there proposed superseding this ADR with GitHub Pages + Cloudflare Workers.
 >
 > **The owner elected to keep Netlify.** ADR-005 is therefore **rejected** — see below. The finding is retained here rather than deleted, per section 43, because it defines a real operating constraint that Phases 8 and 11 must design around:
 >
 > - **Development is unaffected.** Branch deploys and deploy previews cost **0 credits**. Only production deploys are metered, so iterating on `portfolio-v4` is free regardless of frequency.
-> - **Phase 8 must not publish per-edit.** The CMS must commit to a non-production branch, with production deploys happening on a deliberate merge — batching many content edits into one metered deploy. This is a hard requirement on the Phase 8 design, not a preference.
+> - ~~**Phase 8 must not publish per-edit.**~~ *Moot since ADR-010 removed the CMS.* Content is now edited locally and published by an ordinary `git push`, so the owner batches edits naturally and nothing commits to production per save.
 > - **Phase 10 must treat bandwidth as a budget.** At 20 credits/GB against a 300-credit pool, image weight competes directly with deploy headroom. This sharpens section 26's optimization goals from "good practice" into a quantified constraint.
 > - **Phase 11 must configure usage alerts** so an approaching limit is visible before the site pauses.
 
@@ -382,7 +372,7 @@ Format per `PLAN.md` section 43. Superseded decisions are marked, never deleted.
 
 **Reason for rejection:** owner's decision. Netlify's server-side headers, redirects, and native functions were judged worth the metering constraint, and the mitigations recorded in ADR-002 (branch-based CMS commits, bandwidth budgeting, usage alerts) make the deploy ceiling manageable.
 
-**Retained because:** section 43 forbids discarding decision history, and this remains the documented fallback if the credit ceiling proves binding in practice. The full evaluation, including the tradeoffs GitHub Pages would have cost us, is in `docs/cms.md` section 5. Revisiting it later is a deployment change, not an application rewrite — ADR-001's static-first output runs on either host unmodified.
+**Retained because:** section 43 forbids discarding decision history, and this remains the documented fallback if the credit ceiling proves binding in practice. The full evaluation, including the tradeoffs GitHub Pages would have cost us, was in `docs/cms.md` section 5 — removed with the CMS (ADR-010); read it with `git show e805049:docs/cms.md`. Revisiting it later is a deployment change, not an application rewrite — ADR-001's static-first output runs on either host unmodified.
 
 **Date:** 2026-09-02
 
@@ -440,11 +430,13 @@ A secondary rule falls out of this: the effect *reuses* the existing theme contr
 
 ---
 
-### ADR-006 — Sveltia CMS at /admin, with editorial workflow enforced
+### ADR-006 — Sveltia CMS at /admin, with editorial workflow enforced — **SUPERSEDED by ADR-010**
+
+> Removed 2026-09-25 by owner decision. Retained as history, per section 43. The code is gone; see ADR-010.
 
 **Decision:** Accepted and implemented in Phase 8. Sveltia CMS, pinned to an exact version, served as static files from `public/admin/`, configured with `publish_mode: editorial_workflow`. Decap remains the documented fallback; the config format is shared, so switching is a one-line change.
 
-**Reason:** section 4's criteria ranked it first in `docs/cms.md` section 3 — most actively maintained in the category, MIT, free, content stays as plain Markdown and YAML in git (section 22), and the `/admin` surface is static files, so it satisfies section 4's "on my own site" requirement without depending on a hosted editor. It deliberately avoids Netlify Git Gateway, which remains deprecated even though Netlify Identity's deprecation was reversed — and Git Gateway is the half that actually commits. Its pre-1.0 status is the one real risk, and it is cheap to reverse.
+**Reason:** section 4's criteria ranked it first in `docs/cms.md` section 3 (removed; `git show e805049:docs/cms.md`) — most actively maintained in the category, MIT, free, content stays as plain Markdown and YAML in git (section 22), and the `/admin` surface is static files, so it satisfies section 4's "on my own site" requirement without depending on a hosted editor. It deliberately avoids Netlify Git Gateway, which remains deprecated even though Netlify Identity's deprecation was reversed — and Git Gateway is the half that actually commits. Its pre-1.0 status is the one real risk, and it is cheap to reverse.
 
 **The consequential part is `editorial_workflow`, and it is enforced by the build.** ADR-002 kept Netlify on a credit-based free tier: roughly 20 production deploys per month, with overage *pausing the site*. A CMS committing straight to the deploy branch makes every content save a production deploy, so around twenty edits would take the site offline. Editorial workflow turns each edit into a pull request; branch deploys and previews cost nothing. `scripts/lib/cms-drift.mjs` fails the build if the setting is removed, because the consequence is an outage rather than a style regression.
 
@@ -453,3 +445,33 @@ A secondary rule falls out of this: the effect *reuses* the existing theme contr
 **Alternatives considered:** Decap — larger ecosystem and an official Astro guide, but its auth story descends from the deprecated Git Gateway; retained as the fallback. Keystatic — disqualified on architecture, since its GitHub mode requires server-side routes and would break a static deploy. TinaCMS — needs a database, an auth provider and a GraphQL API, which is the shape section 19 tells us to avoid. Pages CMS — genuinely zero-infrastructure, but its editor lives on `app.pagescms.org`, conflicting with section 4's "on my own site". CloudCannon — no free tier.
 
 **Date:** 2026-09-06
+
+---
+
+### ADR-010 — All content in one hand-edited file; no CMS
+
+**Decision:** Supersedes ADR-006. The Sveltia CMS is removed entirely, and all portfolio content lives in one file, `content/portfolio.yaml`, with one section per collection. Each Astro collection loads its own section through a custom loader (`src/lib/portfolio-loader.ts`). Schemas, query helpers, pages and the terminal snapshot are unchanged.
+
+**Reason:** Owner decision. The CMS added an admin surface, an authentication setup with no in-repo solution, and a build gate to keep its config in step with the schemas — all to serve an editor who is a developer and the only author. For that person, "open one file, edit, save" is simpler than any admin UI, and simpler than twenty files across seven folders.
+
+PLAN.md sections 2, 4 and 21 describe a CMS as the eventual target. Their underlying requirement — *"I can update my portfolio without touching source code"* — is still met: `content/portfolio.yaml` is content, not code, and no page or component changes to add a job, project, skill or post.
+
+**What the move required, and how each was verified:**
+
+- **Identical output.** The visible text of all 10 built pages was captured before and diffed after. 6 were byte-identical, including the homepage and every real project; the other 4 differed only in deliberately reworded placeholder copy.
+- **Strict schemas.** In one large hand-edited file the likeliest mistake is a misspelled key, and the previous non-strict schemas dropped unknown keys silently. All 13 schema objects became strict, so `feautred: true` is a build error naming the entry and key rather than a project that quietly stops being featured.
+- **Whole-file validation before any collection loads:** unknown section names (with a suggestion), missing or malformed ids, duplicate ids, `body` where it would be displayed nowhere, and skill references to missing projects or jobs. Nine deliberate mistakes were introduced one at a time; all nine were caught with a message naming what and where. Reference checks are skipped while the structure is broken, so a misspelled section reports one problem instead of cascading into one per referencing skill.
+- **Sanitization preserved.** Bodies are rendered with the loader context's `renderMarkdown`, which runs the configured pipeline including the ADR-007 sanitizer. The ADR-007 XSS probe was re-run through a post body: `<img onerror>` removed, `<script>` reduced to inert text.
+- **Dev workflow.** Against a running `astro dev`, an edit to the file appears in about a second. A broken save keeps the last good content on screen and logs the error, because the loader parses everything before touching the store.
+
+**Consequences:**
+
+- The prebuild reference-integrity script is deleted. With all content in one file the loader performs that check itself, and unlike the prebuild gate it also runs under `astro dev`.
+- `@astrojs/mdx` is removed: no `.mdx` files remain. MDX component embedding in project bodies is no longer possible; nothing used it.
+- `yaml` moves to runtime dependencies, since the loader needs it during the production build.
+- ADR-002's "Phase 8 must not publish per-edit" constraint is moot.
+- Git remains the backup and history for every content change (section 22).
+
+**Alternatives considered:** keeping the CMS — rejected by the owner. JSON as the single file — rejected: no comments, so the REAL / CONFIRM / PLACEHOLDER annotations the content depends on would have nowhere to live, plus quote-and-comma noise for multi-paragraph text. One Markdown file with frontmatter — frontmatter is designed for one document, not twenty entries across seven kinds. Keeping one file per entry — rejected by the owner as spread across too many places.
+
+**Date:** 2026-09-25

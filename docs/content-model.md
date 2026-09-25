@@ -12,26 +12,30 @@ This document is the contract between content and code. `PLAN.md` section 1 call
 
 1. **Content is data, not markup.** No portfolio fact may live in a component, a page, or a terminal command handler.
 2. **Schemas are the single source of truth.** `src/content.config.ts` defines every field. Reader mode and terminal mode both read from it (section 10, Rule 7).
-3. **The build fails on bad content.** A missing or malformed field is a build error naming the file and field, never a visual surprise after deploy (section 33).
+3. **The build fails on bad content.** A missing, malformed or misspelled field is a build error naming the entry and field, never a visual surprise after deploy (section 33).
 4. **Presentation is derived, never authored.** Date ranges, status badges, sort order, and section visibility are computed from data. `PLAN.md` section 6 and section 14 forbid hardcoding them.
-5. **Content stays portable.** Plain Markdown, MDX, and YAML in git. No proprietary format, so section 22 holds and any CMS can be swapped out.
+5. **Content stays portable.** One plain YAML file in git, with Markdown for long-form bodies. No proprietary format, so section 22 holds.
 6. **Placeholders are labelled as placeholders.** Per Rule 3, nothing invented is ever presentable as fact.
 
 ---
 
 ## 2. Collection overview
 
-| Collection | Location | Format | Cardinality |
-| --- | --- | --- | --- |
-| `profile` | `content/profile/profile.yaml` | YAML | exactly one |
-| `experience` | `content/experience/*.md` | Markdown + frontmatter | many |
-| `projects` | `content/projects/*.mdx` | MDX + frontmatter | many |
-| `skills` | `content/skills/*.yaml` | YAML | many |
-| `education` | `content/education/*.md` | Markdown + frontmatter | many |
-| `achievements` | `content/achievements/*.md` | Markdown + frontmatter | many |
-| `posts` | `content/posts/*.mdx` | MDX + frontmatter | many |
+All content lives in **one file, `content/portfolio.yaml`** (ADR-010), with one section per collection. Images sit beside it in `content/images/`.
 
-Format choice per collection is deliberate: YAML where content is purely structured fields, Markdown where there is prose, MDX where prose may embed components (project dossiers, section 13).
+| Section | Shape | Long-form `body:` | Cardinality |
+| --- | --- | --- | --- |
+| `profile` | one set of fields | — | exactly one |
+| `experience` | list | — | many |
+| `projects` | list | Markdown, shown on `/projects/<id>` | many |
+| `skills` | list | — | many |
+| `education` | list | — | many |
+| `achievements` | list | — | many (currently none) |
+| `posts` | list | Markdown, shown on `/writing/<id>` when not `external` | many |
+
+Each Astro collection loads its own section through `src/lib/portfolio-loader.ts`. Every list entry carries an explicit `id` — the URL segment for projects and posts, and what skill evidence refers to.
+
+`body:` is accepted only where a page displays it. Anywhere else it is rejected, because a field that is shown nowhere is a trap for the person editing the file.
 
 ---
 
@@ -41,7 +45,8 @@ Verified against the current toolchain on 2026-09-02. These are easy to get wron
 
 - **Zod is imported from `astro/zod`**, not from `astro:content`. Astro 6 deprecated the `astro:content` re-export and `astro:schema`; both still work in Astro 7 but are marked for removal in Astro 8.
 - **Astro bundles Zod 4**, not Zod 3. Format validators moved to the top level: `z.email()` and `z.url()`, not `z.string().email()` / `z.string().url()`. Custom issue messages use `{ error: ... }`, not `{ message: ... }`. The schema code in this document reflects Zod 4.
-- **Entries are keyed by `id`, not `slug`.** Astro 6 removed the `slug` property; `id` is derived from the filename and the original path is available as `filePath`. This is why the `projects` schema has no `slug` field — the filename *is* the slug, which keeps one fewer thing to get out of sync.
+- **Entries are keyed by `id`, not `slug`.** Astro 6 removed the `slug` property. Each list entry in `portfolio.yaml` states its own `id`, which is why the `projects` schema has no `slug` field — the id *is* the slug, which keeps one fewer thing to get out of sync.
+- **Every schema object is strict** (`z.strictObject`). The code excerpts below show `z.object` for readability; in `src/content.config.ts` an unknown key is a build error, so a misspelled field fails instead of silently disappearing.
 - **Retrieval API:** `getEntry()` and `getCollection()`. `getEntryBySlug()` and `getDataEntryById()` were removed in Astro 6.
 - **Rendering API:** `render(entry)` imported from `astro:content`, not `entry.render()`.
 - **The `image()` helper** requires the schema to be declared as a function receiving context: `schema: ({ image }) => z.object({ ... })`. Collections using `image()` — `profile`, `experience`, `projects`, `education`, `posts` — must use that form.
@@ -131,7 +136,7 @@ const experience = z.object({
 })
 ```
 
-The Markdown body holds the long-form description, so section 6's `description` field is the document body rather than a frontmatter string.
+There is no long-form `description` field for a role: `summary`, `responsibilities` and `achievements` carry it, because the timeline is the only place a role is shown and it displays those three.
 
 ### Derived date display
 
@@ -209,7 +214,7 @@ const skills = z.object({
 
 Two things this buys:
 
-- **Referential integrity at build time — but not from `reference()` alone.** This was verified empirically rather than assumed, and the assumption was wrong. `reference()` validates the *shape* of a reference at schema level, but resolves existence lazily inside `getEntry()`. Against `astro@7.2.10`, a skill pointing at a non-existent project logs `[ERROR] [content] Invalid content reference: …` and then **the build completes and exits 0**, deploying a site with the evidence silently missing. Since section 33 requires the opposite, existence is enforced by `scripts/validate-content.mjs`, wired to `prebuild` so `npm run build` fails before Astro starts. See section 10.
+- **Referential integrity at build time — but not from `reference()` alone.** This was verified empirically rather than assumed, and the assumption was wrong. `reference()` validates the *shape* of a reference at schema level, but resolves existence lazily inside `getEntry()`. Against `astro@7.2.10`, a skill pointing at a non-existent project logs `[ERROR] [content] Invalid content reference: …` and then **the build completes and exits 0**, deploying a site with the evidence silently missing. Since section 33 requires the opposite, existence is enforced by the portfolio loader, which rejects a skill pointing at a missing id before any collection is populated — in `astro dev` as well as in builds. See section 10.
 - **Evidence rendering comes free.** The UI resolves the references and renders section 8's prescribed shape:
 
   ```
@@ -282,7 +287,7 @@ const posts = z.object({
 ```
 
 - `external` set → the entry renders as an outbound card. This is how the three Hashnode posts are represented today.
-- `external` absent → the MDX body renders as a local post at `/writing/<id>`. No code change required to start blogging here.
+- `external` absent → `body` renders as a local post at `/writing/<id>`. No code change required to start blogging here.
 - `draft: true` is excluded from production builds and from the sitemap.
 
 ---
@@ -292,36 +297,33 @@ const posts = z.object({
 Schemas execute during `astro build`. Example of the failure mode section 33 asks for:
 
 ```
-[content] experience → content/experience/cloud-tech.md
+[InvalidContentEntryDataError] experience → cloud-tech data does not match collection schema.
 
-  endDate  endDate is required unless current: true.
-  role     Required
-
-Build failed. 2 content errors.
+  endDate: endDate is required unless current: true.
+  role: Required
 ```
 
 The build stops. Nothing deploys. Compare with the current site's failure mode: a wrong value renders silently and is discovered by a visitor.
 
-Three layers, the first two enforced by Astro and the third by us:
+Three layers:
 
 1. **Schema** — types, enums, required fields, URL and email formats. Astro fails the build. ✅ verified.
 2. **Refinements** — cross-field logic (`current` vs `endDate`, date ordering, and the year-quoting guard below). Astro fails the build. ✅ verified.
-3. **References** — existence of skill→project and skill→experience links. **Astro does *not* fail the build here** (see section 6), so `scripts/validate-content.mjs` runs as `prebuild` and does. ✅ verified.
+3. **The whole file** — checked by `src/lib/portfolio-loader.ts` before any collection loads: unknown section names, missing or malformed ids, duplicate ids, `body` where it is shown nowhere, and skill references to ids that do not exist. **Astro does *not* fail the build on a missing reference** (see section 6), which is why this layer exists. ✅ verified against nine deliberate mistakes.
 
-Layer 3's checker also catches two failure modes that are otherwise completely silent: a **duplicate skill `id`**, which makes the `file()` loader overwrite one entry with another so a skill simply vanishes, and a **missing `id`**, which the loader requires. Its logic lives in `scripts/lib/content-integrity.mjs` and is unit-tested in `tests/unit/content-integrity.test.ts`.
+Layer 3 reports every problem in one pass rather than stopping at the first, and runs in `astro dev` too — a broken save keeps the last good content on screen and prints the problems in the terminal. Its logic is a pure function, `validatePortfolio`, unit-tested in `tests/unit/portfolio-loader.test.ts`, which also checks the real `portfolio.yaml`.
 
 Example of layer 3 failing:
 
 ```
-[content] Referential integrity check FAILED
+content/portfolio.yaml has 1 problem(s):
 
-  ✗ skills → java: `projects` references "pustakalya" in collection "projects", but no such entry exists.
-    Available: buzzwire, image-extractor, pustakalaya
-
-1 problem(s).
+  ✗ skills entry #1 (java) lists "pustakalya" under `projects:`, but no entry in `projects:` has that id. Did you mean "pustakalaya"?
 ```
 
-Note it lists what *is* available — a typo'd reference is usually a near-miss, so the fix is normally visible in the error itself.
+A wrong reference is usually a near-miss, so the likely fix is named in the error. When nothing is close, the valid ids are listed instead.
+
+If the file's structure is broken — a misspelled section name, say — reference checks are skipped until it is fixed. Otherwise one mistake would be reported once per skill that points into the section that "disappeared".
 
 ### The YAML year footgun
 
@@ -344,53 +346,51 @@ An intentionally empty collection (currently `achievements`) makes Astro log `No
 
 ## 11. Authoring workflows
 
+Every workflow is an edit to `content/portfolio.yaml`. With `npm run dev` running, a save shows up in about a second.
+
 ### Adding a job (section 21)
 
-Create `content/experience/acme-corp.md`:
+Add an entry under `experience:`:
 
-```markdown
----
-company: Acme Corp
-role: Backend Engineer
-location: Kathmandu, Nepal
-employmentType: full-time
-startDate: 2026-03-01
-current: true
-summary: Building payment infrastructure on Spring Boot.
-responsibilities:
-  - Designed and shipped the reconciliation service.
-achievements:
-  - Cut settlement latency from hours to minutes.
-technologies: [Java, Spring Boot, PostgreSQL, Docker]
----
-
-Longer prose about the role goes here, in Markdown.
+```yaml
+  - id: acme-corp
+    company: Acme Corp
+    role: Backend Engineer
+    location: Kathmandu, Nepal
+    employmentType: full-time
+    startDate: "2026-03-01"
+    current: true
+    summary: Building payment infrastructure on Spring Boot.
+    responsibilities:
+      - Designed and shipped the reconciliation service.
+    achievements:
+      - Cut settlement latency from hours to minutes.
+    technologies: [Java, Spring Boot, PostgreSQL, Docker]
 ```
 
-Then `git push`. Netlify rebuilds. The timeline gains an entry, it is automatically marked current and sorted to the top, `2026 — Present` is derived, the technology chips render, and `$ experience` in the terminal includes it.
+Then `git push`. The timeline gains an entry, it is marked current and sorted to the top, `2026 — Present` is derived, the technology chips render, and `$ experience` in the terminal includes it.
 
 **Files edited: one. Components edited: zero.** This is the section 39 maintenance criterion.
 
 ### Adding a project
 
-Create `content/projects/my-thing.mdx` with at minimum `name`, `shortDescription`, `status`, `type`, and one technology. The card, the route `/projects/my-thing`, the dossier, the sitemap entry, and `$ projects` all follow. To feature it, set `featured: true`.
+Add an entry under `projects:` with at minimum `id`, `name`, `shortDescription`, `status`, `type`, and one technology. The row on the homepage, the page at `/projects/<id>`, the sitemap entry and `$ projects` all follow. To feature it, set `featured: true`. For a full project page, add `problem`, `architecture`, `decisions`, `challenges` and `lessons` — the `placeholder-active-project` entry shows each.
 
 ### Claiming a skill with evidence
 
 ```yaml
-name: Spring Boot
-category: Backend
-level: proficient
-since: 2023-01-01
-projects:
-  - pustakalaya          # ← build fails if this project file does not exist
-companies:
-  - acme-corp
+  - id: spring-boot
+    name: Spring Boot
+    category: Backend
+    level: proficient
+    since: "2023"
+    projects: [pustakalaya]   # ← build fails if no project has this id
+    companies: [acme-corp]
 ```
 
 ### Updating the résumé
 
-Drop the new PDF in `public/resume/`, then update `profile.resume.file` and `resume.updated`. Both the "View" and "Download" affordances (section 29) point at the config value, so neither is hardcoded.
+Drop the new PDF in `public/resume/`, then set `profile.resume.file` and `resume.updated`. Both the "View" and "Download" affordances (section 29) point at the config value, so neither is hardcoded.
 
 ---
 
