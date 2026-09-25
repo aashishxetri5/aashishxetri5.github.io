@@ -1,0 +1,189 @@
+---
+/**
+ * The single page shell. Owns metadata, theme bootstrapping and the
+ * accessibility baseline, so no page has to remember any of it.
+ */
+import { getImage } from 'astro:assets';
+
+import { getProfile } from '../lib/content';
+import '../styles/global.css';
+
+interface Props {
+  /** Page-specific title. Omit on the homepage to use the profile headline. */
+  title?: string | undefined;
+  description?: string | undefined;
+  /** Overrides the default social preview image. */
+  ogImage?: ImageMetadata | undefined;
+  /** 'article' for posts and project dossiers. */
+  ogType?: 'website' | 'article';
+  noindex?: boolean;
+}
+
+const {
+  title,
+  description,
+  ogImage,
+  ogType = 'website',
+  noindex = false,
+} = Astro.props;
+
+const profile = await getProfile();
+const { data } = profile;
+
+const pageTitle = title
+  ? `${title} — ${data.name}`
+  : `${data.name} — ${data.headline}`;
+
+const pageDescription = description ?? data.shortBio;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+
+/*
+ * Social previews need an absolute URL to a real file. v3's pointed at a signed
+ * Facebook CDN URL carrying an `oe=` expiry parameter, so the previews broke on
+ * their own. Deriving it from a local, build-optimized asset means it cannot.
+ */
+const socialSource = ogImage ?? data.ogImage ?? data.avatar;
+const socialImage = await getImage({
+  src: socialSource,
+  width: 1200,
+  height: 630,
+  fit: 'cover',
+  format: 'jpg',
+});
+const socialImageUrl = new URL(socialImage.src, Astro.site).href;
+
+/* section 23: structured data, generated from the same content that renders the page. */
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: data.name,
+  jobTitle: data.headline,
+  description: data.shortBio,
+  url: Astro.site?.href,
+  image: socialImageUrl,
+  email: `mailto:${data.email}`,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: data.location,
+  },
+  sameAs: Object.values(data.socials).filter(
+    (url): url is string => typeof url === 'string',
+  ),
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={socialImageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:site_name" content={data.name} />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={socialImageUrl} />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <!--
+      Theme is applied before first paint to avoid a flash of the wrong theme.
+      Deliberately inline and blocking: it is a handful of bytes, and deferring
+      it would reintroduce exactly the flash it prevents. Three states are
+      supported — explicit dark, explicit light, and unset (follow the system),
+      which is why an absent key sets no attribute at all.
+    -->
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          if (stored === 'dark' || stored === 'light') {
+            document.documentElement.setAttribute('data-theme', stored);
+          }
+        } catch (error) {
+          /* Private mode or blocked storage: fall back to the system preference. */
+        }
+      })();
+    </script>
+
+    <script is:inline type="application/ld+json" set:html={JSON.stringify(personSchema)} />
+  </head>
+
+  <body class="min-h-dvh">
+    <!-- Section 24: keyboard users must be able to skip repeated navigation. -->
+    <a
+      href="#main"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:border focus:border-accent focus:bg-accent focus:px-4 focus:py-2 focus:font-mono focus:text-sm focus:tracking-wide focus:uppercase focus:text-bg"
+    >
+      Skip to content
+    </a>
+
+    <slot />
+
+    <!--
+      Reveal on scroll: see the Motion section of global.css for the full
+      reasoning. Inline and tiny rather than a bundled island, so reader mode
+      still ships no JavaScript files.
+
+      Order matters. Everything already on screen is marked `was-visible`
+      BEFORE `reveal-ready` is added to <html>, so nothing above the fold is
+      ever hidden and there is no flash on load. If this script does not run,
+      `reveal-ready` is never set and every element stays visible.
+    -->
+    <script is:inline>
+      (function () {
+        if (!('IntersectionObserver' in window)) return;
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        var targets = document.querySelectorAll('.reveal, .reveal-item');
+        if (targets.length === 0) return;
+
+        // Must match the observer's bottom margin below.
+        var line = window.innerHeight * 0.92;
+        var pending = [];
+
+        for (var i = 0; i < targets.length; i++) {
+          var box = targets[i].getBoundingClientRect();
+          if (box.top < line && box.bottom > 0) targets[i].classList.add('was-visible');
+          else pending.push(targets[i]);
+        }
+
+        document.documentElement.classList.add('reveal-ready');
+
+        var observer = new IntersectionObserver(
+          function (entries) {
+            var order = 0;
+            for (var j = 0; j < entries.length; j++) {
+              if (!entries[j].isIntersecting) continue;
+              var el = entries[j].target;
+              // Items arriving together follow one another; capped so a
+              // large batch never keeps anything waiting long.
+              el.style.setProperty('--reveal-delay', Math.min(order, 5) * 90 + 'ms');
+              el.classList.add('is-revealed');
+              observer.unobserve(el);
+              order += 1;
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0 },
+        );
+
+        for (var k = 0; k < pending.length; k++) observer.observe(pending[k]);
+      })();
+    </script>
+  </body>
+</html>

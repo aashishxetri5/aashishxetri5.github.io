@@ -1,0 +1,156 @@
+---
+/**
+ * Experience as a changelog (section 14).
+ *
+ * A year gutter on the left, entries on the right, separated by hairlines —
+ * the shape of a release history rather than a decorated vertical line with
+ * bullet dots. Tabular numerals keep the years in a true column.
+ *
+ * Ordering and every date label are derived, so nothing in this file knows
+ * which employer is current or what year anything happened. Section 14's "current
+ * employment should be visually distinguishable" is satisfied by an accent
+ * rule and a live marker keyed off `current`.
+ */
+import { formatDateRange } from '../lib/dates';
+import type { ExperienceEntry } from '../lib/content';
+import TechChips from './TechChips.astro';
+
+interface Props {
+  entries: ExperienceEntry[];
+}
+
+const { entries } = Astro.props;
+
+const EMPLOYMENT_LABEL: Record<
+  ExperienceEntry['data']['employmentType'],
+  string
+> = {
+  'full-time': 'Full-time',
+  'part-time': 'Part-time',
+  contract: 'Contract',
+  freelance: 'Freelance',
+  internship: 'Internship',
+  hackathon: 'Hackathon',
+  'self-employed': 'Self-employed',
+};
+---
+
+<ol class="border-t border-line">
+  {
+    entries.map((entry) => {
+      const { data } = entry;
+
+      return (
+        <li
+          class:list={[
+            'group reveal-item border-b border-line',
+            /* The current role gets a left accent rule; past roles get none. */
+            data.current && 'border-l-2 border-l-accent pl-4 sm:pl-5',
+          ]}
+        >
+          <div class="py-6 sm:grid sm:grid-cols-[6.5rem_1fr] sm:gap-6">
+            <div class="mb-3 sm:mb-0">
+              <p
+                class:list={[
+                  'font-mono text-sm',
+                  data.current ? 'text-accent' : 'text-faint',
+                ]}
+              >
+                {formatDateRange(data)}
+              </p>
+
+              {data.current && (
+                <p class="spec-label mt-1.5 flex items-center gap-1.5 text-live">
+                  <span
+                    class="size-1.5 rounded-full bg-live"
+                    style="animation: status-pulse 2.4s ease-in-out infinite"
+                    aria-hidden="true"
+                  />
+                  Current
+                </p>
+              )}
+
+              <p class="spec-label mt-1.5 sm:mt-2">
+                {EMPLOYMENT_LABEL[data.employmentType]}
+              </p>
+            </div>
+
+            <div class="min-w-0">
+              <h3 class="text-xl font-bold">{data.role}</h3>
+
+              <p class="spec-value mt-1">
+                {data.website ? (
+                  <a
+                    href={data.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="text-ink underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+                  >
+                    {data.company}
+                  </a>
+                ) : (
+                  <span class="text-ink">{data.company}</span>
+                )}
+                {data.location && (
+                  <span class="text-faint"> · {data.location}</span>
+                )}
+              </p>
+
+              <p class="mt-4 max-w-xl text-muted">{data.summary}</p>
+
+              {data.achievements.length > 0 && (
+                <ul class="mt-4 max-w-xl space-y-2">
+                  {data.achievements.map((achievement) => (
+                    <li class="flex gap-3 text-sm">
+                      <span class="font-mono text-accent" aria-hidden="true">
+                        +
+                      </span>
+                      <span>{achievement}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {data.responsibilities.length > 0 && (
+                <ul class="mt-3 max-w-xl space-y-2">
+                  {data.responsibilities.map((item) => (
+                    <li class="flex gap-3 text-sm text-muted">
+                      <span class="font-mono text-line-strong" aria-hidden="true">
+                        ·
+                      </span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <div class="mt-5">
+                <TechChips
+                  items={data.technologies}
+                  label={`Technologies used at ${data.company}`}
+                />
+              </div>
+
+              {data.links.length > 0 && (
+                <ul class="mt-4 flex flex-wrap gap-x-5 gap-y-1">
+                  {data.links.map((link) => (
+                    <li>
+                      <a
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="font-mono text-xs tracking-wide text-accent uppercase underline decoration-line-strong underline-offset-4 hover:decoration-accent"
+                      >
+                        {link.label} ↗
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </li>
+      );
+    })
+  }
+</ol>

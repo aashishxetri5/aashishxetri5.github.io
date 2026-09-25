@@ -1,0 +1,163 @@
+---
+/**
+ * Reader mode (section 10) — the conventional, recruiter-friendly experience.
+ *
+ * Phase 2's exit condition is that this page is already genuinely useful with
+ * every experimental feature removed, which is what makes the AASHISH.OS shell
+ * additive rather than load-bearing.
+ *
+ * Section numbers are passed explicitly rather than derived from position,
+ * because a section that omits itself must not renumber the ones after it —
+ * Section 05 vanishing when there are no achievements is correct; section 06 silently
+ * becoming section 05 would make the header nav lie.
+ */
+import AchievementsList from '../components/AchievementsList.astro';
+import ContactSection from '../components/ContactSection.astro';
+import EducationList from '../components/EducationList.astro';
+import ExperienceTimeline from '../components/ExperienceTimeline.astro';
+import Hero from '../components/Hero.astro';
+import ProjectRow from '../components/ProjectRow.astro';
+import Section from '../components/Section.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import SkillsStack from '../components/SkillsStack.astro';
+import StatusBar from '../components/StatusBar.astro';
+import WritingList from '../components/WritingList.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import {
+  getAchievements,
+  getEducation,
+  getExperience,
+  getPosts,
+  getProfile,
+  getProjects,
+  getSkillGroups,
+} from '../lib/content';
+
+const [profile, experience, projects, skillGroups, education, achievements, posts] =
+  await Promise.all([
+    getProfile(),
+    getExperience(),
+    getProjects(),
+    getSkillGroups(),
+    getEducation(),
+    getAchievements(),
+    getPosts(),
+  ]);
+---
+
+<BaseLayout>
+  <StatusBar profile={profile} />
+  <SiteHeader />
+
+  <main id="main" class="mx-auto max-w-5xl px-5 sm:px-8">
+    <Hero profile={profile} />
+
+    <Section id="about" index={1} label="About" heading="Who I am">
+      {/*
+        longBio is authored as plain text with blank-line paragraph breaks, so
+        it is split rather than rendered as HTML — no sanitization question
+        arises for profile copy (section 31).
+      */}
+      <div class="max-w-xl space-y-4 text-lg text-muted">
+        {
+          profile.data.longBio
+            .split(/\n\s*\n/)
+            .map((paragraph) => <p>{paragraph.trim()}</p>)
+        }
+      </div>
+    </Section>
+
+    {
+      experience.length > 0 && (
+        <Section
+          id="experience"
+          index={2}
+          label="Experience"
+          heading="Where I've worked"
+        >
+          <ExperienceTimeline entries={experience} />
+        </Section>
+      )
+    }
+
+    {
+      projects.length > 0 && (
+        <Section
+          id="projects"
+          index={3}
+          label="Projects"
+          heading="Things I've built"
+          lede="Every entry has its own page with the reasoning behind it."
+        >
+          <ul class="border-t border-line">
+            {
+              projects.map((project, position) => (
+                <ProjectRow project={project} index={position + 1} />
+              ))
+            }
+          </ul>
+        </Section>
+      )
+    }
+
+    {
+      skillGroups.length > 0 && (
+        <Section
+          id="skills"
+          index={4}
+          label="Skills"
+          heading="What I work with"
+        >
+          <SkillsStack groups={skillGroups} />
+        </Section>
+      )
+    }
+
+    {
+      education.length > 0 && (
+        <Section
+          id="education"
+          index={5}
+          label="Education"
+          heading="Where I studied"
+        >
+          <EducationList entries={education} />
+        </Section>
+      )
+    }
+
+    {/* Empty by design — proves the section omits itself (section 8). */}
+    {
+      achievements.length > 0 && (
+        <Section
+          id="achievements"
+          index={6}
+          label="Awards"
+          heading="Certifications and recognition"
+        >
+          <AchievementsList entries={achievements} />
+        </Section>
+      )
+    }
+
+    {
+      posts.length > 0 && (
+        <Section
+          id="writing"
+          index={6}
+          label="Writing"
+          heading="Things I've written"
+        >
+          <WritingList posts={posts} />
+        </Section>
+      )
+    }
+
+    <Section id="contact" index={7} label="Contact" heading="Get in touch">
+      <ContactSection profile={profile} />
+    </Section>
+
+    <SiteFooter profile={profile} />
+  </main>
+</BaseLayout>

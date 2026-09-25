@@ -1,0 +1,85 @@
+---
+/**
+ * Header: wordmark, numbered section nav, mode switch, theme toggle.
+ *
+ * Nav items carry their section number, so the header and the section gutters
+ * share one indexing scheme and the page reads as a documented system rather
+ * than a set of unrelated blocks.
+ *
+ * Plain anchors to real ids. v3 intercepted clicks and toggled display:none,
+ * which meant no section was linkable, shareable or in browser history.
+ * Anchors restore all three and need no script, so navigation survives a
+ * script failure (section 26, section 39).
+ *
+ * On small screens the nav scrolls horizontally rather than collapsing into a
+ * drawer — six short labels do not justify a menu, and section 25 warns against
+ * simply shrinking the desktop UI.
+ */
+import ModeSwitch from './ModeSwitch.astro';
+import ThemeToggle from './ThemeToggle.astro';
+
+interface Props {
+  showSectionNav?: boolean;
+  /** Which experience is currently open (section 10). */
+  mode?: 'reader' | 'os';
+}
+
+const { showSectionNav = true, mode = 'reader' } = Astro.props;
+
+/* Numbers must match the `index` passed to each <Section> on the homepage. */
+const SECTIONS = [
+  { id: 'about', label: 'About', index: 1 },
+  { id: 'experience', label: 'Experience', index: 2 },
+  { id: 'projects', label: 'Projects', index: 3 },
+  { id: 'skills', label: 'Skills', index: 4 },
+  { id: 'writing', label: 'Writing', index: 6 },
+  { id: 'contact', label: 'Contact', index: 7 },
+] as const;
+---
+
+<header
+  class="vt-header sticky top-0 z-40 border-b border-line bg-bg/80 backdrop-blur-lg"
+>
+  <div class="mx-auto flex h-14 max-w-5xl items-center gap-3 px-5 sm:px-8">
+    <a
+      href="/"
+      class="shrink-0 font-mono text-sm font-bold tracking-tight transition-colors hover:text-accent"
+    >
+      AASHISH<span class="text-accent">.OS</span>
+    </a>
+
+    {
+      showSectionNav && (
+        <nav aria-label="Sections" class="min-w-0 flex-1">
+          <ul class="flex items-center gap-0.5 overflow-x-auto no-scrollbar">
+            {SECTIONS.map((section) => (
+              <li>
+                <a
+                  href={`#${section.id}`}
+                  class="group relative flex items-baseline gap-1.5 px-2.5 py-2 whitespace-nowrap font-mono text-xs tracking-wide uppercase transition-colors after:absolute after:inset-x-2.5 after:bottom-1 after:h-px after:origin-left after:scale-x-0 after:bg-accent after:transition-transform after:duration-300 hover:after:scale-x-100"
+                >
+                  <span class="text-line-strong transition-colors group-hover:text-accent">
+                    {String(section.index).padStart(2, '0')}
+                  </span>
+                  <span class="text-muted transition-colors group-hover:text-ink">
+                    {section.label}
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )
+    }
+
+    <div
+      class:list={[
+        'flex shrink-0 items-center gap-2',
+        !showSectionNav && 'ml-auto',
+      ]}
+    >
+      <ModeSwitch current={mode} />
+      <ThemeToggle />
+    </div>
+  </div>
+</header>

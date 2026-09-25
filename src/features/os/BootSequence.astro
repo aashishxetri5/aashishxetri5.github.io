@@ -1,0 +1,152 @@
+---
+/**
+ * Boot sequence (section 12).
+ *
+ * The constraints there are unusually specific: skippable, very short, never
+ * blocking content unnecessarily, disabled under reduced motion, must not harm
+ * SEO, must not slow initial rendering. "The boot animation is flavor, not a
+ * loading screen."
+ *
+ * So this is built as an overlay that is OPT-IN rather than opt-out:
+ *
+ *   - The markup renders with the `hidden` attribute set. With JavaScript
+ *     disabled or broken it never appears at all, and the page underneath is
+ *     already fully rendered — there is no state in which this gates content.
+ *   - A tiny inline script un-hides it only when three things hold: motion is
+ *     welcome, and this session has not booted before. A repeat visit within a
+ *     session skips it, because charm that repeats becomes an obstacle.
+ *   - aria-hidden throughout. It is decoration; screen readers should be
+ *     reading the actual page, which is already there.
+ *   - Any key, any click, or the skip button dismisses it immediately.
+ *
+ * The checklist reports real counts from content (section 11: "Do not fake
+ * real system metrics in a misleading way"). Nothing here is invented.
+ */
+interface Props {
+  version: string;
+  counts: {
+    projects: number;
+    experience: number;
+    skills: number;
+    posts: number;
+  };
+}
+
+const { version, counts } = Astro.props;
+
+const STEPS = [
+  { label: 'profile', detail: 'loaded' },
+  { label: 'experience', detail: `${counts.experience} entries` },
+  { label: 'projects', detail: `${counts.projects} indexed` },
+  { label: 'skills', detail: `${counts.skills} resolved` },
+  { label: 'writing', detail: `${counts.posts} articles` },
+];
+
+/* Each step fades in 150ms after the previous one. */
+const STEP_MS = 150;
+const WELCOME_DELAY = STEPS.length * STEP_MS + 180;
+---
+
+<div
+  id="boot"
+  hidden
+  aria-hidden="true"
+  class="fixed inset-0 z-50 flex cursor-pointer flex-col justify-center bg-bg px-6 font-mono text-sm sm:px-10"
+  data-boot
+>
+  <div class="mx-auto w-full max-w-md">
+    <p class="text-accent">INITIALIZING AASHISH.OS {version}</p>
+
+    <ul class="mt-5 space-y-1">
+      {
+        STEPS.map((step, index) => (
+          <li
+            class="boot-line flex gap-3"
+            style={`animation-delay: ${index * STEP_MS}ms`}
+          >
+            <span class="text-live">[OK]</span>
+            <span class="text-ink">{step.label}</span>
+            <span class="ml-auto text-faint">{step.detail}</span>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="boot-line mt-6 text-ink" style={`animation-delay: ${WELCOME_DELAY}ms`}>
+      Welcome.<span class="caret ml-1"></span>
+    </p>
+  </div>
+
+  <button
+    type="button"
+    data-boot-skip
+    class="spec-label absolute right-5 bottom-5 border border-line px-3 py-1.5 transition-colors hover:border-accent hover:text-accent active:translate-y-px"
+  >
+    Skip
+  </button>
+</div>
+
+<style>
+  .boot-line {
+    opacity: 0;
+    animation: boot-line-in 220ms ease-out forwards;
+  }
+
+  @keyframes boot-line-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  [data-boot] {
+    transition: opacity 320ms ease-out;
+  }
+
+  [data-boot].is-dismissing {
+    opacity: 0;
+  }
+</style>
+
+<script is:inline define:vars={{ totalMs: WELCOME_DELAY + 700 }}>
+  (function () {
+    var overlay = document.querySelector('[data-boot]');
+    if (!overlay) return;
+
+    // Section 12: reduced motion disables it outright.
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    // Once per session. Storage can throw in private mode, so a failure to read
+    // must not prevent the page working — it just means the boot plays again.
+    try {
+      if (sessionStorage.getItem('booted') === '1') return;
+      sessionStorage.setItem('booted', '1');
+    } catch (error) {
+      /* Storage unavailable: play the boot, remember nothing. */
+    }
+
+    overlay.hidden = false;
+
+    var done = false;
+    function dismiss() {
+      if (done) return;
+      done = true;
+
+      document.removeEventListener('keydown', dismiss);
+      document.removeEventListener('pointerdown', dismiss);
+
+      overlay.classList.add('is-dismissing');
+      window.setTimeout(function () {
+        overlay.hidden = true;
+      }, 320);
+    }
+
+    document.addEventListener('keydown', dismiss);
+    document.addEventListener('pointerdown', dismiss);
+    window.setTimeout(dismiss, totalMs);
+  })();
+</script>

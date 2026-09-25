@@ -1,0 +1,31 @@
+---
+/**
+ * Footer, styled as a shell prompt closing the session.
+ *
+ * The year is computed at build time, so it cannot go stale the way v3's
+ * hardcoded "Copyright © 2023" did.
+ */
+import type { ProfileEntry } from '../lib/content';
+
+interface Props {
+  profile: ProfileEntry;
+}
+
+const { data } = Astro.props.profile;
+const year = new Date().getFullYear();
+---
+
+<footer class="border-t border-line py-10">
+  <p class="font-mono text-sm text-faint">
+    <span class="text-accent">$</span> exit
+  </p>
+
+  <div
+    class="mt-6 flex flex-col gap-3 sm:flex-row sm:items-baseline sm:justify-between"
+  >
+    <p class="spec-label">© {year} {data.name}</p>
+    <p class="spec-label">
+      Astro · content-driven · no tracking · no cookies
+    </p>
+  </div>
+</footer>

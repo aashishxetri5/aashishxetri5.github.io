@@ -1,0 +1,478 @@
+@import 'tailwindcss';
+
+/*
+ * AASHISH.OS design system — "technical spec sheet".
+ *
+ * The concept: this is a datasheet for a person. Engineering documentation,
+ * not a brochure. That means hairline rules instead of drop shadows, numbered
+ * sections, monospace for every piece of data, a left gutter carrying years and
+ * indices, and one accent used sparingly enough that it still means something.
+ *
+ * Warm neutrals throughout, deliberately. Cool greys read sterile and generic;
+ * a warm off-white against near-black gives the page a material quality that
+ * costs nothing.
+ *
+ * Still no webfonts (section 26). Character comes from the system monospace — which is
+ * genuinely distinctive across platforms — paired with heavy, tightly tracked
+ * system sans at display sizes. A webfont would buy better display type at the
+ * cost of a render-blocking request and a layout shift on every page, and the
+ * mono-led hierarchy carries the personality without it.
+ */
+
+/* ── Light: warm paper ───────────────────────────────────────────────────── */
+:root {
+  --c-bg: #faf9f6;
+  --c-surface: #ffffff;
+  --c-raised: #f2f1ea;
+  --c-line: #e4e1d7;
+  --c-line-strong: #c5c1b2;
+
+  --c-ink: #17160f;
+  --c-muted: #57554a;
+  --c-faint: #8a8779;
+
+  --c-accent: #a4530b;
+  --c-accent-hover: #7d3e07;
+  --c-accent-wash: #f6ecdd;
+
+  --c-live: #14713f;
+  --c-grid: #17160f;
+  --grid-opacity: 0.035;
+  --noise-opacity: 0.02;
+}
+
+/*
+ * Dark tokens are declared twice: once for the system preference, guarded so an
+ * explicit light choice still wins, and once for the explicit choice. Declaring
+ * them only in the media query would leave the toggle unable to override.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --c-bg: #0a0a0b;
+    --c-surface: #101012;
+    --c-raised: #17171a;
+    --c-line: #24242a;
+    --c-line-strong: #3a3a42;
+
+    --c-ink: #edebe6;
+    --c-muted: #9c9a93;
+    --c-faint: #6b6963;
+
+    --c-accent: #ffab2e;
+    --c-accent-hover: #ffc470;
+    --c-accent-wash: #1e1608;
+
+    --c-live: #4ade80;
+    --c-grid: #ffffff;
+    --grid-opacity: 0.028;
+    --noise-opacity: 0.035;
+  }
+}
+
+:root[data-theme='dark'] {
+  --c-bg: #0a0a0b;
+  --c-surface: #101012;
+  --c-raised: #17171a;
+  --c-line: #24242a;
+  --c-line-strong: #3a3a42;
+
+  --c-ink: #edebe6;
+  --c-muted: #9c9a93;
+  --c-faint: #6b6963;
+
+  --c-accent: #ffab2e;
+  --c-accent-hover: #ffc470;
+  --c-accent-wash: #1e1608;
+
+  --c-live: #4ade80;
+  --c-grid: #ffffff;
+  --grid-opacity: 0.028;
+  --noise-opacity: 0.035;
+}
+
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-raised: var(--c-raised);
+  --color-line: var(--c-line);
+  --color-line-strong: var(--c-line-strong);
+
+  --color-ink: var(--c-ink);
+  --color-muted: var(--c-muted);
+  --color-faint: var(--c-faint);
+
+  --color-accent: var(--c-accent);
+  --color-accent-hover: var(--c-accent-hover);
+  --color-accent-wash: var(--c-accent-wash);
+  --color-live: var(--c-live);
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono',
+    monospace;
+}
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    /* Carries the page background so the negative-z texture can sit above it. */
+    background-color: var(--color-bg);
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    /* Data in a spec sheet must align in columns. */
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3 {
+    line-height: 1.05;
+    letter-spacing: -0.032em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* section 24: focus-visible only, so the ring never gets removed for aesthetics. */
+  /*
+   * Cursors that say what a click will do. Tailwind 4's preflight
+   * deliberately sets buttons to the default arrow, so the theme toggle and
+   * the boot screen's Skip showed an arrow while every link showed a hand.
+   * Anything clickable that is not a link gets the hand back; anything
+   * disabled says so.
+   */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  summary,
+  select {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 1px;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* ── Page texture ────────────────────────────────────────────────────────── */
+
+/*
+ * A fine engineering grid plus a whisper of film grain. Both are pure CSS on a
+ * single fixed pseudo-element, so they cost no requests, no JavaScript and no
+ * repaint on scroll. The grain is what stops large flat dark areas from
+ * looking like dead pixels.
+ */
+/*
+ * The texture sits at z-index -1, which is why the page background colour lives
+ * on `html` rather than `body`: the negative layer paints above html's
+ * background but below body's content.
+ *
+ * The obvious alternative — z-index 0 on the texture plus `position: relative`
+ * on every body child — is a trap. That child rule is unlayered, so it would
+ * win the cascade against Tailwind's layered `.sticky` utility and silently
+ * break the sticky header. This way nothing has to be positioned at all.
+ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, var(--color-grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-grid-line) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse 90% 60% at 50% 0%, #000 20%, transparent 75%);
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--noise-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+:root {
+  --color-grid-line: color-mix(
+    in srgb,
+    var(--c-grid) calc(var(--grid-opacity) * 100%),
+    transparent
+  );
+}
+
+/* ── Cross-document view transitions ─────────────────────────────────────── */
+
+/*
+ * Native MPA view transitions, in pure CSS.
+ *
+ * Astro ships <ClientRouter /> for this, and it was the obvious choice — but it
+ * is JavaScript, and reader mode shipping ZERO JavaScript is a load-bearing
+ * property of ADR-001 and ADR-008, not a nice-to-have. Trading it for a page
+ * transition would be exactly the "performance below spectacle" inversion section 26
+ * warns against.
+ *
+ * The `@view-transition` rule gets the same effect from the browser with no
+ * script at all. Where it is unsupported, navigation is simply instant, which is
+ * what it was before.
+ */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: vt-fade-out 140ms ease-out both;
+}
+
+::view-transition-new(root) {
+  animation: vt-fade-in 220ms ease-out both;
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/*
+ * The header is the one element that genuinely persists between pages, so it is
+ * excluded from the cross-fade and stays put. Naming more elements would start
+ * choreographing the whole page, which is the screensaver failure mode section 37
+ * explicitly names.
+ */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* ── Motion ──────────────────────────────────────────────────────────────── */
+
+/*
+ * Reveal on scroll: every section, and every row inside one, animates in ONCE
+ * when it first comes into view, then stays put.
+ *
+ * This replaced a scroll-linked version (animation-timeline: view()), which
+ * scrubbed opacity against scroll position. Measured in Chrome, a heading sat
+ * at 54% opacity when it was 80% of the way down the screen and only reached
+ * full opacity halfway up — so stopping mid-scroll left content washed out,
+ * and it never read as "appearing". Triggering once needs to know when an
+ * element crosses into view, which CSS cannot express in every browser, so a
+ * small inline script in BaseLayout.astro adds the classes below.
+ *
+ * Nothing is hidden unless that script runs. It adds `reveal-ready` to <html>
+ * only after marking everything already on screen as `was-visible`, so there
+ * is no flash of hidden content above the fold, and with JavaScript disabled,
+ * or reduced motion requested, every element is simply visible.
+ *
+ * Rows that come into view together get a short delay each (90ms, capped), so
+ * they follow one another rather than landing as a block. The delay is
+ * relative to the batch, not to position in the list — a long list never has
+ * items still waiting out a delay after they are on screen.
+ */
+/*
+ * Timing, in one place. The easing matters as much as the duration: a steep
+ * curve front-loads the motion, so the original 800ms with
+ * cubic-bezier(0.16, 1, 0.3, 1) was 83% visible after only 200ms and read as a
+ * pop. This gentler curve over a longer duration takes about twice as long to
+ * become clearly visible, which the owner asked for as "slightly slower".
+ */
+:root {
+  --reveal-duration: 1000ms;
+  --reveal-item-duration: 850ms;
+  --reveal-ease: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Shorter travel for rows: they should settle, not fly. */
+@keyframes reveal-in-item {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+html.reveal-ready :is(.reveal, .reveal-item):not(.is-revealed, .was-visible) {
+  opacity: 0;
+}
+
+html.reveal-ready .reveal.is-revealed {
+  animation: reveal-in var(--reveal-duration) var(--reveal-ease) var(--reveal-delay, 0ms) both;
+}
+
+html.reveal-ready .reveal-item.is-revealed {
+  animation: reveal-in-item var(--reveal-item-duration) var(--reveal-ease) var(--reveal-delay, 0ms) both;
+}
+
+@keyframes caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  50%,
+  95% {
+    opacity: 0;
+  }
+}
+
+@keyframes status-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(0.82);
+  }
+}
+
+/*
+ * Section 24, section 25: reduced motion is honoured globally rather than per-component, so a
+ * future animation cannot forget to opt in. Smooth scrolling is motion too.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Utilities ───────────────────────────────────────────────────────────── */
+
+/** Monospace metadata: labels, keys, status text. */
+@utility spec-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+}
+
+/** Monospace data that should read as a value rather than a label. */
+@utility spec-value {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: -0.01em;
+  color: var(--color-muted);
+}
+
+/** Display type: heavy and tight, the one place the sans face does real work. */
+@utility display-xl {
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  line-height: 0.92;
+  font-size: clamp(2.75rem, 11vw, 6.5rem);
+}
+
+/**
+ * Horizontally scrollable strips (nav, status bar) that should not show a
+ * scrollbar. Defined here rather than as arbitrary classes at each call site,
+ * so the two-property pairing cannot be half-applied.
+ */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/*
+ * Marks the header as persistent across a view transition, so it stays put
+ * while the page body cross-fades. Exactly one element carries this: names must
+ * be unique per document, and choreographing more of the page is the failure
+ * mode section 37 warns about.
+ */
+@utility vt-header {
+  view-transition-name: site-header;
+}
+
+/** Terminal insertion caret, in the accent rather than the browser default. */
+@utility caret-accent {
+  caret-color: var(--color-accent);
+}
+
+@utility caret {
+  display: inline-block;
+  width: 0.55em;
+  height: 1em;
+  vertical-align: text-bottom;
+  background-color: var(--color-accent);
+  animation: caret-blink 1.2s step-end infinite;
+}
+
+/**
+ * Cursor-reactive accent wash. The script that feeds --mx/--my is gated on a
+ * fine pointer and no reduced-motion preference; with no script the gradient
+ * simply centres, which still looks deliberate.
+ */
+@utility spotlight {
+  background-image: radial-gradient(
+    380px circle at var(--mx, 50%) var(--my, 0%),
+    var(--color-accent-wash),
+    transparent 70%
+  );
+}

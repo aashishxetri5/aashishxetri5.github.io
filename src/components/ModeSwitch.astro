@@ -1,0 +1,56 @@
+---
+/**
+ * The way into the other mode (section 10).
+ *
+ * This used to be a two-part toggle, READER | OS, with the current mode filled
+ * in amber. That put the loudest colour in the header on the one piece of
+ * information a visitor already has — which page they are on — and left the
+ * thing worth clicking as the faintest text on the page, labelled with a word
+ * ("OS") that means nothing to someone who has not read the source.
+ *
+ * So it is now a single button that names where it goes. From reader mode it
+ * says Terminal, with a blinking cursor: the one signal every developer reads
+ * instantly as "you can type here". From the terminal it offers the way back.
+ *
+ * Still a plain link, so it works with JavaScript disabled, can be shared, and
+ * lands in browser history. The cursor blink stops under reduced motion via the
+ * global guard in global.css.
+ */
+interface Props {
+  current: 'reader' | 'os';
+}
+
+const { current } = Astro.props;
+
+const shared =
+  'group inline-flex shrink-0 items-center gap-2 border px-3 py-1.5 font-mono text-[0.7rem] tracking-[0.12em] uppercase transition-colors active:translate-y-px';
+---
+
+{
+  current === 'reader' ? (
+    <a
+      href="/os"
+      class:list={[
+        shared,
+        'border-line-strong text-ink hover:border-accent hover:text-accent',
+      ]}
+    >
+      <span class="text-accent" aria-hidden="true">
+        &gt;<span style="animation: caret-blink 1.1s step-end infinite">_</span>
+      </span>
+      Terminal
+      <span class="sr-only"> — explore this site from a command line</span>
+    </a>
+  ) : (
+    <a
+      href="/"
+      class:list={[
+        shared,
+        'border-line-strong text-muted hover:border-accent hover:text-accent',
+      ]}
+    >
+      <span aria-hidden="true">←</span>
+      Reader view
+    </a>
+  )
+}

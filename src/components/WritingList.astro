@@ -1,0 +1,77 @@
+---
+/**
+ * Writing (section 10), as an indexed listing matching the projects manifest.
+ *
+ * External and locally-hosted posts render through one list, differing only in
+ * href and the trailing indicator. That is what makes starting a blog here a
+ * content change: remove `external` from a post's frontmatter and it becomes a
+ * page on this site.
+ */
+import type { PostEntry } from '../lib/content';
+
+interface Props {
+  posts: PostEntry[];
+}
+
+const { posts } = Astro.props;
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  });
+---
+
+<ul class="border-t border-line">
+  {
+    posts.map((post, index) => {
+      const isExternal = post.data.external !== undefined;
+      const href = post.data.external ?? `/writing/${post.id}`;
+
+      return (
+        <li
+          class="group reveal-item relative border-b border-line transition-colors before:absolute before:top-0 before:left-0 before:h-full before:w-0.5 before:origin-top before:scale-y-0 before:bg-accent before:transition-transform before:duration-300 hover:bg-raised/50 hover:before:scale-y-100"
+        >
+          <a
+            href={href}
+            target={isExternal ? '_blank' : undefined}
+            rel={isExternal ? 'noopener noreferrer' : undefined}
+            class="flex items-start gap-4 py-5 sm:gap-6"
+          >
+            <span
+              class="mt-0.5 shrink-0 font-mono text-xs text-line-strong transition-colors group-hover:text-accent"
+              aria-hidden="true"
+            >
+              {String(index + 1).padStart(3, '0')}
+            </span>
+
+            <div class="min-w-0 flex-1">
+              <h3
+                class="font-bold transition-colors group-hover:text-accent"
+              >
+                {post.data.title}
+              </h3>
+              <p class="mt-1 max-w-xl text-sm text-muted">
+                {post.data.summary}
+              </p>
+            </div>
+
+            <div class="shrink-0 text-right">
+              <p class="font-mono text-xs whitespace-nowrap text-faint">
+                <time datetime={post.data.publishDate.toISOString()}>
+                  {formatDate(post.data.publishDate)}
+                </time>
+              </p>
+              <p
+                class="spec-label mt-1 transition-colors group-hover:text-accent"
+              >
+                {isExternal ? 'Hashnode ↗' : 'Read →'}
+              </p>
+            </div>
+          </a>
+        </li>
+      );
+    })
+  }
+</ul>

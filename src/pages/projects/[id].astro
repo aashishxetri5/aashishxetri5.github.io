@@ -1,0 +1,283 @@
+---
+/**
+ * Project dossier (section 13, Phase 5).
+ *
+ * Section 13 sketches a framed technical record — name, status, stack, then Problem /
+ * Architecture / Engineering Decisions, then links. This page is that, in the
+ * spec-sheet language established in Phase 2.
+ *
+ * Every section is content-driven and omits itself when empty, which is what
+ * lets a three-line project and a fully documented one share a template without
+ * either looking wrong. A thin project gets an explicit short-record note rather
+ * than trailing off into whitespace — silence reads like a bug, a stated
+ * "nothing further recorded" reads like a decision.
+ *
+ * Section numbering is passed explicitly rather than derived from position: a
+ * section that omits itself must not renumber the ones after it.
+ */
+import { getCollection, render } from 'astro:content';
+import { Image } from 'astro:assets';
+
+import ArchitectureFlow from '../../components/dossier/ArchitectureFlow.astro';
+import DecisionList from '../../components/dossier/DecisionList.astro';
+import DossierSection from '../../components/dossier/DossierSection.astro';
+import MarkerList from '../../components/dossier/MarkerList.astro';
+import ProjectNav from '../../components/dossier/ProjectNav.astro';
+import SiteFooter from '../../components/SiteFooter.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  getProfile,
+  getProjectNeighbours,
+  getSkillsEvidencedBy,
+} from '../../lib/content';
+
+export async function getStaticPaths() {
+  // Archived projects still get a page — they are excluded from listings, not
+  // unpublished, so existing inbound links keep working.
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({
+    params: { id: project.id },
+    props: { project },
+  }));
+}
+
+const { project } = Astro.props;
+const { data } = project;
+
+const [profile, rendered, neighbours, evidencedSkills] = await Promise.all([
+  getProfile(),
+  render(project),
+  getProjectNeighbours(project.id),
+  getSkillsEvidencedBy(project.id),
+]);
+
+const { Content } = rendered;
+
+const links = [
+  { label: 'View source', url: data.links.github },
+  { label: 'Live demo', url: data.links.demo },
+  { label: 'Documentation', url: data.links.documentation },
+].filter((link): link is { label: string; url: string } => Boolean(link.url));
+
+/* Spec rows: the facts a reader checks before reading prose. */
+const specs = [
+  { key: 'type', value: data.type },
+  ...(data.startDate
+    ? [{ key: 'started', value: String(data.startDate.getUTCFullYear()) }]
+    : []),
+  { key: 'stack', value: data.technologies.join(' · ') },
+];
+
+/*
+ * Sections are numbered in render order, but only counted if they will appear.
+ * Building the list first keeps the numbering honest without any component
+ * knowing what came before it.
+ */
+const sections = [
+  data.problem ? 'problem' : null,
+  data.highlights.length > 0 ? 'highlights' : null,
+  data.architecture.length > 0 ? 'architecture' : null,
+  data.decisions.length > 0 ? 'decisions' : null,
+  data.challenges.length > 0 ? 'challenges' : null,
+  data.lessons.length > 0 ? 'lessons' : null,
+  evidencedSkills.length > 0 ? 'skills' : null,
+].filter((entry): entry is string => entry !== null);
+
+const numberOf = (id: string) => sections.indexOf(id) + 1;
+const hasDossier = sections.length > 0;
+---
+
+<BaseLayout
+  title={data.name}
+  description={data.shortDescription}
+  ogImage={data.image}
+  ogType="article"
+>
+  <SiteHeader showSectionNav={false} />
+
+  <main id="main" class="mx-auto max-w-4xl px-5 pb-16 sm:px-8">
+    <nav class="pt-8 text-sm" aria-label="Breadcrumb">
+      <a
+        href="/#projects"
+        class="font-mono text-xs tracking-wide text-muted uppercase underline decoration-line-strong underline-offset-4 hover:text-accent hover:decoration-accent"
+      >
+        ← All projects
+      </a>
+    </nav>
+
+    <!-- Section 13's framed record header. -->
+    <header class="mt-6 border border-line">
+      <div
+        class="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line px-4 py-2.5 sm:px-5"
+      >
+        <span class="spec-label">Project</span>
+        <span class="spec-label text-line-strong" aria-hidden="true">//</span>
+        <span class="spec-label truncate text-ink">{data.name}</span>
+        <span class="ml-auto"><StatusBadge status={data.status} /></span>
+      </div>
+
+      <div class="px-4 py-6 sm:px-5 sm:py-7">
+        <h1 class="text-3xl font-bold sm:text-5xl">{data.name}</h1>
+        <p class="mt-4 max-w-2xl text-lg text-muted">{data.shortDescription}</p>
+
+        <dl class="mt-6 max-w-xl border-t border-line">
+          {
+            specs.map((spec) => (
+              <div class="flex gap-4 border-b border-line py-2">
+                <dt class="spec-label w-20 shrink-0">{spec.key}</dt>
+                <dd class="min-w-0 font-mono text-xs text-ink">{spec.value}</dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        {
+          links.length > 0 && (
+            <ul class="mt-6 flex flex-wrap gap-3">
+              {links.map((link, index) => (
+                <li>
+                  <a
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class:list={[
+                      'inline-block border px-5 py-2.5 font-mono text-sm tracking-wide uppercase transition-colors',
+                      'active:translate-y-px',
+                      index === 0
+                        ? 'border-accent bg-accent text-bg hover:bg-accent-hover'
+                        : 'border-line-strong hover:border-accent hover:text-accent',
+                    ]}
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )
+        }
+      </div>
+    </header>
+
+    {
+      data.image && (
+        <Image
+          src={data.image}
+          alt={`Screenshot of ${data.name}`}
+          width={1024}
+          height={576}
+          loading="eager"
+          class="mt-4 w-full border border-line"
+        />
+      )
+    }
+
+    <div class="prose-body mt-10 max-w-2xl space-y-4 text-muted">
+      <Content />
+    </div>
+
+    {
+      hasDossier ? (
+        <div class="mt-10 space-y-10">
+          {data.problem && (
+            <DossierSection index={numberOf('problem')} label="Problem">
+              <p class="max-w-2xl">{data.problem}</p>
+            </DossierSection>
+          )}
+
+          {data.highlights.length > 0 && (
+            <DossierSection
+              index={numberOf('highlights')}
+              label="Highlights"
+              count={data.highlights.length}
+            >
+              <MarkerList items={data.highlights} marker="+" tone="accent" />
+            </DossierSection>
+          )}
+
+          {data.architecture.length > 0 && (
+            <DossierSection
+              index={numberOf('architecture')}
+              label="Architecture"
+              count={data.architecture.length}
+            >
+              <ArchitectureFlow steps={data.architecture} />
+            </DossierSection>
+          )}
+
+          {data.decisions.length > 0 && (
+            <DossierSection
+              index={numberOf('decisions')}
+              label="Engineering decisions"
+              count={data.decisions.length}
+            >
+              <DecisionList decisions={data.decisions} />
+            </DossierSection>
+          )}
+
+          {data.challenges.length > 0 && (
+            <DossierSection
+              index={numberOf('challenges')}
+              label="Challenges"
+              count={data.challenges.length}
+            >
+              <MarkerList items={data.challenges} marker="!" tone="muted" />
+            </DossierSection>
+          )}
+
+          {data.lessons.length > 0 && (
+            <DossierSection
+              index={numberOf('lessons')}
+              label="What I'd do differently"
+              count={data.lessons.length}
+            >
+              <MarkerList items={data.lessons} marker="→" tone="live" />
+            </DossierSection>
+          )}
+
+          {/*
+            Derived from skill -> project references, not authored here. Adding
+            a reference in content/skills enriches this page with no edit to the
+            project file — the content graph read in the other direction (section 1).
+          */}
+          {evidencedSkills.length > 0 && (
+            <DossierSection
+              index={numberOf('skills')}
+              label="Skills evidenced here"
+              count={evidencedSkills.length}
+            >
+              <ul class="flex max-w-2xl flex-wrap gap-2">
+                {evidencedSkills.map((skill) => (
+                  <li>
+                    <a
+                      href="/#skills"
+                      class="inline-block border border-line px-2 py-0.5 font-mono text-[0.7rem] tracking-wide text-muted uppercase transition-colors hover:border-accent hover:text-accent active:translate-y-px"
+                    >
+                      {skill.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </DossierSection>
+          )}
+        </div>
+      ) : (
+        /*
+          A thin project states its thinness. Trailing off into whitespace reads
+          as a rendering bug; saying so reads as an editorial decision, and the
+          links above still give the reader somewhere to go (section 32).
+        */
+        <p class="mt-10 border-t border-line pt-6 font-mono text-sm text-faint">
+          No further engineering notes recorded for this project.
+        </p>
+      )
+    }
+
+    <div class="mt-12">
+      <ProjectNav previous={neighbours.previous} next={neighbours.next} />
+    </div>
+
+    <SiteFooter profile={profile} />
+  </main>
+</BaseLayout>

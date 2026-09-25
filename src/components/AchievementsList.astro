@@ -1,0 +1,80 @@
+---
+/**
+ * Achievements. Currently has no entries — the collection is deliberately empty
+ * so the omit-when-empty path is exercised rather than assumed.
+ */
+import type { AchievementEntry } from '../lib/content';
+
+interface Props {
+  entries: AchievementEntry[];
+}
+
+const { entries } = Astro.props;
+
+const TYPE_LABEL: Record<AchievementEntry['data']['type'], string> = {
+  certification: 'certification',
+  award: 'award',
+  recognition: 'recognition',
+  publication: 'publication',
+  talk: 'talk',
+  other: 'other',
+};
+
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'short',
+    timeZone: 'UTC',
+  });
+---
+
+<ul class="border-t border-line">
+  {
+    entries.map(({ data }) => (
+      <li class="reveal-item border-b border-line">
+        <div class="py-5 sm:grid sm:grid-cols-[6.5rem_1fr] sm:gap-6">
+          <p class="mb-2 font-mono text-sm text-faint sm:mb-0">
+            <time datetime={data.date.toISOString()}>
+              {formatDate(data.date)}
+            </time>
+          </p>
+
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <h3 class="font-bold">{data.title}</h3>
+              <span
+                class="border border-line px-1.5 py-px font-mono text-[0.65rem] tracking-[0.12em] text-faint uppercase"
+              >
+                {TYPE_LABEL[data.type]}
+              </span>
+            </div>
+
+            {data.issuer && <p class="spec-value mt-1">{data.issuer}</p>}
+
+            {data.summary && (
+              <p class="mt-2 max-w-xl text-sm text-muted">{data.summary}</p>
+            )}
+
+            {data.credentialUrl && (
+              <p class="mt-3">
+                <a
+                  href={data.credentialUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="font-mono text-xs tracking-wide text-accent uppercase underline decoration-line-strong underline-offset-4 hover:decoration-accent"
+                >
+                  Verify ↗
+                </a>
+                {data.credentialId && (
+                  <span class="ml-3 font-mono text-xs text-faint">
+                    {data.credentialId}
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+        </div>
+      </li>
+    ))
+  }
+</ul>

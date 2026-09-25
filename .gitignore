@@ -1,1 +1,19 @@
+# Editor
 /.vscode/
+.DS_Store
+
+# Dependencies
+node_modules/
+
+# Astro build output and generated types
+dist/
+.astro/
+
+# Environment — never commit secrets (section 16, section 31)
+.env
+.env.*
+!.env.example
+
+# Local tooling
+.claude/
+*.log

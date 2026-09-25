@@ -1,0 +1,68 @@
+---
+/**
+ * Previous / next project.
+ *
+ * A dossier that ends with nothing but a footer is a dead end — the reader who
+ * just finished the most interesting page on the site has to go back and re-scan
+ * the listing to continue. Section 12's "Explore projects" journey assumes momentum.
+ *
+ * Both slots render even when only one neighbour exists, so the next link never
+ * jumps sides between pages. An empty slot is a spacer, not a broken link (section 32).
+ */
+import type { ProjectEntry } from '../../lib/content';
+
+interface Props {
+  previous: ProjectEntry | undefined;
+  next: ProjectEntry | undefined;
+}
+
+const { previous, next } = Astro.props;
+---
+
+{
+  (previous || next) && (
+    <nav aria-label="Project navigation" class="border-t border-line pt-6">
+      <div class="grid gap-px bg-line sm:grid-cols-2">
+        {previous ? (
+          <a
+            href={`/projects/${previous.id}`}
+            rel="prev"
+            class="group flex flex-col gap-1 bg-bg p-4 transition-colors hover:bg-raised"
+          >
+            <span class="spec-label transition-colors group-hover:text-accent">
+              ← Previous
+            </span>
+            <span class="font-medium text-ink transition-colors group-hover:text-accent">
+              {previous.data.name}
+            </span>
+            <span class="truncate font-mono text-xs text-faint">
+              {previous.data.technologies.slice(0, 3).join(' · ')}
+            </span>
+          </a>
+        ) : (
+          <div class="bg-bg p-4" aria-hidden="true" />
+        )}
+
+        {next ? (
+          <a
+            href={`/projects/${next.id}`}
+            rel="next"
+            class="group flex flex-col gap-1 bg-bg p-4 transition-colors hover:bg-raised sm:items-end sm:text-right"
+          >
+            <span class="spec-label transition-colors group-hover:text-accent">
+              Next →
+            </span>
+            <span class="font-medium text-ink transition-colors group-hover:text-accent">
+              {next.data.name}
+            </span>
+            <span class="truncate font-mono text-xs text-faint">
+              {next.data.technologies.slice(0, 3).join(' · ')}
+            </span>
+          </a>
+        ) : (
+          <div class="bg-bg p-4" aria-hidden="true" />
+        )}
+      </div>
+    </nav>
+  )
+}

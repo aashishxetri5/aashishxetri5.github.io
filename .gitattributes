@@ -1,0 +1,16 @@
+# Normalize line endings in the repository to LF, regardless of the platform
+# a contributor is on. Without this, editing on Windows produces CRLF diffs
+# that make review noisy and obscure real changes.
+* text=auto eol=lf
+
+# Binary assets — never touch these.
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.webp  binary
+*.avif  binary
+*.ico   binary
+*.pdf   binary
+*.woff  binary
+*.woff2 binary

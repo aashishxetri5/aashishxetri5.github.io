@@ -1,0 +1,479 @@
+# AASHISH.OS — Architecture
+
+> Originally the Phase 0 (Discovery) deliverable, per `PLAN.md` section 37; maintained
+> since as the canonical Architecture Decision Log (section 43).
+> Status: **Phases 0–6 complete. Phase 7 (Optional AI) deferred. Phase 8 (CMS) replaced by single-file content — ADR-010. Phase 9 (Testing) next.**
+> Last updated: 2026-09-25
+
+---
+
+## 1. Discovery findings
+
+### What exists today
+
+The repository is a hand-written static site with no build step of any kind.
+
+| Aspect | Finding |
+| --- | --- |
+| Framework | None. Raw `index.html` + `resources/CSS/Style.css` + `resources/JS/index.js` |
+| Package manager | None. No `package.json`, no lockfile, no `node_modules` |
+| Build process | None. Files are served verbatim |
+| Second page | `resume.html` + `resources/CSS/resume.css`, with its own unrelated design system |
+| Deployment | **GitHub Pages**, via the `<user>.github.io` repo-name convention, serving `main` at the root |
+| Netlify | **Not configured.** No `netlify.toml` in the working tree or anywhere in git history |
+| Custom domain | **Not configured.** No `CNAME` in the working tree or anywhere in git history |
+| CI | None. No `.github/` directory |
+| Local tooling | Node v24.18.0, npm 11.15.0, git 2.49.0 — modern, no constraint on stack choice |
+
+### Discrepancy against PLAN.md
+
+`PLAN.md` section 20 asserts the current deployment is `GitHub → Netlify → Custom Domain` and instructs that this workflow be preserved. **Discovery contradicts this**: there is no Netlify configuration and no custom domain in this repository's history. The live site is plain GitHub Pages.
+
+Resolved by decision — see [ADR-002](#adr-002--netlify-primary-with-a-github-pages-mirror).
+
+### Navigation model of the old site
+
+All six sections (`home`, `about`, `skills`, `projects`, `blogs`, `contact`) exist in the DOM simultaneously. Clicking a nav link toggles a `hidden` class in `resources/JS/index.js`. There is no routing, no URL change, and no history. Consequences:
+
+- Sections are not linkable or shareable.
+- Content is present in the HTML (so it is crawlable), but every section except one is `display: none`.
+- The nav handler and the section markup are coupled — adding a section means editing HTML, CSS, and JS.
+
+### What is retained
+
+- **Project screenshots** — `resources/Images/Projects/*` (6 files). Will be re-optimized, not re-shot.
+- **Portrait** — `resources/Images/MyImgs/my_image.jpg`. Becomes a local asset (see below).
+- **Factual content** — the three real projects, the Hashnode post links, the Techtrix hackathon entry. Migrated into schemas as real content, *not* as placeholders.
+- **Git history and tags** — `v1.0`, `2.0`, `v3.0` remain. `v3.0` marks the final state of the site described above.
+
+### What is replaced
+
+- All markup, all CSS, all JavaScript.
+- The `hidden`-class navigation model, replaced by real routes.
+- The separate `resume.html` design system, folded into one design system.
+- `resources/` as a directory convention, replaced by `public/` + `content/`.
+
+### Defects found in discovery that the rebuild must fix
+
+1. **Hotlinked portrait.** `index.html:98` loads the profile image from a Google Drive `uc?export=view` URL. This is not a supported hosting endpoint and will break.
+2. **Expiring social preview.** `og:image` and `twitter:image` (`index.html:43`, `index.html:57`) point at a signed Facebook CDN URL containing an `oe=` expiry parameter. These previews are already broken or will break.
+3. **Contradictory biography.** `index.html:277` says Tribhuvan University; `resume.html:69` says ACHS college, Lalitpur. One content source will make this impossible.
+4. **Stale facts.** "Age 21", "0 Years of Experience", "1 Happy Client", `Copyright © 2023`. Content written in 2023 and never revised.
+5. **Two visual languages.** The main site uses Karla/Inter/Kristi with a lavender palette; the resume page uses Archivo/Lato with a teal palette. Unrelated by accident, not by design.
+6. **Decorative cursor ring is unconditional.** `#circle` follows the mouse with no `prefers-reduced-motion` guard and no pointer-type check, so it is created on touch devices too.
+
+---
+
+## 2. Stack evaluation
+
+`PLAN.md` section 18 requires evaluation against seven criteria before finalizing. Candidates were scored against the plan's own hard requirements — chiefly section 26 (minimal JavaScript, progressive enhancement), section 23 (no important information JS-gated), section 33 (build must fail on invalid content), and section 19 (prefer the simplest sufficient architecture).
+
+| Criterion (section 18) | Astro + React islands | Next.js App Router | SvelteKit | Vite React SPA |
+| --- | --- | --- | --- | --- |
+| 1. Performance | **Best** — zero JS baseline; JS only on islands | Good — React runtime on every page | Very good — small runtime | Poor — everything is JS |
+| 2. Maintainability | **Best** — content layer is a framework feature | Fair — content pipeline is hand-built | Good | Poor — content + routing hand-built |
+| 3. Netlify compat | **Excellent** — first-party adapter | Excellent | Excellent | Good (static only) |
+| 4. Developer experience | Very good | **Best** | Very good | Good |
+| 5. Ecosystem maturity | Very good; React islands access the React ecosystem | **Best** | Good | Very good |
+| 6. SEO | **Best** — static HTML, nothing behind hydration | Very good | Very good | **Disqualifying** — client-rendered |
+| 7. Simplicity | **Best** for a content site | Fair — framework exceeds the problem | Good | Fair |
+
+### Why the SPA is disqualified
+
+`PLAN.md` section 23 states: *"Do NOT hide important information exclusively behind JavaScript interactions."* A client-rendered SPA puts every job, project, and skill behind hydration. This is a direct violation, not a trade-off.
+
+### Why not Next.js
+
+Next.js is the strongest option on DX and ecosystem, and it would work. It loses on two plan-specific points:
+
+- **Content validation is DIY.** Next has no content layer. Satisfying section 33 ("the build should fail clearly if required fields are missing") means hand-writing a filesystem glob, frontmatter parsing, Zod validation, error reporting, and type generation. Contentlayer, which used to fill this gap, is effectively unmaintained.
+- **Section 19 argues against it.** This site has no authentication, no database, and no dynamic data. It is a static content site with one interactive widget. A full application framework is more machinery than the problem needs.
+
+### Chosen stack
+
+| Layer | Choice | Justification |
+| --- | --- | --- |
+| Framework | **Astro** (latest stable, pinned at scaffold) | Static HTML by default; islands architecture matches "one interactive widget on an otherwise static site" precisely |
+| Interactivity | **React**, as islands only | Terminal is genuinely stateful (history, parser, output buffer). React only where interaction is real |
+| Styling | **Tailwind CSS** (latest stable) | One design system, enforced tokens, no dead CSS. Replaces two divergent hand-written stylesheets |
+| Content | **Astro Content Collections** with **Zod** schemas | Satisfies section 1 and section 33 as a built-in framework feature rather than custom infrastructure |
+| Long-form content | **MDX** | For project dossiers (section 13) and posts that need embedded components |
+| Animation | **CSS first.** A JS animation library only if a specific interaction demands it | Section 26: *"Avoid enormous animation libraries if CSS can handle the effect"* |
+| 3D | **None.** Three.js is explicitly not planned | Section 26: do not load it globally for one page. No interaction currently justifies it |
+| Unit tests | **Vitest** | Command parser, registry, date derivation, filtering (section 34) |
+| E2E tests | **Playwright** | The full visitor journey including mobile viewports (section 34) |
+| Hosting | **Netlify** primary, **GitHub Pages** mirror | See ADR-002 |
+
+Every dependency above maps to a specific numbered requirement, per Rule 4.
+
+### Verified toolchain (checked 2026-09-02)
+
+Researched rather than assumed, because three plausible-sounding assumptions turned out to be wrong.
+
+| Package | Version | Note |
+| --- | --- | --- |
+| `astro` | 7.2.10 | Astro 7 released 2026-06-22. **Requires Node ≥22.12.0** — local Node is 24.18.0, satisfied |
+| `tailwindcss` + `@tailwindcss/vite` | 4.3.3 | **Not** `@astrojs/tailwind` — see below |
+| `@astrojs/mdx` | 8.0.0 | Actively maintained |
+| `@astrojs/sitemap` | 3.7.4 | Requires `site` set in config |
+| `@astrojs/netlify` | 8.2.5 | Only needed for on-demand rendering; **not required for a static site** |
+| `actions/upload-pages-artifact` | ≥ v5 | **Must not be v4** — v4 silently stopped including dotfiles, which would drop `.nojekyll` |
+| `actions/deploy-pages` | v5.0.1 | GitHub's own docs still show v4/v5 inconsistently |
+| `actions/configure-pages` | v6.0.0 | |
+
+**Corrections to earlier assumptions in this document:**
+
+1. **`@astrojs/tailwind` is deprecated and unusable here.** Its `peerDependencies` are `astro ^3 || ^4 || ^5` — Astro 6 and 7 were never declared. It was last published 2025-03-26. Critically, it was *not* flagged with `npm deprecate`, so installing it produces **no warning** — it would simply be a peer-dependency conflict. The correct path is `tailwindcss` + `@tailwindcss/vite` registered as a Vite plugin. Note also that Tailwind 4 no longer auto-detects `tailwind.config.js`; configuration is CSS-first via `@theme`.
+2. **Zod is imported from `astro/zod`, and it is Zod 4.** Not `z` from `astro:content` (deprecated in Astro 6, slated for removal in Astro 8), and not Zod 3. Format validators are top-level: `z.email()`, `z.url()`. `docs/content-model.md` has been corrected accordingly.
+3. **Astro 7 does not install `@astrojs/markdown-remark` by default.** Astro 7 renders Markdown through a new native pipeline. If any remark/rehype plugin is needed — likely for Markdown sanitization per section 31 — that package must be installed explicitly. Flagged as a Phase 1 task rather than a surprise.
+
+Astro 6 also removed the legacy `src/content/config.ts` location and the type-based collections API outright, with no backwards compatibility. Since this project starts fresh on Astro 7, that migration cost is zero — but it does mean most Astro content-collection tutorials written before mid-2026 are wrong in ways that matter.
+
+---
+
+## 3. Rendering strategy
+
+**Static-first with selective server routes.**
+
+- Astro builds to static HTML. Every page — hero, about, experience, each project dossier, skills, education, contact — is a real HTML file with real content in it. This satisfies section 23 outright and gives section 26 a zero-JS baseline.
+- The terminal is a **React island**, hydrated client-side. It is an *alternative* navigation surface, never the only one.
+- The optional AI `ask` endpoint (section 15, Phase 7) is the single **server route**, marked `prerender = false`. It exists only on Netlify.
+
+This yields the property section 39 demands — *"Does the site remain enjoyable if JavaScript or fancy animation fails?"* — by construction: with JavaScript disabled, reader mode is fully intact and only the terminal is absent.
+
+### Two modes, one content source
+
+`PLAN.md` section 10 and Rule 7 forbid duplicating content between terminal and reader mode. Enforced structurally:
+
+```
+                    content/  (Markdown + YAML)
+                         │
+                         ▼
+              src/content.config.ts   ← Zod schemas, validated at build
+                         │
+              ┌──────────┴──────────┐
+              ▼                     ▼
+      Reader mode pages      Terminal command handlers
+      (static Astro)         (React island)
+```
+
+Both consume the same validated collection query results. Neither mode contains portfolio prose. A command handler that wanted to hardcode a fact would have nowhere to put it.
+
+---
+
+## 4. Deployment architecture
+
+Per ADR-002, Netlify is primary and GitHub Pages is a static mirror.
+
+```
+                      git push
+                         │
+            ┌────────────┴────────────┐
+            ▼                         ▼
+     Netlify build              GitHub Actions
+     (adapter enabled)          (DEPLOY_TARGET=pages)
+            │                         │
+            ▼                         ▼
+   custom domain (primary)     aashishxetri5.github.io
+   static pages + AI endpoint  static pages only
+            │                         │
+            └──────────┬──────────────┘
+                       ▼
+            canonical URL → custom domain
+```
+
+Design consequences:
+
+- **One codebase, one build command, one env flag.** `DEPLOY_TARGET=pages` omits the Netlify adapter and the server route. There is no forked implementation.
+- **The AI feature degrades on the mirror.** Its endpoint does not exist there, so the island hides the `ask` affordance. Section 16 and section 32 already require graceful fallback when AI is unavailable, so the mirror exercises a path that must work anyway.
+- **Canonical URLs always point at the custom domain**, including in the mirror's HTML, so the two deployments do not compete as duplicate content.
+- **No base-path complexity.** A `<user>.github.io` user site serves from `/`, identical to the custom domain. Asset paths need no rewriting.
+
+### Open item
+
+`SITE_URL` will be a single config constant. The custom domain is not yet known to me and is marked `TODO` in config until supplied — a one-line change, no code edits.
+
+---
+
+## 5. Project structure
+
+Adapted to Astro conventions, as section 36 permits.
+
+```
+/
+├── PLAN.md                     ← the constitution; living document (section 43)
+├── README.md
+├── package.json
+├── astro.config.mjs
+├── tsconfig.json
+├── netlify.toml
+├── .github/workflows/
+│   └── pages-mirror.yml        ← static mirror deploy
+│
+├── docs/
+│   ├── architecture.md         ← this file
+│   ├── content-model.md        ← schemas, field reference, authoring guide
+│   ├── deployment.md           ← Netlify + Pages + domain cutover
+│   └── contributing.md
+│
+├── content/                    ← AUTHOR-FACING. Deliberately outside src/
+│   ├── portfolio.yaml          ← ALL content, one section per collection (ADR-010)
+│   ├── images/                 ← avatar and project screenshots
+│   └── README.md               ← editing guide + owner to-do list
+│
+├── public/
+│   ├── images/
+│   ├── icons/
+│   └── resume/
+│
+├── src/
+│   ├── content.config.ts       ← Zod schemas: the single source of truth
+│   ├── components/             ← presentational, content-agnostic
+│   ├── layouts/
+│   ├── pages/                  ← file-based routes
+│   ├── features/
+│   │   ├── terminal/           ← registry, parser, handlers, renderer
+│   │   └── ai/                 ← optional; Phase 7
+│   ├── lib/                    ← content loader, queries, dates, snapshot
+│   └── styles/
+│
+└── tests/
+    ├── unit/
+    └── e2e/
+```
+
+`content/` sits at the repository root rather than under `src/content/`. Rationale in [ADR-003](#adr-003--content-lives-at-the-repository-root).
+
+---
+
+## 6. Cross-cutting requirements
+
+### Content validation (section 33)
+
+Zod schemas in `src/content.config.ts` run during `astro build`. A missing required field, a bad enum value, or an incoherent date range fails the build with the file and field named. A typo cannot reach production silently.
+
+One gap had to be closed by hand. `reference()` validates a reference's *shape* at schema level but resolves existence lazily in `getEntry()` — verified against `astro@7.2.10`, a skill pointing at a non-existent project logs an error and then **the build exits 0 anyway**. Since section 33 requires failure, `scripts/validate-content.mjs` runs as `prebuild` and enforces existence itself, so `npm run build` fails before Astro starts. It also catches duplicate and missing skill `id`s, which the `file()` loader would otherwise swallow silently. Full detail in `docs/content-model.md` section 10.
+
+### Accessibility (section 24, Rule 9)
+
+Treated as a build-time constraint, not a cleanup phase:
+
+- Reader mode is semantic HTML with a correct heading hierarchy — the zero-JS baseline is also the accessible baseline.
+- The terminal is keyboard-operable by nature; focus management and an ARIA live region for output are part of its initial implementation, not a follow-up.
+- The boot sequence (section 12) and the cursor ring are gated on `prefers-reduced-motion`, and the ring additionally on `pointer: fine`.
+- Visible focus states are a token in the design system, never removed.
+
+### SEO (section 23)
+
+Static HTML output; per-page title and meta description derived from content; Open Graph and Twitter tags with **local** OG images (fixing defect 2); canonical URLs; `sitemap.xml` via Astro's sitemap integration; `robots.txt`; JSON-LD `Person` and `CreativeWork` structured data generated from the same content that renders the pages.
+
+### Security (section 31)
+
+Markdown is authored by the repository owner, but it is still sanitized on render — untrusted-by-default is the cheaper habit. No secrets in client code; the AI key lives only in Netlify's environment and is read server-side. Rate limiting and prompt-injection handling are scoped to Phase 7.
+
+### Performance (section 26)
+
+Zero-JS baseline; `astro:assets` for responsive, optimized, correctly-sized images (the current site ships a 404 KB screenshot); lazy loading below the fold; no webfont for decorative display text where a system stack suffices.
+
+---
+
+## 7. Phase plan
+
+Sequence follows `PLAN.md` section 37. Each phase ends with the Rule 2 cycle: explain → identify files → identify dependencies → identify risks → implement → test → summarize → update `PLAN.md`.
+
+| Phase | Scope | Exit condition |
+| --- | --- | --- |
+| 0 | Discovery, stack evaluation, architecture, content model | **Complete** — this document + `content-model.md` |
+| 1 | Content system: schemas, loaders, validation, placeholder data | `astro build` fails loudly on invalid content; all types load |
+| 2 | Reader mode: hero, about, experience, projects, skills, education, contact, resume | Site is already genuinely useful with zero experimental features |
+| 3 | AASHISH.OS shell: boot sequence, window/panel system, mode switch | Shell works; reader mode still reachable and intact |
+| 4 | Terminal engine: registry, parser, handlers, history, tab completion | Commands work; fully keyboard-operable |
+| 5 | Project dossiers: problem, architecture, decisions, challenges, lessons | Dossiers render entirely from content schema |
+| 6 | Visual polish: micro-interactions, timeline and terminal effects | Restrained; reduced-motion honored |
+| 7 | Optional AI `ask` (Netlify function, rate limited, graceful fallback) | Site fully functional with the AI disabled |
+| 8 | ~~CMS / content admin~~ — replaced by single-file content (ADR-010) | Owner can add a job without touching source code — met by editing `content/portfolio.yaml` |
+| 9 | Testing: unit, component, E2E, a11y, mobile, build | Suites pass |
+| 10 | Performance + SEO audit — measure before optimizing | Lighthouse reviewed and acted on |
+| 11 | Deployment: Netlify + Pages mirror + custom domain | Push → build → deploy verified on both |
+| 12 | Final polish against the section 39 questions | All four section 39 questions answered yes |
+
+**Phase 2 is the critical milestone.** Its exit condition is that the portfolio is already good with every experimental feature removed. That guarantees the fallback section 37 describes, and means the OS concept is additive rather than load-bearing.
+
+---
+
+## Architecture Decision Log
+
+Format per `PLAN.md` section 43. Superseded decisions are marked, never deleted.
+
+### ADR-001 — Astro with React islands
+
+**Decision:** Build on Astro, using React only for interactive islands. Style with Tailwind CSS. Model content with Astro Content Collections and Zod.
+
+**Reason:** Astro's default output is static HTML with no JavaScript, which makes section 26 (minimal JS) and section 23 (nothing important JS-gated) the default state rather than an ongoing discipline. Content Collections provide schema-validated, type-safe content loading as a framework feature, satisfying section 1 and section 33 with no custom infrastructure. The islands model maps exactly onto this site's shape: static content everywhere, one genuinely interactive widget.
+
+**Alternatives considered:** Next.js App Router — best DX and ecosystem, but ships a React runtime to every page and would require hand-building the entire content-validation layer that Astro provides natively; section 19 argues against an application framework for a site with no auth, database, or dynamic data. SvelteKit — technically strong, no decisive advantage, and a smaller talent/ecosystem overlap. Vite React SPA — disqualified by section 23, since client rendering puts all portfolio content behind JavaScript.
+
+**Date:** 2026-09-02
+
+---
+
+### ADR-002 — Netlify primary with a GitHub Pages mirror
+
+> ✅ **STATUS: REAFFIRMED 2026-09-02, after the credit-model finding below was put to the owner.**
+>
+> Research completed *after* this ADR was first approved found that Netlify's free tier moved to a **credit-based model** for accounts created on/after 2025-09-04, which a new account for this project would land on. Effect: a ceiling of roughly **20 production deploys per month**, with overage **pausing** the site rather than throttling it, and no ability to buy credits on the Free plan. Because section 21's publish workflow makes every content save a production deploy, this ADR's own primary use case is what would consume the budget. `docs/cms.md` section 4 documented the numbers in full (removed with the CMS; `git show e805049:docs/cms.md`); section 5 there proposed superseding this ADR with GitHub Pages + Cloudflare Workers.
+>
+> **The owner elected to keep Netlify.** ADR-005 is therefore **rejected** — see below. The finding is retained here rather than deleted, per section 43, because it defines a real operating constraint that Phases 8 and 11 must design around:
+>
+> - **Development is unaffected.** Branch deploys and deploy previews cost **0 credits**. Only production deploys are metered, so iterating on `portfolio-v4` is free regardless of frequency.
+> - ~~**Phase 8 must not publish per-edit.**~~ *Moot since ADR-010 removed the CMS.* Content is now edited locally and published by an ordinary `git push`, so the owner batches edits naturally and nothing commits to production per save.
+> - **Phase 10 must treat bandwidth as a budget.** At 20 credits/GB against a 300-credit pool, image weight competes directly with deploy headroom. This sharpens section 26's optimization goals from "good practice" into a quantified constraint.
+> - **Phase 11 must configure usage alerts** so an approaching limit is visible before the site pauses.
+
+**Decision:** Netlify is the primary deployment and serves the custom domain, with serverless functions enabled. GitHub Pages continues to serve a static build of the same codebase at `aashishxetri5.github.io`. One codebase; a `DEPLOY_TARGET` env flag omits the adapter and server routes for the mirror. Canonical URLs point at the custom domain from both deployments.
+
+**Reason:** `PLAN.md` section 20 describes a Netlify workflow that does not actually exist yet — discovery found no `netlify.toml` and no `CNAME` in the working tree or in git history. Netlify is nonetheless the right primary target, because Phase 7 (AI `ask`) and Phase 8 (CMS authentication) both require server-side execution, which GitHub Pages cannot provide at all. The mirror is retained so the long-lived `aashishxetri5.github.io` URL does not break, at the cost of one workflow file. The AI feature's absence on the mirror is not a special case: section 16 and section 32 already require the site to work with AI unavailable.
+
+**Alternatives considered:** GitHub Pages only — free and zero-migration, but forecloses serverless entirely, pushing Phases 7 and 8 onto a third-party host. Netlify only — simpler, but abandons the existing public URL.
+
+**Date:** 2026-09-02
+
+---
+
+### ADR-003 — Content lives at the repository root
+
+**Decision:** Author-facing content lives in `/content/`, not `/src/content/`. Astro's `glob()` loader is pointed at it via an explicit `base`.
+
+**Reason:** section 1 calls content/code separation the most important product requirement, and section 21 wants a non-developer editing flow. Placing content inside `src/` frames it as source code. A root-level `content/` makes the boundary literal: `src/` is the engine, `content/` is the career. This also gives Phase 8's CMS a clean directory to target without exposing application source, and matches the structure section 1 itself sketches.
+
+**Alternatives considered:** `src/content/` — Astro's conventional location and marginally less configuration, but it blurs exactly the boundary the plan cares most about.
+
+**Date:** 2026-09-02
+
+---
+
+### ADR-004 — CSS-first animation, no 3D
+
+**Decision:** Implement animation with CSS transitions, keyframes, and view transitions. Introduce a JavaScript animation library only when a specific interaction cannot be expressed in CSS. Do not add Three.js.
+
+**Reason:** section 26 explicitly says to avoid large animation libraries where CSS suffices, and not to load Three.js globally for one page's benefit. Section 6's polish targets — micro-interactions, timeline reveals, terminal cursor effects, hover states — are all CSS-expressible. Rule 4 requires a reason per dependency, and none of these clear that bar yet. Section 10 also ranks performance above visual spectacle.
+
+**Alternatives considered:** Adopting a motion library upfront — rejected as speculative weight. Revisit if Phase 6 finds a concrete interaction CSS cannot express.
+
+**Date:** 2026-09-02
+
+**Amended 2026-09-25 — reveal on scroll now uses a small inline script.** The Phase 6 reveal was pure CSS (`animation-timeline: view()`), which ties opacity to scroll position. Measured in Chrome, a heading sat at 54% opacity when 80% of the way down the screen and reached full opacity only halfway up, so stopping mid-scroll left content washed out, and the owner could not see it "appear" at all. Playing an animation *once* when an element enters view is exactly the kind of interaction this ADR allows JavaScript for: CSS cannot express it in every browser. An `IntersectionObserver` inline in `BaseLayout.astro` (under 1 KB, no bundle, no island) adds the classes; `global.css` does the animating. Nothing is hidden unless the script runs, content already on screen is never hidden, and reduced motion skips it entirely. Reader mode still ships no JavaScript files.
+
+---
+
+### ADR-005 — GitHub Pages primary with Cloudflare Workers — **REJECTED**
+
+**Decision:** Rejected 2026-09-02. Netlify remains primary per ADR-002.
+
+**Proposal was:** move to GitHub Pages via a custom Actions workflow (unmetered deploys; the 10-builds/hour soft cap is explicitly waived for custom workflows) and host the CMS OAuth broker plus the Phase 7 AI endpoint on Cloudflare Workers (100,000 requests/day free). It would also have dissolved the mirror, since a custom domain on a Pages user site makes `aashishxetri5.github.io` 301-redirect to it — a real redirect rather than the canonical-tag arrangement ADR-002 needs.
+
+**Reason for rejection:** owner's decision. Netlify's server-side headers, redirects, and native functions were judged worth the metering constraint, and the mitigations recorded in ADR-002 (branch-based CMS commits, bandwidth budgeting, usage alerts) make the deploy ceiling manageable.
+
+**Retained because:** section 43 forbids discarding decision history, and this remains the documented fallback if the credit ceiling proves binding in practice. The full evaluation, including the tradeoffs GitHub Pages would have cost us, was in `docs/cms.md` section 5 — removed with the CMS (ADR-010); read it with `git show e805049:docs/cms.md`. Revisiting it later is a deployment change, not an application rewrite — ADR-001's static-first output runs on either host unmodified.
+
+**Date:** 2026-09-02
+
+---
+
+### ADR-007 — Sanitize Markdown via the legacy unified processor
+
+**Decision:** Enable `rehype-sanitize` through `markdown.rehypePlugins`, accepting the `@astrojs/markdown-remark` dependency this requires and the consequent opt-out of Astro 7's default Sätteri Markdown processor.
+
+**Reason:** section 31 mandates sanitization, and the gap was verified as real rather than assumed. A Markdown body containing `<img src=x onerror="alert(1)">` and `<script>alert(2)</script>` built successfully and produced output HTML retaining both the `onerror` attribute and the inline `<script>` tag — Astro passes raw HTML in Markdown straight through. Astro 7 exposes no configuration flag to refuse raw HTML outright, which would have been the stronger control; the accepted `markdown.*` keys are `syntaxHighlight`, `shikiConfig`, `remarkPlugins`, `rehypePlugins`, `remarkRehype`, `gfm`, `smartypants`, `processor`. Using `rehypePlugins` at all requires `@astrojs/markdown-remark`, since Astro 7 no longer installs it by default. Content is repo-authored today so present risk is low, but Phase 8 adds a browser-based CMS as a second authoring path, and a control added before it is needed is worth more than one added after an incident. Verified after the fix: the probe renders inert and MDX formatting is unaffected.
+
+**Alternatives considered:** Leaving Markdown unsanitized on the grounds that all content is repo-authored and code-reviewed — rejected because section 31 is unconditional and the vulnerability is demonstrated. Keeping Sätteri and sanitizing at render time in the component layer — rejected as more fragile, since it would have to be applied identically at every render site and would silently fail wherever someone forgot. Cost is build-time only; Phase 10 measures it.
+
+**Date:** 2026-09-03
+
+---
+
+### ADR-008 — Terminal and reader mode are separate routes
+
+**Decision:** Reader mode lives at `/` and ships zero JavaScript. The AASHISH.OS shell lives at `/os` and hydrates one React island. The mode switch (section 10) is a pair of plain anchors, not a client-side toggle. Both routes read the same content: `/os` serializes the output of `src/lib/content.ts` via `src/lib/snapshot.ts` and hands it to the island as props.
+
+**Reason:** section 10 asks for two experiences over one content source, and Rule 7 forbids duplicating content between them. The obvious implementation — an OS overlay on `/` — fails whichever way it is built. If the shell holds its own copy of the portfolio, Rule 7 is broken and every job, project and skill now exists twice. If instead reader mode renders only after hydration, section 23 is broken: "Do NOT hide important information exclusively behind JavaScript."
+
+Separate routes dissolve the conflict. `/` stays static HTML with a verified zero JavaScript islands, so the recruiter path and the crawler path are untouched by anything experimental. React's ~62 KB gzipped is charged only to visitors who choose the OS, which is what islands are for. The switch being an anchor rather than a handler means it survives a script failure, is linkable and shareable, and lands in browser history — the three properties v3's `display:none` navigation destroyed.
+
+The snapshot is the part that makes Rule 7 structural rather than a promise. A client island cannot call `getCollection()`, so without it the natural move is to type facts into command handlers. Instead handlers receive data and contain none, which unit tests assert against a deliberately fake fixture: if any fact were hardcoded, the tests would surface real values.
+
+**Alternatives considered:** Overlay on `/` — rejected above. A single route rendering both modes with CSS — same hydration problem, plus double the DOM on every page load. Client-side routing between modes — would put reader mode behind JavaScript for the sake of a transition, inverting section 26's priority of performance over spectacle.
+
+**Consequence for Phase 7:** the AI `ask` endpoint belongs to `/os`, so an AI outage cannot affect the canonical reader experience at all.
+
+**Date:** 2026-09-06
+
+---
+
+---
+
+### ADR-009 — Command side effects are declared as data, not performed by handlers
+
+**Decision:** A command handler never touches the DOM, storage, or navigation directly. It returns a `CommandResult` that may carry a declarative `effect`, and the terminal renderer performs it.
+
+**Reason:** Through Phase 3 every handler was accidentally pure — a function of `(input, snapshot)` returning lines — because nothing yet needed to change the world. `theme` broke that. It has to set `data-theme` on the root element and mirror the choice to `localStorage`.
+
+Reaching for `document` inside the handler would have worked immediately and cost nothing visible. What it would have cost is the property the registry's testability rests on: that a handler can be executed in a plain unit test with no DOM, and asserted on its return value. It would also have set the precedent, so the next side-effecting command would follow it, and the boundary would be gone before anyone noticed it had eroded.
+
+Declaring the effect as data keeps handlers pure, keeps every DOM mutation in one reviewable place, and makes `theme` testable by asserting the effect it returns rather than by mounting jsdom.
+
+A secondary rule falls out of this: the effect *reuses* the existing theme contract — `data-theme` on the root mirrored to `localStorage['theme']`, with the key absent meaning "follow the system" — shared with `ThemeToggle.astro` and the pre-paint script in `BaseLayout.astro`. Reimplementing it in the terminal would have produced a mode that disagrees with the header button, which is the same class of duplication Rule 7 forbids for content.
+
+**Note on `clear`:** it stays a separate boolean rather than an effect, because wiping the buffer is renderer-internal state, not a change outside the terminal. The distinction is the point: `effect` means "the world outside this component".
+
+**Alternatives considered:** handler-performed side effects — rejected above. A general effect-dispatch system with registered handlers — more machinery than one effect type justifies, and section 19 asks for the simplest thing that works; the union can grow when a second effect actually appears.
+
+**Date:** 2026-09-06
+
+---
+
+### ADR-006 — Sveltia CMS at /admin, with editorial workflow enforced — **SUPERSEDED by ADR-010**
+
+> Removed 2026-09-25 by owner decision. Retained as history, per section 43. The code is gone; see ADR-010.
+
+**Decision:** Accepted and implemented in Phase 8. Sveltia CMS, pinned to an exact version, served as static files from `public/admin/`, configured with `publish_mode: editorial_workflow`. Decap remains the documented fallback; the config format is shared, so switching is a one-line change.
+
+**Reason:** section 4's criteria ranked it first in `docs/cms.md` section 3 (removed; `git show e805049:docs/cms.md`) — most actively maintained in the category, MIT, free, content stays as plain Markdown and YAML in git (section 22), and the `/admin` surface is static files, so it satisfies section 4's "on my own site" requirement without depending on a hosted editor. It deliberately avoids Netlify Git Gateway, which remains deprecated even though Netlify Identity's deprecation was reversed — and Git Gateway is the half that actually commits. Its pre-1.0 status is the one real risk, and it is cheap to reverse.
+
+**The consequential part is `editorial_workflow`, and it is enforced by the build.** ADR-002 kept Netlify on a credit-based free tier: roughly 20 production deploys per month, with overage *pausing the site*. A CMS committing straight to the deploy branch makes every content save a production deploy, so around twenty edits would take the site offline. Editorial workflow turns each edit into a pull request; branch deploys and previews cost nothing. `scripts/lib/cms-drift.mjs` fails the build if the setting is removed, because the consequence is an outage rather than a style regression.
+
+**A second build gate was added rather than trusting convention.** Nothing links `config.yml` to `content.config.ts` — different languages, no shared types — so they drift silently, and both directions fail badly: a missing CMS field leaves the editor quietly incomplete while looking authoritative; a missing schema field makes the editor write frontmatter that fails the build at deploy time. The gate compares both directions and was verified against all three failure modes.
+
+**Alternatives considered:** Decap — larger ecosystem and an official Astro guide, but its auth story descends from the deprecated Git Gateway; retained as the fallback. Keystatic — disqualified on architecture, since its GitHub mode requires server-side routes and would break a static deploy. TinaCMS — needs a database, an auth provider and a GraphQL API, which is the shape section 19 tells us to avoid. Pages CMS — genuinely zero-infrastructure, but its editor lives on `app.pagescms.org`, conflicting with section 4's "on my own site". CloudCannon — no free tier.
+
+**Date:** 2026-09-06
+
+---
+
+### ADR-010 — All content in one hand-edited file; no CMS
+
+**Decision:** Supersedes ADR-006. The Sveltia CMS is removed entirely, and all portfolio content lives in one file, `content/portfolio.yaml`, with one section per collection. Each Astro collection loads its own section through a custom loader (`src/lib/portfolio-loader.ts`). Schemas, query helpers, pages and the terminal snapshot are unchanged.
+
+**Reason:** Owner decision. The CMS added an admin surface, an authentication setup with no in-repo solution, and a build gate to keep its config in step with the schemas — all to serve an editor who is a developer and the only author. For that person, "open one file, edit, save" is simpler than any admin UI, and simpler than twenty files across seven folders.
+
+PLAN.md sections 2, 4 and 21 describe a CMS as the eventual target. Their underlying requirement — *"I can update my portfolio without touching source code"* — is still met: `content/portfolio.yaml` is content, not code, and no page or component changes to add a job, project, skill or post.
+
+**What the move required, and how each was verified:**
+
+- **Identical output.** The visible text of all 10 built pages was captured before and diffed after. 6 were byte-identical, including the homepage and every real project; the other 4 differed only in deliberately reworded placeholder copy.
+- **Strict schemas.** In one large hand-edited file the likeliest mistake is a misspelled key, and the previous non-strict schemas dropped unknown keys silently. All 13 schema objects became strict, so `feautred: true` is a build error naming the entry and key rather than a project that quietly stops being featured.
+- **Whole-file validation before any collection loads:** unknown section names (with a suggestion), missing or malformed ids, duplicate ids, `body` where it would be displayed nowhere, and skill references to missing projects or jobs. Nine deliberate mistakes were introduced one at a time; all nine were caught with a message naming what and where. Reference checks are skipped while the structure is broken, so a misspelled section reports one problem instead of cascading into one per referencing skill.
+- **Sanitization preserved.** Bodies are rendered with the loader context's `renderMarkdown`, which runs the configured pipeline including the ADR-007 sanitizer. The ADR-007 XSS probe was re-run through a post body: `<img onerror>` removed, `<script>` reduced to inert text.
+- **Dev workflow.** Against a running `astro dev`, an edit to the file appears in about a second. A broken save keeps the last good content on screen and logs the error, because the loader parses everything before touching the store.
+
+**Consequences:**
+
+- The prebuild reference-integrity script is deleted. With all content in one file the loader performs that check itself, and unlike the prebuild gate it also runs under `astro dev`.
+- `@astrojs/mdx` is removed: no `.mdx` files remain. MDX component embedding in project bodies is no longer possible; nothing used it.
+- `yaml` moves to runtime dependencies, since the loader needs it during the production build.
+- ADR-002's "Phase 8 must not publish per-edit" constraint is moot.
+- Git remains the backup and history for every content change (section 22).
+
+**Alternatives considered:** keeping the CMS — rejected by the owner. JSON as the single file — rejected: no comments, so the REAL / CONFIRM / PLACEHOLDER annotations the content depends on would have nowhere to live, plus quote-and-comma noise for multi-paragraph text. One Markdown file with frontmatter — frontmatter is designed for one document, not twenty entries across seven kinds. Keeping one file per entry — rejected by the owner as spread across too many places.
+
+**Date:** 2026-09-25

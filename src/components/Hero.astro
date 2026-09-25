@@ -1,0 +1,175 @@
+---
+/**
+ * Hero.
+ *
+ * Section 0 sets the bar at 10–20 seconds to understand who this is. So the first
+ * screen is deliberately loud about identity — the name at display scale, the
+ * role as a monospace value, and a spec table of the facts a recruiter checks
+ * first — and quiet about everything else.
+ *
+ * The name is set as two lines rather than wrapped, because a controlled break
+ * at display size is a typographic decision, not something to leave to the
+ * viewport.
+ */
+import { Image } from 'astro:assets';
+
+import type { ProfileEntry } from '../lib/content';
+
+interface Props {
+  profile: ProfileEntry;
+}
+
+const { data } = Astro.props.profile;
+
+/* Split on the last space so a middle name stays with the first line. */
+const lastSpace = data.name.lastIndexOf(' ');
+const nameLines =
+  lastSpace === -1
+    ? [data.name]
+    : [data.name.slice(0, lastSpace), data.name.slice(lastSpace + 1)];
+
+const specs = [
+  { key: 'ROLE', value: data.headline },
+  { key: 'BASE', value: data.location },
+  { key: 'MAIL', value: data.email, href: `mailto:${data.email}` },
+];
+---
+
+<section id="top" class="spotlight relative" data-spotlight>
+  <div class="grid gap-10 py-14 sm:py-20 lg:grid-cols-[1fr_auto] lg:items-end lg:gap-16">
+    <div class="min-w-0">
+      <p class="spec-label mb-6 flex items-center gap-2">
+        <span class="text-accent">$</span>
+        <span>whoami</span>
+      </p>
+
+      <h1 class="display-xl">
+        {
+          nameLines.map((line, index) => (
+            <span class="block">
+              {line}
+              {index === nameLines.length - 1 && (
+                <span class="caret ml-2" aria-hidden="true" />
+              )}
+            </span>
+          ))
+        }
+      </h1>
+
+      <p class="mt-8 max-w-lg text-lg text-muted">{data.shortBio}</p>
+
+      <!-- Spec table: the facts, as data rather than prose. -->
+      <dl class="mt-10 max-w-md border-t border-line">
+        {
+          specs.map((spec) => (
+            <div class="flex items-baseline gap-4 border-b border-line py-2.5">
+              <dt class="spec-label w-12 shrink-0">{spec.key}</dt>
+              <dd class="spec-value min-w-0 truncate text-ink">
+                {spec.href ? (
+                  <a
+                    href={spec.href}
+                    class="underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+                  >
+                    {spec.value}
+                  </a>
+                ) : (
+                  spec.value
+                )}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <div class="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3">
+        <a
+          href="#projects"
+          class="group inline-flex items-center gap-2 border border-accent bg-accent px-5 py-2.5 font-mono text-sm font-medium tracking-wide text-bg uppercase transition-colors hover:bg-accent-hover active:translate-y-px"
+        >
+          View work
+          <span
+            class="transition-transform group-hover:translate-x-1"
+            aria-hidden="true">→</span
+          >
+        </a>
+
+        {/*
+          Section 29: easy to find, never a puzzle. Conditional because no PDF exists
+          in the repo yet, and a dead link would violate section 32.
+        */}
+        {
+          data.resume && (
+            <a
+              href={`/${data.resume.file}`}
+              class="border border-line-strong px-5 py-2.5 font-mono text-sm tracking-wide uppercase transition-colors hover:border-accent hover:text-accent active:translate-y-px"
+            >
+              {data.resume.label}
+            </a>
+          )
+        }
+
+        <a
+          href="#contact"
+          class="font-mono text-sm tracking-wide text-muted uppercase underline decoration-line-strong underline-offset-4 transition-colors hover:text-accent hover:decoration-accent"
+        >
+          Contact
+        </a>
+      </div>
+    </div>
+
+    <!-- Portrait, framed with crop marks rather than a rounded card. -->
+    <div class="relative w-fit">
+      <Image
+        src={data.avatar}
+        alt={`${data.name}, ${data.headline}`}
+        width={280}
+        height={340}
+        loading="eager"
+        class="w-40 border border-line object-cover grayscale transition-all duration-500 hover:grayscale-0 sm:w-52 lg:w-56"
+      />
+      <span
+        class="absolute -top-1 -left-1 size-3 border-t border-l border-accent"
+        aria-hidden="true"></span>
+      <span
+        class="absolute -right-1 -bottom-1 size-3 border-r border-b border-accent"
+        aria-hidden="true"></span>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  /*
+   * Feeds the cursor-reactive wash. Gated on a fine pointer and no
+   * reduced-motion preference, so touch devices and motion-sensitive users get
+   * nothing — v3 shipped a cursor ring with neither guard.
+   *
+   * Writes CSS custom properties instead of styles, and only inside
+   * requestAnimationFrame, so the browser does the compositing.
+   */
+  (function () {
+    var target = document.querySelector('[data-spotlight]');
+    if (!target) return;
+
+    var fine = window.matchMedia('(pointer: fine)').matches;
+    var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!fine || still) return;
+
+    var queued = false;
+    var x = 0;
+    var y = 0;
+
+    target.addEventListener('pointermove', function (event) {
+      var box = target.getBoundingClientRect();
+      x = ((event.clientX - box.left) / box.width) * 100;
+      y = ((event.clientY - box.top) / box.height) * 100;
+
+      if (queued) return;
+      queued = true;
+      requestAnimationFrame(function () {
+        target.style.setProperty('--mx', x + '%');
+        target.style.setProperty('--my', y + '%');
+        queued = false;
+      });
+    });
+  })();
+</script>

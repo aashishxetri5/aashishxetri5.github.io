@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://aashishxetri5.github.io/sitemap-index.xml

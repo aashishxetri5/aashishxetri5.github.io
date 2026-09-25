@@ -1,0 +1,32 @@
+---
+/**
+ * Numbered dossier section.
+ *
+ * Reuses the reader-mode section language so a project page reads as part of
+ * the same document system rather than a differently-designed sub-site.
+ * Numbering is passed in rather than derived from position, for the same reason
+ * it is on the homepage: a section that omits itself must not renumber the ones
+ * after it.
+ */
+interface Props {
+  index: number;
+  label: string;
+  /** Marker prefix used by list children, shown in the gutter for context. */
+  count?: number | undefined;
+}
+
+const { index, label, count } = Astro.props;
+const ordinal = String(index).padStart(2, '0');
+---
+
+<section class="reveal border-t border-line pt-6">
+  <div class="mb-4 flex items-baseline gap-3">
+    <span class="spec-label text-accent">{ordinal}</span>
+    <h2 class="spec-label text-ink">{label}</h2>
+    {count !== undefined && (
+      <span class="spec-label ml-auto">{String(count).padStart(2, '0')}</span>
+    )}
+  </div>
+
+  <slot />
+</section>

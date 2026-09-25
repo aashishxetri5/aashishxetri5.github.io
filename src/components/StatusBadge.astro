@@ -1,0 +1,37 @@
+---
+/**
+ * Project status (section 7).
+ *
+ * One lookup table drives colour and copy, so adding a status to the schema
+ * means editing this map rather than hunting conditionals through every row
+ * and dossier.
+ *
+ * Rendered as a bracketed monospace token rather than a rounded pill — a pill
+ * is decoration, `[ACTIVE]` is a value in a spec sheet.
+ */
+import type { ProjectStatus } from '../lib/content';
+
+interface Props {
+  status: ProjectStatus;
+}
+
+const { status } = Astro.props;
+
+const STATUS: Record<ProjectStatus, { label: string; classes: string }> = {
+  active: { label: 'active', classes: 'text-live border-live/40' },
+  completed: { label: 'shipped', classes: 'text-muted border-line-strong' },
+  experimental: { label: 'experimental', classes: 'text-accent border-accent/40' },
+  archived: { label: 'archived', classes: 'text-faint border-line' },
+};
+
+const { label, classes } = STATUS[status];
+---
+
+<span
+  class:list={[
+    'inline-block border px-1.5 py-px font-mono text-[0.65rem] tracking-[0.12em] uppercase',
+    classes,
+  ]}
+>
+  {label}
+</span>

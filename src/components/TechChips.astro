@@ -1,0 +1,34 @@
+---
+/**
+ * Technology list, as monospace tokens separated by hairline borders rather
+ * than as rounded pills. Renders nothing at all when empty.
+ */
+interface Props {
+  items: readonly string[];
+  /** Caps the visible count and summarises the rest. */
+  max?: number | undefined;
+  label?: string | undefined;
+}
+
+const { items, max, label } = Astro.props;
+
+const visible = max ? items.slice(0, max) : items;
+const hidden = items.length - visible.length;
+---
+
+{
+  items.length > 0 && (
+    <ul class="flex flex-wrap gap-x-2 gap-y-1.5" aria-label={label ?? 'Technologies'}>
+      {visible.map((item) => (
+        <li class="border border-line px-2 py-0.5 font-mono text-[0.7rem] tracking-wide text-muted uppercase">
+          {item}
+        </li>
+      ))}
+      {hidden > 0 && (
+        <li class="px-1 py-0.5 font-mono text-[0.7rem] text-faint">
+          +{hidden}
+        </li>
+      )}
+    </ul>
+  )
+}

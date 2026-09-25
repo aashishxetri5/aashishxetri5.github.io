@@ -1,0 +1,88 @@
+---
+/**
+ * Project as a directory row, replacing the card grid.
+ *
+ * A numbered listing reads as a manifest of work rather than a set of
+ * marketing tiles, and it scales far better: twenty projects as cards is a
+ * wall, twenty as rows is a table you can scan.
+ *
+ * The screenshot is a hover-revealed preview on wide screens rather than a
+ * permanent thumbnail. That keeps the list scannable, and it means the images
+ * genuinely earn their place instead of padding every row.
+ *
+ * The row link is a positioned overlay because nesting anchors is invalid HTML
+ * — this keeps one large touch target (section 25) without trapping the external
+ * links inside it.
+ */
+import { Image } from 'astro:assets';
+
+import type { ProjectEntry } from '../lib/content';
+import StatusBadge from './StatusBadge.astro';
+
+interface Props {
+  project: ProjectEntry;
+  index: number;
+}
+
+const { project, index } = Astro.props;
+const { data } = project;
+
+const ordinal = String(index).padStart(3, '0');
+---
+
+<li
+  class="group reveal-item relative border-b border-line transition-colors before:absolute before:top-0 before:left-0 before:h-full before:w-0.5 before:origin-top before:scale-y-0 before:bg-accent before:transition-transform before:duration-300 hover:bg-raised/50 hover:before:scale-y-100"
+>
+  <div class="flex items-start gap-4 py-5 sm:gap-6">
+    <!-- Index: the spine of the listing. -->
+    <span
+      class="mt-1 shrink-0 font-mono text-xs text-line-strong transition-colors group-hover:text-accent"
+      aria-hidden="true"
+    >
+      {ordinal}
+    </span>
+
+    <div class="min-w-0 flex-1">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-2">
+        <h3 class="text-lg font-bold transition-colors group-hover:text-accent">
+          <a href={`/projects/${project.id}`}>
+            <span class="absolute inset-0" aria-hidden="true"></span>
+            {data.name}
+          </a>
+        </h3>
+        <StatusBadge status={data.status} />
+      </div>
+
+      <p class="mt-1.5 max-w-xl text-sm text-muted">{data.shortDescription}</p>
+
+      <p class="spec-label mt-3 truncate">
+        {data.technologies.join(' · ')}
+      </p>
+    </div>
+
+    <!-- Preview: wide screens only, revealed on hover. -->
+    {
+      data.image && (
+        <div
+          class="relative hidden w-40 shrink-0 overflow-hidden border border-line opacity-0 transition-opacity duration-300 group-hover:opacity-100 lg:block"
+        >
+          <Image
+            src={data.image}
+            alt=""
+            width={320}
+            height={180}
+            loading="lazy"
+            class="aspect-16/9 w-full object-cover"
+          />
+        </div>
+      )
+    }
+
+    <span
+      class="mt-1 shrink-0 font-mono text-muted transition-all group-hover:translate-x-1 group-hover:text-accent"
+      aria-hidden="true"
+    >
+      →
+    </span>
+  </div>
+</li>

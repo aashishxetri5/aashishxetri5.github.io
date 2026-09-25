@@ -1,0 +1,81 @@
+---
+/**
+ * Architecture as a flow diagram (section 13).
+ *
+ * The schema stores `architecture` as an ordered string[], and Phase 2 rendered
+ * it as a stack of boxed lines. That is a list wearing a diagram's clothes: it
+ * shows the steps but not that they are *connected*, which is the only thing a
+ * reader actually wants from an architecture section.
+ *
+ * This renders real nodes joined by real connectors, so sequence is visible
+ * rather than implied by vertical order. Pure CSS — ADR-004 keeps animation and
+ * drawing in CSS unless something genuinely cannot be expressed there, and a
+ * vertical flow can.
+ *
+ * Semantically it stays an ordered list: the connectors are decoration, the
+ * meaning is "these steps, in this order", and a screen reader gets exactly
+ * that without any ASCII art read aloud.
+ */
+interface Props {
+  steps: string[];
+}
+
+const { steps } = Astro.props;
+---
+
+<ol class="arch-flow" role="list">
+  {
+    steps.map((step, index) => (
+      <li class="arch-node reveal-item">
+        <div class="flex items-start gap-3 border border-line bg-surface px-3 py-2.5">
+          <span class="shrink-0 font-mono text-xs text-accent" aria-hidden="true">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <p class="min-w-0 font-mono text-sm text-ink">{step}</p>
+        </div>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .arch-flow {
+    max-width: 42rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /*
+   * The connector is drawn on the node rather than between nodes, so the
+   * markup stays a plain <ol> with nothing inserted purely to be decorative.
+   */
+  .arch-node + .arch-node {
+    margin-top: 1.75rem;
+  }
+
+  .arch-node + .arch-node::before {
+    content: '';
+    position: absolute;
+    left: 1.45rem;
+    width: 1px;
+    height: 1.75rem;
+    margin-top: -1.75rem;
+    background-color: var(--color-line-strong);
+  }
+
+  .arch-node {
+    position: relative;
+  }
+
+  /* Arrowhead, sitting at the bottom of the connector. */
+  .arch-node + .arch-node::after {
+    content: '';
+    position: absolute;
+    left: 1.2rem;
+    margin-top: -0.5rem;
+    border-left: 0.3rem solid transparent;
+    border-right: 0.3rem solid transparent;
+    border-top: 0.4rem solid var(--color-line-strong);
+  }
+</style>
