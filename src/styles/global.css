@@ -285,11 +285,24 @@ body::after {
  * is no flash of hidden content above the fold, and with JavaScript disabled,
  * or reduced motion requested, every element is simply visible.
  *
- * Rows that come into view together get a short delay each (70ms, capped), so
+ * Rows that come into view together get a short delay each (90ms, capped), so
  * they follow one another rather than landing as a block. The delay is
  * relative to the batch, not to position in the list — a long list never has
  * items still waiting out a delay after they are on screen.
  */
+/*
+ * Timing, in one place. The easing matters as much as the duration: a steep
+ * curve front-loads the motion, so the original 800ms with
+ * cubic-bezier(0.16, 1, 0.3, 1) was 83% visible after only 200ms and read as a
+ * pop. This gentler curve over a longer duration takes about twice as long to
+ * become clearly visible, which the owner asked for as "slightly slower".
+ */
+:root {
+  --reveal-duration: 1000ms;
+  --reveal-item-duration: 850ms;
+  --reveal-ease: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
 @keyframes reveal-in {
   from {
     opacity: 0;
@@ -318,11 +331,11 @@ html.reveal-ready :is(.reveal, .reveal-item):not(.is-revealed, .was-visible) {
 }
 
 html.reveal-ready .reveal.is-revealed {
-  animation: reveal-in 800ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms) both;
+  animation: reveal-in var(--reveal-duration) var(--reveal-ease) var(--reveal-delay, 0ms) both;
 }
 
 html.reveal-ready .reveal-item.is-revealed {
-  animation: reveal-in-item 650ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms) both;
+  animation: reveal-in-item var(--reveal-item-duration) var(--reveal-ease) var(--reveal-delay, 0ms) both;
 }
 
 @keyframes caret-blink {

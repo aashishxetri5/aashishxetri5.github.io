@@ -173,7 +173,7 @@ const personSchema = {
               var el = entries[j].target;
               // Items arriving together follow one another; capped so a
               // large batch never keeps anything waiting long.
-              el.style.setProperty('--reveal-delay', Math.min(order, 5) * 70 + 'ms');
+              el.style.setProperty('--reveal-delay', Math.min(order, 5) * 90 + 'ms');
               el.classList.add('is-revealed');
               observer.unobserve(el);
               order += 1;
