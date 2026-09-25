@@ -146,6 +146,25 @@
   }
 
   /* section 24: focus-visible only, so the ring never gets removed for aesthetics. */
+  /*
+   * Cursors that say what a click will do. Tailwind 4's preflight
+   * deliberately sets buttons to the default arrow, so the theme toggle and
+   * the boot screen's Skip showed an arrow while every link showed a hand.
+   * Anything clickable that is not a link gets the hand back; anything
+   * disabled says so.
+   */
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']),
+  summary,
+  select {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 3px;

@@ -16,7 +16,8 @@
  * Still no percentages, which section 8 rejects as invented precision. The
  * "used in" evidence for each skill is shown on the project pages ("Skills
  * evidenced here") and by the terminal's `skills` command, and kept here as a
- * hover title.
+ * hover title — with the help cursor, so a visitor can tell there is something
+ * to hover. Skills with no evidence get neither.
  */
 import type { ResolvedSkill, SkillGroup } from '../lib/content';
 
@@ -62,7 +63,13 @@ const evidenceOf = (skill: ResolvedSkill) => {
         <p class="spec-label mb-4">Core stack</p>
         <ul class="flex flex-wrap items-baseline gap-x-8 gap-y-2">
           {core.map((skill) => (
-            <li class="text-2xl font-bold tracking-tight sm:text-3xl" title={evidenceOf(skill)}>
+            <li
+              class:list={[
+                'text-2xl font-bold tracking-tight sm:text-3xl',
+                evidenceOf(skill) && 'cursor-help',
+              ]}
+              title={evidenceOf(skill)}
+            >
               {skill.name}
             </li>
           ))}
@@ -79,7 +86,10 @@ const evidenceOf = (skill: ResolvedSkill) => {
           <dd>
             <ul class="flex flex-wrap items-baseline gap-x-6 gap-y-2 text-base sm:text-lg">
               {byLevel(group.skills).map((skill) => (
-                <li class={LEVEL_STYLE[skill.level]} title={evidenceOf(skill)}>
+                <li
+                  class:list={[LEVEL_STYLE[skill.level], evidenceOf(skill) && 'cursor-help']}
+                  title={evidenceOf(skill)}
+                >
                   {skill.name}
                   <span class="sr-only">, {skill.level}</span>
                   {skill.years !== undefined && skill.years > 0 && (

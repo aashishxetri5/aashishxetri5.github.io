@@ -354,13 +354,16 @@ export default function Terminal({ snapshot }: Props) {
 
   return (
     <div
-      className="flex h-full min-h-0 flex-col font-mono text-sm"
+      className="flex h-full min-h-0 cursor-text flex-col font-mono text-sm"
       onClick={(event) => {
-        // Focus the prompt when clicking dead space, but never steal a click
-        // meant for a link inside the output.
-        if (!(event.target instanceof HTMLElement) || !event.target.closest('a')) {
-          inputRef.current?.focus();
-        }
+        // A click anywhere puts you at the prompt, which is why the whole
+        // terminal shows the text cursor. Two exceptions: a click meant for a
+        // link, and the click that ends a drag-to-select. Focusing the input
+        // moves the selection into it, so without the second check you could
+        // never copy anything out of the terminal.
+        if (event.target instanceof HTMLElement && event.target.closest('a')) return;
+        if (window.getSelection()?.toString()) return;
+        inputRef.current?.focus();
       }}
     >
       <div
