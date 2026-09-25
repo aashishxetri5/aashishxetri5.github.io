@@ -1,0 +1,110 @@
+---
+/**
+ * Skills as a stack sheet (section 8).
+ *
+ * Replaces a 17-row table that ran about four screens tall. Two things were
+ * wrong with it: the evidence column was empty on six rows, including Spring
+ * and Hibernate, so it undersold exactly the skills it should sell; and the
+ * level word repeated in capitals on every row, which read like a form.
+ *
+ * Now: the core stack large, then one line per category. Level is carried by
+ * typography — colour, weight, and a dashed underline for "learning" — with a
+ * key underneath, so it reads at a glance without repeating a label per skill.
+ * It never relies on colour alone: weight and underline differ too, and every
+ * skill carries its level as screen-reader text.
+ *
+ * Still no percentages, which section 8 rejects as invented precision. The
+ * "used in" evidence for each skill is shown on the project pages ("Skills
+ * evidenced here") and by the terminal's `skills` command, and kept here as a
+ * hover title.
+ */
+import type { ResolvedSkill, SkillGroup } from '../lib/content';
+
+interface Props {
+  groups: SkillGroup[];
+}
+
+const { groups } = Astro.props;
+
+type Level = ResolvedSkill['level'];
+
+const LEVELS: readonly Level[] = ['advanced', 'proficient', 'working', 'learning'];
+
+const LEVEL_STYLE: Record<Level, string> = {
+  advanced: 'font-semibold text-accent',
+  proficient: 'font-medium text-ink',
+  working: 'text-muted',
+  learning:
+    'text-muted underline decoration-line-strong decoration-dashed underline-offset-[5px]',
+};
+
+const rank = (level: Level) => LEVELS.indexOf(level);
+
+/* Strongest first. Array.sort is stable, so ties keep the content order. */
+const byLevel = (skills: ResolvedSkill[]) =>
+  [...skills].sort((a, b) => rank(a.level) - rank(b.level));
+
+const core = byLevel(groups.flatMap((group) => group.skills).filter((skill) => skill.featured));
+
+const evidenceOf = (skill: ResolvedSkill) => {
+  const names = [
+    ...skill.evidence.projects.map((project) => project.name),
+    ...skill.evidence.companies.map((company) => company.company),
+  ];
+  return names.length > 0 ? `Used in ${names.join(', ')}` : undefined;
+};
+---
+
+<div>
+  {
+    core.length > 0 && (
+      <div class="reveal-item border-b border-line pb-8">
+        <p class="spec-label mb-4">Core stack</p>
+        <ul class="flex flex-wrap items-baseline gap-x-8 gap-y-2">
+          {core.map((skill) => (
+            <li class="text-2xl font-bold tracking-tight sm:text-3xl" title={evidenceOf(skill)}>
+              {skill.name}
+            </li>
+          ))}
+        </ul>
+      </div>
+    )
+  }
+
+  <dl>
+    {
+      groups.map((group) => (
+        <div class="reveal-item grid gap-2 border-b border-line py-5 sm:grid-cols-[9rem_1fr] sm:items-baseline sm:gap-6">
+          <dt class="spec-label">{group.category}</dt>
+          <dd>
+            <ul class="flex flex-wrap items-baseline gap-x-6 gap-y-2 text-base sm:text-lg">
+              {byLevel(group.skills).map((skill) => (
+                <li class={LEVEL_STYLE[skill.level]} title={evidenceOf(skill)}>
+                  {skill.name}
+                  <span class="sr-only">, {skill.level}</span>
+                  {skill.years !== undefined && skill.years > 0 && (
+                    <span class="ml-1.5 font-mono text-xs font-normal text-faint no-underline">
+                      {skill.years}y
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </dd>
+        </div>
+      ))
+    }
+  </dl>
+
+  <!-- Key. Hidden from screen readers, which get each skill's level inline. -->
+  <ul class="mt-6 flex flex-wrap gap-x-6 gap-y-2" aria-hidden="true">
+    {
+      LEVELS.map((level) => (
+        <li class="flex items-baseline gap-2">
+          <span class:list={['text-sm', LEVEL_STYLE[level]]}>Aa</span>
+          <span class="spec-label">{level}</span>
+        </li>
+      ))
+    }
+  </ul>
+</div>

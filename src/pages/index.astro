@@ -20,7 +20,7 @@ import ProjectRow from '../components/ProjectRow.astro';
 import Section from '../components/Section.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
-import SkillsEvidence from '../components/SkillsEvidence.astro';
+import SkillsStack from '../components/SkillsStack.astro';
 import StatusBar from '../components/StatusBar.astro';
 import WritingList from '../components/WritingList.astro';
 import BaseLayout from '../layouts/BaseLayout.astro';
@@ -108,9 +108,8 @@ const [profile, experience, projects, skillGroups, education, achievements, post
           index={4}
           label="Skills"
           heading="What I work with"
-          lede="Listed with where I've actually used them, rather than as a percentage."
         >
-          <SkillsEvidence groups={skillGroups} />
+          <SkillsStack groups={skillGroups} />
         </Section>
       )
     }
