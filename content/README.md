@@ -1,139 +1,107 @@
 # Content
 
-This directory holds every portfolio fact. Nothing here is application code, and no fact lives outside here — that is `PLAN.md` §1, enforced by the schemas in `src/content.config.ts`.
+**Everything on the site comes from one file: [`portfolio.yaml`](portfolio.yaml).**
 
-**Authoring guide and full field reference:** `docs/content-model.md`
+Your name, bio, jobs, projects, skills, education, achievements and posts are all in it. Nothing else needs to change to update the site. Images live beside it in `images/`.
 
----
+## How to edit
 
-## ⚠️ Status of what's currently in here
+1. `npm run dev` and open <http://localhost:4321>
+2. Edit `content/portfolio.yaml` and save — the page updates in about a second
+3. Commit and push when you're happy
 
-Phase 1 populated this tree per `PLAN.md` Rule 3: real content where real content exists, unmistakable placeholders where it does not. **Nothing invented is presented as fact.**
+If you save a mistake, the page keeps showing the last good version and the terminal running `npm run dev` says what's wrong and where. Fix it, save, and it recovers.
 
-### Pre-launch blockers
+Before pushing, `npm run build` must pass. It fails on any mistake rather than letting it reach the live site.
 
-| # | Item | Action |
-| --- | --- | --- |
-| 1 | **No résumé PDF.** v3 linked a Google Drive file; nothing is in the repo | Drop a PDF into `public/resume/`, then add the `resume:` block to `profile.yaml` (the commented example is already there). §29 wants view + download easy to find |
-| 2 | **Education institution is unconfirmed** | v3 contradicted itself — see below |
-| 3 | **Three placeholder experience/project entries** | Replace or delete |
-| 4 | **Custom domain not set** | Owner has one; `site.config.mjs` currently points at the `github.io` origin |
+## The rules that matter
 
-### Files that are entirely placeholder
+**Every list entry needs an `id:`** — lowercase letters, numbers and dashes, e.g. `my-project`. For projects and posts it's the URL (`/projects/my-project`). Skills refer to projects and jobs by their id.
 
-Delete or replace all of these. Each is named `placeholder-*` and says so in its own frontmatter, so none can be mistaken for fact.
+**Quote dates.** `"2023"` or `"2023-04-01"`. Unquoted, YAML reads `2023` as a number and the build stops you.
 
-- `experience/placeholder-current-role.md` — exercises the `current: true` state and the derived `2026 — Present` label
-- `experience/placeholder-past-role.md` — exercises a closed date range
-- `projects/placeholder-active-project.mdx` — exercises the full §13 dossier at maximum depth
-- `projects/placeholder-experimental.mdx` — exercises a *minimal* project, proving thin entries stay presentable
-- `projects/placeholder-archived.mdx` — exercises `archived`, which is excluded from default listings
-- `posts/placeholder-local-post.mdx` — exercises a locally-rendered post rather than an outbound link
+**`body: |` is Markdown**, shown on a project's or post's own page. Everywhere else, use `summary:`.
 
-They exist so every UI state has something to render before your real content arrives. Deleting them all is safe.
+**Misspellings are errors, not ignored.** Type `feautred: true` and the build tells you `Unrecognized key: "feautred"` on that entry. Type `projetcs:` and it asks whether you meant `projects:`.
 
-### Real content, migrated from the v3 site
+## Common edits
 
-These are your own words and your own facts, carried over:
-
-- `projects/pustakalaya.mdx`, `projects/image-extractor.mdx`, `projects/buzzwire.mdx`
-- `posts/*.mdx` — the three Hashnode posts
-- `experience/techtrix-hackathon.md`
-- `skills/skills.yaml` — every entry, from the v3 skills section and résumé page
-- `profile/profile.yaml` — name, location, email, socials, avatar image
-
-### Needs your confirmation
-
-- **`profile.yaml` → `headline`** — currently "Backend Developer", your own v3 self-description from 2023. Still accurate?
-- **`profile.yaml` → `availability.open`** — v3 said `#OpenToWork` in 2023.
-- **`profile.yaml` → `shortBio` / `longBio`** — adapted from your v3 copy with stale facts removed.
-- **`education/undergraduate.md`** — v3 contradicted itself: `index.html` said *Tribhuvan University*, `resume.html` said *ACHS college, Lalitpur*. These are probably compatible (ACHS is TU-affiliated) but Rule 3 forbids me resolving it by assumption. **The dates are placeholders** — v3 said "currently pursuing" in 2023 and gave no years.
-- **`posts/renaming-uploaded-file-with-java-servlet.mdx`** — v3 dated this Feb 3, 2022, i.e. *after* the Feb 1 post it follows on from. Kept as published; correct if v3 was wrong.
-
-### Deliberately dropped from v3
-
-Not migrated, and not by oversight:
-
-- **"Age 21", "0 Years of Experience", "1 Happy Client", `© 2023`** — stale or unverifiable. Age is not in the schema at all: it goes stale annually and is weak signal.
-- **"Fullstack Web Developer / Self Learning / 2018–Present"** and **"Freelancing / Self Employed / 2023–Present"** — whether these are still current in 2026 is unknown, and guessing would violate Rule 3. Re-add them yourself if they still apply.
-- **Facebook profile link** — the `socials` schema covers GitHub, LinkedIn, website, Hashnode and X. Add a field if you want Facebook back.
-- **`resources/Images/OtherImgs/*`** and the three `*View.*` project screenshots — unused. Recoverable from tag `v3.0` or the `main` branch if ever wanted.
-
-### Deliberately empty
-
-`achievements/` has no entries. This is intentional: §8's derived-visibility rule needs an empty collection to prove the section omits itself rather than rendering a bare heading — the exact bug v3 shipped, where `resume.html` had a permanently empty certifications block. Astro logs a harmless warning about it; see `docs/content-model.md` §10.
-
----
-
-## Quick reference
-
-```
-content/
-├── profile/profile.yaml        exactly one entry
-├── experience/*.md             one file per role
-├── projects/*.mdx              one file per project (+ images/)
-├── skills/skills.yaml          one array, each entry needs an `id`
-├── education/*.md              one file per qualification
-├── achievements/               currently empty
-└── posts/*.mdx                 external link or local body
-```
-
-**Always quote dates.** In YAML an unquoted `2023` is the *number* 2023, which resolves to 1970. Write `"2023"` or `"2023-04-01"`. The build catches this, but quoting avoids the round trip.
-
-**Check your work before pushing:**
-
-```bash
-npm run validate:content   # cross-collection references
-npm run build              # full schema validation; runs the above first
-```
-
-Both must pass. A typo in a field name or a broken reference fails the build rather than reaching the site.
-
----
-
-## Open content gap: project dossiers are empty
-
-Phase 5 built the dossier presentation — problem, highlights, architecture flow
-diagram, engineering decisions, challenges, lessons — but **none of your three
-real projects has any of those fields authored**:
-
-| Project | Dossier fields |
-| --- | --- |
-| `pustakalaya` | none |
-| `image-extractor` | none |
-| `buzzwire` | none |
-| `placeholder-active-project` | all (as a worked example) |
-
-The consequence is visible: those pages currently show only "Skills evidenced
-here", derived automatically from `skills.yaml`. The richest part of the site is
-built and empty.
-
-This is deliberate on my side. PLAN.md Rule 3 forbids inventing achievements,
-technologies, or engineering decisions — I cannot write your reasoning for you,
-and a plausible-sounding invented rationale is worse than an absent one.
-
-**To fill one in**, open `content/projects/<name>.mdx` and add any of:
+**New job** — add under `experience:`. Mark the one you're in now with `current: true` (and no `endDate`); it's shown first as "2026 — Present" automatically.
 
 ```yaml
-problem: What problem this solved, and for whom.
-highlights:
-  - A capability worth pointing at.
-architecture:
-  - Ordered steps. These render as a connected flow diagram, so write them
-    as a sequence rather than an unordered list of parts.
-decisions:
-  - decision: The choice you made.
-    reason: Why, and what you traded away.
-challenges:
-  - Something that was genuinely hard.
-lessons:
-  - What you would do differently.
+  - id: acme-corp
+    company: Acme Corp
+    role: Backend Engineer
+    employmentType: full-time
+    startDate: "2026-03-01"
+    current: true
+    summary: One line about what you do there.
+    technologies: [Java, Spring Boot, PostgreSQL]
 ```
 
-Every field is optional and each section omits itself when empty, so partial is
-fine — one good `problem` plus two `decisions` already makes a page worth
-reading. `placeholder-active-project` exists as a worked example of the full
-shape; delete it once your own projects are filled in.
+**New project** — add under `projects:`. The minimum is `id`, `name`, `shortDescription`, `status`, `type` and `technologies`. Its page, its row on the homepage and its terminal entry all appear on their own.
 
-Ordering note: `architecture` renders as a numbered flow with connectors, so
-sequence matters. `decisions` renders as D01, D02 in file order.
+**Claim a skill** — add under `skills:` and list where you used it. Those projects then show the skill under "Skills evidenced here" — you only write the link once.
+
+```yaml
+  - id: spring-boot
+    name: Spring Boot
+    category: Backend
+    level: proficient
+    projects: [pustakalaya]
+    companies: [acme-corp]
+```
+
+**Résumé** — put a PDF in `public/resume/`, then uncomment the `resume:` block under `profile:`. The View and Download buttons appear once it's there.
+
+Field-by-field reference: [`docs/content-model.md`](../docs/content-model.md).
+
+---
+
+## Your to-do list
+
+Everything in the file is either **REAL** (migrated from your v3 site — your own words), **CONFIRM** (real but possibly out of date), or **PLACEHOLDER** (not real). Comments in the file mark each one. Nothing invented is presented as fact.
+
+### Before launch
+
+- [ ] **Résumé PDF** — none exists yet, so the résumé buttons are hidden
+- [ ] **Education** — v3 said *Tribhuvan University* in one place and *ACHS college, Lalitpur* in another. Confirm the institution; the dates are placeholders
+- [ ] **Delete or replace every `PLACEHOLDER` entry** — two jobs, three projects, one post. They exist so every layout has something to show. Deleting them all is safe
+- [ ] **Custom domain** — `site.config.mjs` still points at `aashishxetri5.github.io`
+
+### Check these are still true
+
+- [ ] `headline: Backend Developer` — your self-description from 2023
+- [ ] `availability.open: true` — v3 said `#OpenToWork` in 2023
+- [ ] `shortBio` / `longBio` — adapted from your v3 copy, stale facts removed
+- [ ] The "Renaming uploaded file" post is dated Feb 3, 2022 — *after* the Feb 1 post it follows. Kept as v3 had it
+
+### ⭐ Highest-value edit on the site
+
+**Your three real projects have no write-up.** Pustakalaya, Image Extractor and Buzzwire show only a description and the skills list, while the project pages can show much more:
+
+```yaml
+    problem: What problem this solved, and for whom.
+    architecture:            # ordered steps, drawn as a connected flow diagram
+      - The browser sends ...
+      - A Servlet validates ...
+      - JDBC writes to MySQL ...
+    decisions:
+      - decision: The choice you made.
+        reason: Why, and what you gave up.
+    challenges:
+      - Something that was genuinely hard.
+    lessons:
+      - What you would do differently.
+```
+
+Every field is optional and empty ones don't appear, so even one good `problem` and two `decisions` makes a page worth reading. The `placeholder-active-project` entry shows all of them filled in.
+
+I can't write these for you — they're your engineering decisions, and a plausible-sounding invented one is worse than none.
+
+### Left out of v3 on purpose
+
+- **"Age 21", "0 Years of Experience", "1 Happy Client", "© 2023"** — out of date or unverifiable
+- **"Fullstack Web Developer (2018–Present)"** and **"Freelancing (2023–Present)"** — unknown whether still current. Add them back under `experience:` if they are
+- **Facebook link** — `socials:` supports `github`, `linkedin`, `hashnode`, `website` and `x`
+- Unused v3 images — recoverable from git tag `v3.0`
