@@ -1,11 +1,4 @@
 User-agent: *
 Allow: /
 
-# The content admin is a login screen with no public content. It is also
-# noindex'd in its own markup and absent from the sitemap (it lives in public/
-# rather than being a generated route) — three independent mechanisms, because
-# an admin login surfacing in search results is a bad look and any one of them
-# can be defeated alone.
-Disallow: /admin/
-
 Sitemap: https://aashishxetri5.github.io/sitemap-index.xml
