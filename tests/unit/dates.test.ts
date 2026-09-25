@@ -10,7 +10,7 @@ import {
 const d = (iso: string) => new Date(`${iso}T00:00:00Z`);
 
 describe('formatDateRange', () => {
-  it('renders a current role as "<year> — Present" (§6)', () => {
+  it('renders a current role as "<year> — Present" (6)', () => {
     expect(
       formatDateRange({ startDate: d('2026-03-01'), current: true }),
     ).toBe('2026 — Present');
@@ -28,7 +28,7 @@ describe('formatDateRange', () => {
     ).toBe('2023 — Present');
   });
 
-  it('renders a closed multi-year range as "<start> — <end>" (§6)', () => {
+  it('renders a closed multi-year range as "<start> — <end>" (6)', () => {
     expect(
       formatDateRange({
         startDate: d('2023-01-01'),
@@ -56,7 +56,7 @@ describe('formatDateRange', () => {
 });
 
 describe('sortByRecency', () => {
-  it('places current entries before past ones regardless of date (§14)', () => {
+  it('places current entries before past ones regardless of date (14)', () => {
     const entries = [
       { id: 'old-but-recent', startDate: d('2025-01-01'), endDate: d('2026-01-01'), current: false },
       { id: 'current', startDate: d('2020-01-01'), current: true },

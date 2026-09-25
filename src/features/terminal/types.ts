@@ -1,7 +1,7 @@
 /**
  * Terminal type contracts.
  *
- * §9 requires a real command system rather than "one giant component
+ * 9 requires a real command system rather than "one giant component
  * containing hundreds of conditionals", with the shape:
  *
  *   CommandRegistry -> CommandParser -> CommandHandler -> CommandResult
@@ -92,7 +92,7 @@ export interface CommandDescriptor {
   /** Shown by `help`. Include argument and flag syntax. */
   usage?: string;
   aliases?: readonly string[];
-  /** Hidden from `help` listings — easter eggs (§28). */
+  /** Hidden from `help` listings — easter eggs (28). */
   hidden?: boolean;
   run(input: CommandInput, ctx: CommandContext): CommandResult;
   /**

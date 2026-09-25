@@ -259,7 +259,7 @@ export async function readPortfolio(root: URL): Promise<{ doc: Fields; filePath:
  * file's path so `image()` fields resolve relative to portfolio.yaml. For
  * sections in BODY_SECTIONS, `body` is rendered with `renderMarkdown`, which
  * runs the site's configured Markdown pipeline — including the rehype
- * sanitizer from astro.config.mjs (§31, ADR-007) — so `render(entry)` keeps
+ * sanitizer from astro.config.mjs (31, ADR-007) — so `render(entry)` keeps
  * working on project and post pages exactly as it did with Markdown files.
  */
 export function portfolioSection(section: SectionName): Loader {

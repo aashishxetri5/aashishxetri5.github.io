@@ -2,7 +2,7 @@
  * Portfolio snapshot — the bridge between build-time content and the terminal.
  *
  * PLAN.md Rule 7: "Do not duplicate content between terminal mode and reader
- * mode." §10: "Both modes should consume the same content source."
+ * mode." 10: "Both modes should consume the same content source."
  *
  * That is easy to *say* and easy to violate, because a client-side island
  * cannot call `getCollection()` — content collections only exist at build time.
@@ -16,7 +16,7 @@
  *
  * Two deliberate properties:
  *
- *   1. Date ranges are pre-derived here via formatDateRange, so §6's derivation
+ *   1. Date ranges are pre-derived here via formatDateRange, so 6's derivation
  *      rule keeps exactly one implementation and the client never ships date
  *      logic it would only use to re-derive the same string.
  *   2. Everything is JSON-safe. Astro serializes island props, so a Date would
@@ -136,7 +136,7 @@ export interface PortfolioSnapshot {
   achievements: SnapshotAchievement[];
   posts: SnapshotPost[];
   meta: {
-    /** ISO date the site was built. Real, not decorative (§11). */
+    /** ISO date the site was built. Real, not decorative (11). */
     builtAt: string;
     version: string;
   };

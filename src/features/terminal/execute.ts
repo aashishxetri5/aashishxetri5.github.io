@@ -1,9 +1,9 @@
 /**
  * Command parser, dispatcher and completion engine.
  *
- * The middle of §9's pipeline: parse raw input, resolve it against the
+ * The middle of 9's pipeline: parse raw input, resolve it against the
  * registry, run the handler. Pure and framework-free, so it is unit-testable
- * without mounting a component (§34 lists "command parser" and "command
+ * without mounting a component (34 lists "command parser" and "command
  * registry" as required unit tests).
  */
 import type {
@@ -33,7 +33,7 @@ function tokenize(input: string): string[] {
  * Split raw input into a command name, positional arguments and flags.
  *
  * Flags are long-form only (`--featured`). Short flags are deliberately not
- * supported: nothing in §9's command list needs them, and Rule 4 asks for a
+ * supported: nothing in 9's command list needs them, and Rule 4 asks for a
  * reason before adding surface area. Quoted segments survive, so
  * `project "image extractor"` works.
  */
@@ -120,7 +120,7 @@ export function distance(a: string, b: string): number {
  *
  * The threshold scales with input length so short words are not matched to
  * everything, and hidden commands are never suggested — that would give away
- * the easter eggs (§28).
+ * the easter eggs (28).
  */
 export function suggest(
   name: string,
@@ -167,13 +167,13 @@ function longestCommonPrefix(values: string[]): string {
 }
 
 /**
- * Tab completion (§37: "Support Tab completion where practical").
+ * Tab completion (37: "Support Tab completion where practical").
  *
  * Two levels, and the split matters. Command NAMES are completed centrally,
  * because the registry already knows all of them. ARGUMENTS are completed by
  * the command itself via an optional `complete`, because only `project` knows
  * that its argument is a project id. Building a generic argument-completion
- * language would be exactly the speculative machinery §19 warns against.
+ * language would be exactly the speculative machinery 19 warns against.
  *
  * Never completes to a hidden command: Tab must not reveal an easter egg.
  */
@@ -261,7 +261,7 @@ export function execute(raw: string, ctx: CommandContext): CommandResult | null 
   try {
     return command.run(parsed, ctx);
   } catch (error) {
-    // §32: a malformed content entry must not blank the terminal.
+    // 32: a malformed content entry must not blank the terminal.
     return {
       lines: [
         { kind: 'text', text: `${parsed.name}: command failed`, tone: 'error' },
